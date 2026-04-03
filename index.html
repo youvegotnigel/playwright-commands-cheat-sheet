@@ -107,7 +107,11 @@ await btn.click();`},
 {name:'getByLabel()',code:`await page.getByLabel('Email').fill('test@mail.com');`},
 {name:'getByPlaceholder()',code:`await page.getByPlaceholder('Search...').fill('Playwright');`},
 {name:'frameLocator()',code:`await page.frameLocator('#frame').locator('button').click();`},
-{name:'nth()',code:`await page.locator('li').nth(2).click();`}
+{name:'nth()',code:`await page.locator('li').nth(2).click();`},
+{name:'getByTestId()',code:`await page.getByTestId('submit-btn').click();`},
+{name:'getByAltText()',code:`await page.getByAltText('Company logo').click();`},
+{name:'getByTitle()',code:`await page.getByTitle('Close dialog').click();`},
+{name:'filter()',code:`await page.locator('li').filter({hasText:'Active'}).click();`}
 ]},
 {cat:'Action',cls:'action',items:[
 {name:'click()',code:`await page.locator('#login').click();`},
@@ -117,7 +121,13 @@ await btn.click();`},
 {name:'uncheck()',code:`await page.locator('#checkbox').uncheck();`},
 {name:'hover()',code:`await page.locator('#menu').hover();`},
 {name:'dragTo()',code:`await page.locator('#drag').dragTo(page.locator('#drop'));`},
-{name:'setInputFiles()',code:`await page.locator('input[type=file]').setInputFiles('file.pdf');`}
+{name:'setInputFiles()',code:`await page.locator('input[type=file]').setInputFiles('file.pdf');`},
+{name:'dblclick()',code:`await page.locator('#item').dblclick();`},
+{name:'selectOption()',code:`await page.locator('select').selectOption('value1');`},
+{name:'type()',code:`await page.locator('#input').type('Hello', {delay: 100});`},
+{name:'clear()',code:`await page.locator('#input').clear();`},
+{name:'scrollIntoView()',code:`await page.locator('#footer').scrollIntoViewIfNeeded();`},
+{name:'keyboard.press()',code:`await page.keyboard.press('Control+A');`}
 ]},
 {cat:'Assertions',cls:'assertion',items:[
 {name:'toBeVisible()',code:`await expect(page.locator('#msg')).toBeVisible();`},
@@ -125,7 +135,14 @@ await btn.click();`},
 {name:'toHaveURL()',code:`await expect(page).toHaveURL(/dashboard/);`},
 {name:'toHaveCount()',code:`await expect(page.locator('li')).toHaveCount(5);`},
 {name:'toBeEnabled()',code:`await expect(page.locator('#btn')).toBeEnabled();`},
-{name:'toBeChecked()',code:`await expect(page.locator('#checkbox')).toBeChecked();`}
+{name:'toBeChecked()',code:`await expect(page.locator('#checkbox')).toBeChecked();`},
+{name:'toHaveValue()',code:`await expect(page.locator('#input')).toHaveValue('hello');`},
+{name:'toHaveAttribute()',code:`await expect(page.locator('a')).toHaveAttribute('href', '/home');`},
+{name:'toHaveClass()',code:`await expect(page.locator('#btn')).toHaveClass(/active/);`},
+{name:'toBeHidden()',code:`await expect(page.locator('#spinner')).toBeHidden();`},
+{name:'toBeDisabled()',code:`await expect(page.locator('#btn')).toBeDisabled();`},
+{name:'toContainText()',code:`await expect(page.locator('#msg')).toContainText('success');`},
+{name:'toHaveTitle()',code:`await expect(page).toHaveTitle(/Dashboard/);`}
 ]},
 {cat:'Utility',cls:'utility',items:[
 {name:'waitForSelector()',code:`await page.waitForSelector('#login');`},
@@ -133,7 +150,16 @@ await btn.click();`},
 {name:'screenshot()',code:`await page.screenshot({path:'shot.png'});`},
 {name:'pause()',code:`await page.pause();`},
 {name:'evaluate()',code:`await page.evaluate(() => document.title);`},
-{name:'on(console)',code:`page.on('console', msg => console.log(msg.text()));`}
+{name:'on(console)',code:`page.on('console', msg => console.log(msg.text()));`},
+{name:'goto()',code:`await page.goto('https://example.com');`},
+{name:'reload()',code:`await page.reload();`},
+{name:'goBack()',code:`await page.goBack();`},
+{name:'goForward()',code:`await page.goForward();`},
+{name:'waitForLoadState()',code:`await page.waitForLoadState('networkidle');`},
+{name:'waitForURL()',code:`await page.waitForURL('**/dashboard');`},
+{name:'addInitScript()',code:`await page.addInitScript(() => {
+  window.__TEST__ = true;
+});`}
 ]},
 {cat:'API',cls:'api',items:[
 {name:'request.get()',code:`const res = await request.get('/api/users');`},
@@ -148,7 +174,18 @@ await btn.click();`},
     body: 'mock'
   });
 });`},
-{name:'waitForResponse()',code:`await page.waitForResponse(res => res.url().includes('/api'));`}
+{name:'waitForResponse()',code:`await page.waitForResponse(res => res.url().includes('/api'));`},
+{name:'request.put()',code:`await request.put('/api/users/1', {
+  data: { name: 'updated' }
+});`},
+{name:'request.delete()',code:`await request.delete('/api/users/1');`},
+{name:'request.patch()',code:`await request.patch('/api/users/1', {
+  data: { status: 'active' }
+});`},
+{name:'route.abort()',code:`await page.route('**/ads/**', route => route.abort());`},
+{name:'route.continue()',code:`await page.route('**/api', route => route.continue());`},
+{name:'waitForRequest()',code:`const req = await page.waitForRequest('**/api/login');
+console.log(req.method());`}
 ]}
 ];
 
