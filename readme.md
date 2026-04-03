@@ -1,6 +1,8 @@
 # 🎭 VitalHub Playwright Cheat Sheet
 
-An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript — no build tools or dependencies required.
+An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript 
+
+* no build tools or dependencies required.
 
 ---
 
@@ -17,8 +19,7 @@ An interactive reference dashboard for Playwright test automation, designed for 
 Clicking any tile opens a detailed modal containing:
 - **Plain-English description** — what the command does, in simple terms
 - **Code example** — ready-to-use snippet
-- **💡 Tip** — when to use it, gotchas, and alternatives
-- **Difficulty badge** — colour-coded level indicator
+- **Difficulty badge** — colour coded level indicator
 - **Docs ↗ link** — direct link to the official Playwright documentation page
 - **Copy button** — copies the code snippet to clipboard with visual confirmation
 - Press **Escape** or click outside the modal to close it
