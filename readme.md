@@ -175,7 +175,7 @@ Complete multi-step test examples showing how commands work together.
 
 ## How to Use
 
-1. Open `index.html` in your browser
+1. Open `https://youvegotnigel.github.io/playwright-commands-cheat-sheet/` in your browser
 2. Use **⭐ Start Here** to see beginner commands if you are new to Playwright
 3. Click any tile to see the full description, code example, and tip
 4. Use the **search bar** to find commands by name, description, or keyword
