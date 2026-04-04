@@ -240,4 +240,3 @@ Then add the corresponding CSS class in [style.css](style.css):
 - HTML
 - CSS
 - JavaScript (vanilla, no frameworks or build tools)
-- Works offline — open `index.html` directly in any browser
