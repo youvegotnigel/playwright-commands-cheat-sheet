@@ -845,7 +845,7 @@ expect(req.postDataJSON()).toMatchObject({ email: 'test@mail.com' });`},
  code:`npx playwright test
 # Runs all tests found in your testDir`},
 
-{name:'test <file>',
+{name:'test &lt;file&gt;',
  level:'beginner',
  desc:'Runs only the tests in a specific file. Useful when you are working on one feature and want a fast feedback loop.',
  tip:'You can pass a partial path. Playwright matches any file whose path contains the string you provide.',
