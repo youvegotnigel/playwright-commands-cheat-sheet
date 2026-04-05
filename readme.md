@@ -297,6 +297,7 @@ playwright-commands-cheat-sheet/
 └── LICENSE
 └── readme.md
 ├── style.css        # All CSS styles
+└── .gitignore
 ```
 
 ### Adding a New Command
