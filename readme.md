@@ -1,6 +1,6 @@
 # 🎭 VitalHub Playwright Cheat Sheet
 
-> **Playwright version: 1.59** — All commands verified against the [Playwright 1.59 release](https://playwright.dev/docs/release-notes).
+> All commands verified against the [Playwright 1.59](https://playwright.dev/docs/release-notes) release version.
 
 An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript 
 
