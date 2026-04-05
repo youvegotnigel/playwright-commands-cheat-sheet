@@ -33,15 +33,16 @@ Filter the grid by category using the pill buttons at the top:
 |---|---|
 | All | Shows every command |
 | ⭐ Start Here | Shows beginner-level commands only — the best starting point |
+| Config | playwright.config.ts options for runner, browsers, and CI |
 | Setup | Test structure commands |
-| Query | Element selector methods |
 | Action | User interaction methods |
+| Query | Element selector methods |
 | Assertions | Expectation and assertion methods |
 | Utility | Navigation, debugging, and page utilities |
 | API | HTTP request and network interception methods |
-| Patterns | Full multi-step test examples |
 | Accessibility | ARIA assertions, keyboard testing, and axe integration |
-| Config | playwright.config.ts options for runner, browsers, and CI |
+| Patterns | Full multi-step test examples |
+| CLI | Terminal commands for running and managing tests |
 
 ### View Modes
 Toggle between two layouts using the **Flat** / **Grouped** buttons:
