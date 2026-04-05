@@ -1,5 +1,7 @@
 # 🎭 VitalHub Playwright Cheat Sheet
 
+> All commands verified against the [Playwright 1.59](https://playwright.dev/docs/release-notes) release version.
+
 An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript 
 
 * no build tools or dependencies required.
@@ -31,13 +33,16 @@ Filter the grid by category using the pill buttons at the top:
 |---|---|
 | All | Shows every command |
 | ⭐ Start Here | Shows beginner-level commands only — the best starting point |
+| Config | playwright.config.ts options for runner, browsers, and CI |
 | Setup | Test structure commands |
-| Query | Element selector methods |
 | Action | User interaction methods |
+| Query | Element selector methods |
 | Assertions | Expectation and assertion methods |
 | Utility | Navigation, debugging, and page utilities |
 | API | HTTP request and network interception methods |
+| Accessibility | ARIA assertions, keyboard testing, and axe integration |
 | Patterns | Full multi-step test examples |
+| CLI | Terminal commands for running and managing tests |
 
 ### View Modes
 Toggle between two layouts using the **Flat** / **Grouped** buttons:
@@ -67,6 +72,11 @@ The building blocks every Playwright test file needs.
 | `beforeAll()` | Intermediate |
 | `afterAll()` | Intermediate |
 | `expect()` | Beginner |
+| `test.only()` | Beginner |
+| `test.skip()` | Beginner |
+| `test.fixme()` | Intermediate |
+| `test.slow()` | Intermediate |
+| `test.step()` | Intermediate |
 
 ### Query (Blue)
 Methods for finding elements on the page.
@@ -84,6 +94,9 @@ Methods for finding elements on the page.
 | `frameLocator()` | Advanced |
 | `nth()` | Intermediate |
 | `filter()` | Intermediate |
+| `first() / last()` | Beginner |
+| `and()` | Intermediate |
+| `or()` | Intermediate |
 
 ### Action (Green)
 Methods for interacting with elements.
@@ -99,11 +112,14 @@ Methods for interacting with elements.
 | `clear()` | Beginner |
 | `hover()` | Intermediate |
 | `dblclick()` | Intermediate |
-| `type()` | Intermediate |
+| `pressSequentially()` | Intermediate |
 | `setInputFiles()` | Intermediate |
 | `scrollIntoView()` | Intermediate |
 | `keyboard.press()` | Intermediate |
+| `tap()` | Intermediate |
+| `focus()` | Intermediate |
 | `dragTo()` | Advanced |
+| `dispatchEvent()` | Advanced |
 
 ### Assertions (Orange)
 Methods for verifying expected state.
@@ -118,11 +134,19 @@ Methods for verifying expected state.
 | `toHaveTitle()` | Beginner |
 | `toBeEnabled()` | Beginner |
 | `toBeDisabled()` | Beginner |
+| `toBeEmpty()` | Beginner |
 | `toBeChecked()` | Intermediate |
 | `toHaveValue()` | Intermediate |
 | `toHaveCount()` | Intermediate |
 | `toHaveAttribute()` | Intermediate |
 | `toHaveClass()` | Intermediate |
+| `toContainClass()` | Intermediate |
+| `toHaveCSS()` | Intermediate |
+| `toBeEditable()` | Intermediate |
+| `toBeInViewport()` | Intermediate |
+| `expect.soft()` | Intermediate |
+| `toHaveScreenshot()` | Advanced |
+| `expect.poll()` | Advanced |
 
 ### Utility (Purple)
 Navigation, debugging, and page control methods.
@@ -136,12 +160,18 @@ Navigation, debugging, and page control methods.
 | `screenshot()` | Beginner |
 | `pause()` | Beginner |
 | `waitForTimeout()` | Beginner |
+| `locator.innerText()` | Beginner |
+| `locator.getAttribute()` | Beginner |
+| `locator.count()` | Beginner |
 | `waitForSelector()` | Intermediate |
 | `waitForLoadState()` | Intermediate |
 | `waitForURL()` | Intermediate |
 | `on(console)` | Intermediate |
+| `locator.isVisible()` | Intermediate |
+| `page.setViewportSize()` | Intermediate |
 | `evaluate()` | Advanced |
 | `addInitScript()` | Advanced |
+| `waitForFunction()` | Advanced |
 
 ### API (Red)
 HTTP requests and network interception.
@@ -156,8 +186,10 @@ HTTP requests and network interception.
 | `route()` | Intermediate |
 | `waitForResponse()` | Intermediate |
 | `waitForRequest()` | Intermediate |
+| `page.unroute()` | Intermediate |
 | `route.abort()` | Advanced |
 | `route.continue()` | Advanced |
+| `route.fetch()` | Advanced |
 
 ### Patterns (Pink)
 Complete multi-step test examples showing how commands work together.
@@ -170,6 +202,8 @@ Complete multi-step test examples showing how commands work together.
 | Mock API | Intermediate |
 | File upload | Intermediate |
 | API login setup | Intermediate |
+| Page Object Model | Intermediate |
+| storageState auth | Intermediate |
 
 ### CLI (Amber)
 Terminal commands for running, debugging, and managing Playwright from the command line.
@@ -188,6 +222,7 @@ Terminal commands for running, debugging, and managing Playwright from the comma
 | `install --with-deps` | Beginner |
 | `--version` | Beginner |
 | `--help` | Beginner |
+| `--list` | Beginner |
 | `--last-failed` | Intermediate |
 | `--project` | Intermediate |
 | `--workers` | Intermediate |
@@ -195,6 +230,44 @@ Terminal commands for running, debugging, and managing Playwright from the comma
 | `--timeout` | Intermediate |
 | `--reporter` | Intermediate |
 | `show-trace` | Intermediate |
+| `--trace` | Intermediate |
+| `--grep` | Intermediate |
+| `--forbid-only` | Intermediate |
+| `--shard` | Advanced |
+
+### Accessibility (Teal)
+Assertions and patterns for testing screen reader support, ARIA structure, and keyboard accessibility.
+
+| Command | Level |
+|---|---|
+| `toMatchAriaSnapshot()` | Intermediate |
+| `toHaveAccessibleName()` | Intermediate |
+| `toHaveAccessibleDescription()` | Intermediate |
+| `toHaveAccessibleErrorMessage()` | Intermediate |
+| `toHaveRole()` | Intermediate |
+| `locator.ariaSnapshot()` | Advanced |
+| Keyboard navigation | Intermediate |
+| Axe integration | Advanced |
+
+### Config (Indigo)
+Key `playwright.config.ts` options for configuring the test runner, browsers, and CI pipelines.
+
+| Option | Level |
+|---|---|
+| `baseURL` | Beginner |
+| `testDir` | Beginner |
+| `timeout` | Beginner |
+| `use (browser options)` | Beginner |
+| `retries` | Intermediate |
+| `workers` | Intermediate |
+| `fullyParallel` | Intermediate |
+| `projects` | Intermediate |
+| `reporter` | Intermediate |
+| `trace` | Intermediate |
+| `screenshot / video` | Intermediate |
+| `forbidOnly` | Intermediate |
+| `testIdAttribute` | Intermediate |
+| `globalSetup / globalTeardown` | Advanced |
 
 ---
 
