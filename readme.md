@@ -4,7 +4,9 @@
 
 An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript 
 
-* no build tools or dependencies required.
+![Dashboard](images/dashboard.jpeg)
+
+![Description](images/description.png)
 
 ---
 
@@ -287,12 +289,15 @@ Key `playwright.config.ts` options for configuring the test runner, browsers, an
 
 ```
 playwright-commands-cheat-sheet/
-├── index.html       # HTML shell — layout and modal structure only
-├── style.css        # All CSS styles
+├── images/          # Images folder
 ├── js/
 │   ├── data.js      # All commands, descriptions, tips, and docs links
 │   └── app.js       # UI logic — rendering, filtering, modal, search
+├── index.html       # HTML shell — layout and modal structure only
+└── LICENSE
 └── readme.md
+├── style.css        # All CSS styles
+└── .gitignore
 ```
 
 ### Adding a New Command
@@ -330,14 +335,6 @@ Then add the corresponding CSS class in [style.css](style.css):
   background: linear-gradient(135deg, #color1, #color2);
 }
 ```
-
----
-
-## Tech
-
-- HTML
-- CSS
-- JavaScript
 
 ---
 
