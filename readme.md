@@ -338,3 +338,8 @@ Then add the corresponding CSS class in [style.css](style.css):
 - HTML
 - CSS
 - JavaScript
+
+---
+
+## Author
+* **Nigel Mulholland** - [Linkedin](https://www.linkedin.com/in/nigel-mulholland/) 
