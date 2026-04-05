@@ -171,6 +171,31 @@ Complete multi-step test examples showing how commands work together.
 | File upload | Intermediate |
 | API login setup | Intermediate |
 
+### CLI (Amber)
+Terminal commands for running, debugging, and managing Playwright from the command line.
+
+| Command | Level |
+|---|---|
+| `npx playwright test` | Beginner |
+| `test <file>` | Beginner |
+| `-g "name"` | Beginner |
+| `--headed` | Beginner |
+| `--debug` | Beginner |
+| `--ui` | Beginner |
+| `show-report` | Beginner |
+| `codegen` | Beginner |
+| `install` | Beginner |
+| `install --with-deps` | Beginner |
+| `--version` | Beginner |
+| `--help` | Beginner |
+| `--last-failed` | Intermediate |
+| `--project` | Intermediate |
+| `--workers` | Intermediate |
+| `--retries` | Intermediate |
+| `--timeout` | Intermediate |
+| `--reporter` | Intermediate |
+| `show-trace` | Intermediate |
+
 ---
 
 ## How to Use
