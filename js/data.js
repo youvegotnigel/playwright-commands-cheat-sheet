@@ -1032,6 +1032,60 @@ await page.evaluate(() => {
 // Catch uncaught JS errors
 page.on('pageerror', err => console.error('Page error:', err));`},
 
+{name:'on(dialog)',
+ level:'intermediate',
+ desc:"Listens for browser dialog events (alert, confirm, prompt, beforeunload) so your test can handle them instead of them blocking execution.",
+ tip:'Always set up the listener BEFORE the action that triggers the dialog. Without a handler, dialogs will block the test indefinitely.',
+ docs:'https://playwright.dev/docs/dialogs',
+ code:`// Auto-accept any dialog that appears
+page.on('dialog', dialog => dialog.accept());
+
+// Inspect before deciding
+page.on('dialog', async dialog => {
+  console.log(dialog.type());    // 'alert' | 'confirm' | 'prompt'
+  console.log(dialog.message()); // text shown in the dialog
+  await dialog.accept();
+});`},
+
+{name:'dialog.accept()',
+ level:'intermediate',
+ desc:'Accepts a dialog, equivalent to clicking OK. For prompt dialogs, pass a string to fill in the input value.',
+ tip:"Call this inside a page.on('dialog') handler. For a prompt, pass the text you want to submit: dialog.accept('my answer').",
+ docs:'https://playwright.dev/docs/api/class-dialog#dialog-accept',
+ code:`page.on('dialog', async dialog => {
+  await dialog.accept();
+});
+
+// For a prompt dialog, pass the input value
+page.on('dialog', async dialog => {
+  await dialog.accept('John Smith');
+});`},
+
+{name:'dialog.dismiss()',
+ level:'intermediate',
+ desc:'Dismisses a dialog, equivalent to clicking Cancel. For alert dialogs, dismiss and accept behave the same way.',
+ tip:"Use dismiss() for confirm dialogs when you want to test the 'Cancel' path e.g. confirming that a delete action is cancelled.",
+ docs:'https://playwright.dev/docs/api/class-dialog#dialog-dismiss',
+ code:`page.on('dialog', async dialog => {
+  await dialog.dismiss();
+});
+
+// Test that cancelling a confirm prevents deletion
+page.on('dialog', async dialog => {
+  if (dialog.type() === 'confirm') await dialog.dismiss();
+});`},
+
+{name:'dialog.message()',
+ level:'intermediate',
+ desc:'Returns the message text displayed in the dialog. Use to assert that the correct message is shown before accepting or dismissing.',
+ tip:'Great for testing that warning and confirmation messages contain the right content e.g. the item name in a delete confirmation.',
+ docs:'https://playwright.dev/docs/api/class-dialog#dialog-message',
+ code:`page.on('dialog', async dialog => {
+  const msg = dialog.message();
+  expect(msg).toContain('Are you sure you want to delete');
+  await dialog.accept();
+});`},
+
 {name:'addInitScript()',
  level:'advanced',
  desc:'Injects a script into every new page and frame before any page scripts run. Use to mock globals or set test flags.',
