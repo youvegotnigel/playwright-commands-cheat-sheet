@@ -56,6 +56,7 @@ input[type=text]:focus { outline: none; border-color: #64748b; }
 .utility   { background: linear-gradient(135deg, #a855f7, #7e22ce); }
 .api       { background: linear-gradient(135deg, #ef4444, #dc2626); }
 .pattern   { background: linear-gradient(135deg, #ec4899, #be185d); }
+.cli       { background: linear-gradient(135deg, #f59e0b, #d97706); }
 
 .tile-level {
   position: absolute; top: 7px; right: 9px;
