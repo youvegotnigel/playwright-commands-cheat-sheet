@@ -1,14 +1,14 @@
 // =============================================================
-// data.js — All Playwright commands, descriptions, tips & docs
+// data.js -> All Playwright commands, descriptions, tips & docs
 //
 // To add a new command: find the right category below and add
 // a new object to its `items` array with these fields:
-//   name  — the command name shown on the tile
-//   level — 'beginner' | 'intermediate' | 'advanced'
-//   desc  — plain English explanation of what it does
-//   tip   — when to use it, gotchas, alternatives
-//   docs  — URL to the official Playwright docs page
-//   code  — example code shown in the modal
+//   name  -> the command name shown on the tile
+//   level -> 'beginner' | 'intermediate' | 'advanced'
+//   desc  -> plain English explanation of what it does
+//   tip   -> when to use it, gotchas, alternatives
+//   docs  -> URL to the official Playwright docs page
+//   code  -> example code shown in the modal
 // =============================================================
 
 const categories = [
@@ -300,13 +300,13 @@ await page.getByRole('link', { name: 'Settings' }).click();`},
 await page.locator('td.editable').dblclick();
 await page.locator('td.editable input').fill('new value');`},
 
-{name:'type()',
+{name:'pressSequentially()',
  level:'intermediate',
- desc:'Types text character by character, firing keyboard events for each key. Simulates a real user typing.',
- tip:'Use fill() instead for most cases. Use type() only when the input reacts to individual keystrokes (autocomplete, live validation).',
- docs:'https://playwright.dev/docs/api/class-locator#locator-type',
+ desc:'Types text character by character, firing keyboard events for each key. The modern replacement for the deprecated type().',
+ tip:'Use fill() for most cases. It is faster and more reliable. Use pressSequentially() only when the input reacts to individual keystrokes (autocomplete, live validation, character counters).',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-press-sequentially',
  code:`// Slow typing to trigger autocomplete suggestions
-await page.locator('#search').type('Play', { delay: 100 });
+await page.locator('#search').pressSequentially('Play', { delay: 100 });
 await page.getByRole('option', { name: 'Playwright' }).click();`},
 
 {name:'clear()',
