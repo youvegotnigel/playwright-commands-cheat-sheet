@@ -335,13 +335,5 @@ Then add the corresponding CSS class in [style.css](style.css):
 
 ---
 
-## Tech
-
-- HTML
-- CSS
-- JavaScript
-
----
-
 ## Author
 * **Nigel Mulholland** - [Linkedin](https://www.linkedin.com/in/nigel-mulholland/) 
