@@ -13,6 +13,203 @@
 
 const categories = [
 
+/* ── CONFIG ───────────────────────────────────────────────────── */
+{cat:'Config', cls:'config', color:'#6366f1', items:[
+{name:'baseURL',
+ level:'beginner',
+ desc:'Sets the base URL for all page.goto() calls. Lets you use relative paths like /login instead of the full URL.',
+ tip:'Set this in playwright.config.ts and never hardcode URLs in tests. Change environments by changing baseURL in one place.',
+ docs:'https://playwright.dev/docs/test-configuration#baseurl',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'http://localhost:3000',
+  },
+});
+
+// In tests relative path works because baseURL is set
+await page.goto('/login');`},
+
+{name:'testDir',
+ level:'beginner',
+ desc:'Sets the directory where Playwright looks for test files. Defaults to the directory of the config file.',
+ tip:'Keep tests separate from source code. A common convention is a top-level tests/ or e2e/ folder.',
+ docs:'https://playwright.dev/docs/test-configuration#testdir',
+ code:`// playwright.config.ts
+export default defineConfig({
+  testDir: './tests',
+  testMatch: '**/*.spec.ts',
+});`},
+
+{name:'timeout',
+ level:'beginner',
+ desc:'Sets the maximum time in milliseconds each test is allowed to run before being marked as failed.',
+ tip:'Default is 30 seconds. Increase for slow tests. Use test.slow() to triple the timeout for individual tests.',
+ docs:'https://playwright.dev/docs/test-timeouts',
+ code:`// playwright.config.ts
+export default defineConfig({
+  timeout: 60000, // 60 seconds per test
+  expect: {
+    timeout: 10000, // 10 seconds for each assertion
+  },
+});`},
+
+{name:'retries',
+ level:'intermediate',
+ desc:'Sets how many times a failing test is retried before being marked as failed. Helps handle rare, intermittent flakiness.',
+ tip:'Use 1-2 retries in CI only. Zero retries locally makes failures visible immediately. Never use retries to hide genuinely broken tests.',
+ docs:'https://playwright.dev/docs/test-retries',
+ code:`// playwright.config.ts
+export default defineConfig({
+  retries: process.env.CI ? 2 : 0,
+});`},
+
+{name:'workers',
+ level:'intermediate',
+ desc:'Sets the number of parallel worker processes. Defaults to half the number of CPU cores.',
+ tip:'More workers means faster runs on powerful machines. Set to 1 when debugging flaky tests or shared state issues.',
+ docs:'https://playwright.dev/docs/test-parallel',
+ code:`// playwright.config.ts
+export default defineConfig({
+  workers: process.env.CI ? 4 : undefined,
+  // undefined = use default (half CPU cores) locally
+});`},
+
+{name:'fullyParallel',
+ level:'intermediate',
+ desc:'Runs all tests across all files in parallel, not just files in parallel. Each test gets its own worker.',
+ tip:'Enable for maximum speed if your tests are fully isolated. Disable if tests within a file share state or must run in order.',
+ docs:'https://playwright.dev/docs/test-parallel#parallelize-tests-in-a-single-file',
+ code:`// playwright.config.ts
+export default defineConfig({
+  fullyParallel: true,
+});
+
+// To run tests in a single file serially:
+test.describe.configure({ mode: 'serial' });`},
+
+{name:'use (browser options)',
+ level:'beginner',
+ desc:'Sets shared browser and context options applied to all tests: viewport, locale, timezone, permissions, and more.',
+ tip:'Set common options here once instead of in every test. Override per-project or per-test as needed.',
+ docs:'https://playwright.dev/docs/test-use-options',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'http://localhost:3000',
+    viewport: { width: 1280, height: 720 },
+    locale: 'en-GB',
+    timezoneId: 'Europe/London',
+    headless: true,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'on-first-retry',
+  },
+});`},
+
+{name:'projects',
+ level:'intermediate',
+ desc:'Defines multiple named test projects, each with its own browser and configuration. Use for cross-browser testing.',
+ tip:'Each project can override any use option. Run a specific project with --project=chromium during development.',
+ docs:'https://playwright.dev/docs/test-projects',
+ code:`// playwright.config.ts
+export default defineConfig({
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
+    { name: 'mobile',   use: { ...devices['iPhone 14'] } },
+  ],
+});`},
+
+{name:'reporter',
+ level:'intermediate',
+ desc:'Configures the output format for test results. Can combine multiple reporters at once.',
+ tip:'Use html locally for rich visual results. Use dot or line in CI for clean logs, and add junit for test result integration.',
+ docs:'https://playwright.dev/docs/test-reporters',
+ code:`// playwright.config.ts
+export default defineConfig({
+  reporter: [
+    ['html', { open: 'never' }],
+    ['junit', { outputFile: 'results.xml' }],
+    ['list'],
+  ],
+});`},
+
+{name:'globalSetup / globalTeardown',
+ level:'advanced',
+ desc:'Runs a script once before all tests start (globalSetup) and once after all tests finish (globalTeardown).',
+ tip:'Use globalSetup to log in and save auth state, seed a database, or start a test server. Tear it down in globalTeardown.',
+ docs:'https://playwright.dev/docs/test-global-setup-teardown',
+ code:`// playwright.config.ts
+export default defineConfig({
+  globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
+});
+
+// global-setup.ts
+export default async function() {
+  await seedDatabase();
+}`},
+
+{name:'trace',
+ level:'intermediate',
+ desc:'Controls when traces are recorded. A trace is a full recording of browser actions, network, and console output, viewable in the Trace Viewer.',
+ tip:'Use retain-on-failure in CI, traces are only kept for failing tests, saving disk space while ensuring you always have debug data.',
+ docs:'https://playwright.dev/docs/trace-viewer-intro',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    // 'off' | 'on' | 'on-first-retry' | 'on-all-retries' | 'retain-on-failure'
+    trace: 'retain-on-failure',
+  },
+});
+
+// View a trace:
+// npx playwright show-trace test-results/trace.zip`},
+
+{name:'screenshot / video',
+ level:'intermediate',
+ desc:"Controls when screenshots and videos are captured. Set to only-on-failure to automatically capture evidence when a test fails.",
+ tip:'Both default to off. Enable in CI so you always have visual evidence for failures without slowing down passing tests.',
+ docs:'https://playwright.dev/docs/test-configuration#automatic-screenshots',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    // 'off' | 'on' | 'only-on-failure'
+    screenshot: 'only-on-failure',
+    // 'off' | 'on' | 'retain-on-failure'
+    video: 'retain-on-failure',
+  },
+});`},
+
+{name:'forbidOnly',
+ level:'intermediate',
+ desc:'Causes the test run to fail immediately if any test.only() or describe.only() is present. Essential for CI pipelines.',
+ tip:'Set this to !!process.env.CI so it is only enforced in CI. Locally you can still use .only() freely during development.',
+ docs:'https://playwright.dev/docs/api/class-testconfig#test-config-forbid-only',
+ code:`// playwright.config.ts
+export default defineConfig({
+  forbidOnly: !!process.env.CI,
+});`},
+
+{name:'testIdAttribute',
+ level:'intermediate',
+ desc:'Customizes the HTML attribute that getByTestId() looks for. Defaults to data-testid.',
+ tip:'Change this if your codebase uses a different attribute like data-cy (Cypress) or data-qa.',
+ docs:'https://playwright.dev/docs/api/class-testconfig#test-config-test-id-attribute',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    testIdAttribute: 'data-cy', // now getByTestId() reads data-cy
+  },
+});
+
+// In tests
+await page.getByTestId('submit-btn').click();
+// Finds: <button data-cy="submit-btn">`},
+]},
+
 /* ── TEST SETUP ───────────────────────────────────────────────── */
 {cat:'Setup', cls:'setup', color:'#06b6d4', items:[
 {name:'test()',
@@ -174,153 +371,6 @@ test('safari only', async ({ page, browserName }) => {
 
   await expect(page.getByText('Order confirmed')).toBeVisible();
 });`},
-]},
-
-/* ── QUERIES ──────────────────────────────────────────────────── */
-{cat:'Query', cls:'query', color:'#3b82f6', items:[
-{name:'locator()',
- level:'beginner',
- desc:'Finds elements using a CSS selector or XPath expression. The most flexible selector method.',
- tip:'Use when no semantic selector (getByRole, getByLabel) fits. Prefer semantic selectors, they are more readable and resilient to UI changes.',
- docs:'https://playwright.dev/docs/api/class-page#page-locator',
- code:`const btn = page.locator('#login');
-await btn.click();
-
-// CSS class selector
-await page.locator('.nav-item.active').click();
-
-// XPath
-await page.locator('//button[text()="Submit"]').click();`},
-
-{name:'getByRole()',
- level:'beginner',
- desc:'Finds an element by its ARIA role (button, heading, textbox, etc.) and optional accessible name. The most recommended selector.',
- tip:"The #1 recommended way to select elements. It mirrors how assistive technologies see the page and is resilient to style changes.",
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-role',
- code:`await page.getByRole('button', { name: 'Submit' }).click();
-await page.getByRole('textbox', { name: 'Email' }).fill('test@mail.com');
-await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();`},
-
-{name:'getByText()',
- level:'beginner',
- desc:'Finds an element by its visible text content. Matches substrings by default.',
- tip:'Good for links, labels, and headings. Use exact: true for a strict full text match. For form inputs, prefer getByLabel().',
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-text',
- code:`await page.getByText('Welcome back').click();
-
-// Exact match only
-await page.getByText('Submit', { exact: true }).click();`},
-
-{name:'getByLabel()',
- level:'beginner',
- desc:'Finds a form input by the text of its associated label element. Highly recommended for form fields.',
- tip:'The most reliable way to find inputs. If your form has proper labels, this almost always beats using CSS selectors.',
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-label',
- code:`await page.getByLabel('Email').fill('test@mail.com');
-await page.getByLabel('Password').fill('secret');
-await page.getByLabel('Remember me').check();`},
-
-{name:'getByPlaceholder()',
- level:'beginner',
- desc:'Finds an input by its placeholder text. Useful when no label element is present.',
- tip:'Use as a fallback when getByLabel() is not available. Placeholder text can change, so getByLabel() or getByRole() is more stable long-term.',
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-placeholder',
- code:`await page.getByPlaceholder('Search...').fill('Playwright');
-await page.getByPlaceholder('Enter your email').fill('test@mail.com');`},
-
-{name:'getByTestId()',
- level:'beginner',
- desc:'Finds an element by its data-testid attribute, test-specific selector that survives style and structure changes.',
- tip:'Best used when you control the codebase and can add data-testid attributes. Test IDs are invisible to design changes and very stable.',
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-test-id',
- code:`await page.getByTestId('submit-btn').click();
-await expect(page.getByTestId('error-msg')).toBeVisible();`},
-
-{name:'getByAltText()',
- level:'intermediate',
- desc:'Finds an img or element with an alt attribute matching the given text.',
- tip:'Primarily for images. Use when you need to assert an image is present or click an image-based link.',
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-alt-text',
- code:`await page.getByAltText('Company logo').click();
-await expect(page.getByAltText('User avatar')).toBeVisible();`},
-
-{name:'getByTitle()',
- level:'intermediate',
- desc:'Finds an element by its title attribute. The tooltip text shown on hover.',
- tip:'Useful for icon buttons that have a title but no visible label. Less common than other selectors.',
- docs:'https://playwright.dev/docs/api/class-page#page-get-by-title',
- code:`await page.getByTitle('Close dialog').click();
-await expect(page.getByTitle('Settings')).toBeVisible();`},
-
-{name:'frameLocator()',
- level:'advanced',
- desc:'Switches the locator context into an iframe so you can interact with elements inside it.',
- tip:'You must use frameLocator before any query inside an iframe. Normal locators cannot cross iframe boundaries.',
- docs:'https://playwright.dev/docs/api/class-page#page-frame-locator',
- code:`await page.frameLocator('#payment-frame')
-  .getByLabel('Card number')
-  .fill('4242 4242 4242 4242');`},
-
-{name:'nth()',
- level:'intermediate',
- desc:'Picks the element at a specific index from a list of matches. Index starts at 0.',
- tip:'Use sparingly index-based selectors are brittle when list order changes. Prefer filter() with text or attribute checks when possible.',
- docs:'https://playwright.dev/docs/api/class-locator#locator-nth',
- code:`// Third item (index 2)
-await page.locator('li').nth(2).click();
-
-// Last item
-await page.locator('li').last().click();`},
-
-{name:'filter()',
- level:'intermediate',
- desc:'Narrows a set of matching elements by additional conditions like text content or the presence of a child element.',
- tip:'Combine with a broad locator to zero in on a specific item. Much more readable than complex CSS selectors.',
- docs:'https://playwright.dev/docs/api/class-locator#locator-filter',
- code:`// Find a list item containing "Active"
-await page.locator('li').filter({ hasText: 'Active' }).click();
-
-// Find a table row that contains "John", then click its button
-await page.locator('tr').filter({
-  has: page.locator('td', { hasText: 'John' })
-}).locator('button').click();
-
-// Filter to visible elements only (v1.51+)
-await page.locator('.tooltip').filter({ visible: true }).click();`},
-
-{name:'first() / last()',
- level:'beginner',
- desc:'Returns the first or last element from a set of matches. Cleaner aliases for .nth(0) and .nth(-1).',
- tip:'Prefer first() and last() over nth(0) for readability. Still index-based, so be aware of order changes in dynamic lists.',
- docs:'https://playwright.dev/docs/api/class-locator#locator-first',
- code:`// First matching element
-await page.locator('li').first().click();
-
-// Last matching element
-await page.locator('li').last().click();
-
-// Assert the last row has specific text
-await expect(page.locator('tr').last()).toContainText('Total');`},
-
-{name:'and()',
- level:'intermediate',
- desc:'Returns elements that match both this locator AND another locator. Narrows results by combining two conditions with AND logic.',
- tip:'Use when you need two independent conditions on the same element: e.g. a button that is both visible and has a specific label.',
- docs:'https://playwright.dev/docs/api/class-locator#locator-and',
- code:`// Find a button that is also disabled
-const disabledSubmit = page.getByRole('button', { name: 'Submit' })
-  .and(page.locator(':disabled'));
-await expect(disabledSubmit).toBeVisible();`},
-
-{name:'or()',
- level:'intermediate',
- desc:'Returns elements matching either this locator OR another locator. Useful when an element can appear in two different ways.',
- tip:'Good for handling UI states where the same action might appear as a button or a link depending on context.',
- docs:'https://playwright.dev/docs/api/class-locator#locator-or',
- code:`// Handle a UI that shows either a "Sign in" button or a "Log in" link
-const signIn = page.getByRole('button', { name: 'Sign in' })
-  .or(page.getByRole('link', { name: 'Log in' }));
-await signIn.first().click();`},
 ]},
 
 /* ── ACTIONS ──────────────────────────────────────────────────── */
@@ -499,6 +549,153 @@ await page.locator('#custom-input').dispatchEvent('change');
 await page.locator('#drop-zone').dispatchEvent('drop', {
   dataTransfer: await page.evaluateHandle(() => new DataTransfer())
 });`},
+]},
+
+/* ── QUERIES ──────────────────────────────────────────────────── */
+{cat:'Query', cls:'query', color:'#3b82f6', items:[
+{name:'locator()',
+ level:'beginner',
+ desc:'Finds elements using a CSS selector or XPath expression. The most flexible selector method.',
+ tip:'Use when no semantic selector (getByRole, getByLabel) fits. Prefer semantic selectors, they are more readable and resilient to UI changes.',
+ docs:'https://playwright.dev/docs/api/class-page#page-locator',
+ code:`const btn = page.locator('#login');
+await btn.click();
+
+// CSS class selector
+await page.locator('.nav-item.active').click();
+
+// XPath
+await page.locator('//button[text()="Submit"]').click();`},
+
+{name:'getByRole()',
+ level:'beginner',
+ desc:'Finds an element by its ARIA role (button, heading, textbox, etc.) and optional accessible name. The most recommended selector.',
+ tip:"The #1 recommended way to select elements. It mirrors how assistive technologies see the page and is resilient to style changes.",
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-role',
+ code:`await page.getByRole('button', { name: 'Submit' }).click();
+await page.getByRole('textbox', { name: 'Email' }).fill('test@mail.com');
+await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();`},
+
+{name:'getByText()',
+ level:'beginner',
+ desc:'Finds an element by its visible text content. Matches substrings by default.',
+ tip:'Good for links, labels, and headings. Use exact: true for a strict full text match. For form inputs, prefer getByLabel().',
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-text',
+ code:`await page.getByText('Welcome back').click();
+
+// Exact match only
+await page.getByText('Submit', { exact: true }).click();`},
+
+{name:'getByLabel()',
+ level:'beginner',
+ desc:'Finds a form input by the text of its associated label element. Highly recommended for form fields.',
+ tip:'The most reliable way to find inputs. If your form has proper labels, this almost always beats using CSS selectors.',
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-label',
+ code:`await page.getByLabel('Email').fill('test@mail.com');
+await page.getByLabel('Password').fill('secret');
+await page.getByLabel('Remember me').check();`},
+
+{name:'getByPlaceholder()',
+ level:'beginner',
+ desc:'Finds an input by its placeholder text. Useful when no label element is present.',
+ tip:'Use as a fallback when getByLabel() is not available. Placeholder text can change, so getByLabel() or getByRole() is more stable long-term.',
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-placeholder',
+ code:`await page.getByPlaceholder('Search...').fill('Playwright');
+await page.getByPlaceholder('Enter your email').fill('test@mail.com');`},
+
+{name:'getByTestId()',
+ level:'beginner',
+ desc:'Finds an element by its data-testid attribute, test-specific selector that survives style and structure changes.',
+ tip:'Best used when you control the codebase and can add data-testid attributes. Test IDs are invisible to design changes and very stable.',
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-test-id',
+ code:`await page.getByTestId('submit-btn').click();
+await expect(page.getByTestId('error-msg')).toBeVisible();`},
+
+{name:'getByAltText()',
+ level:'intermediate',
+ desc:'Finds an img or element with an alt attribute matching the given text.',
+ tip:'Primarily for images. Use when you need to assert an image is present or click an image-based link.',
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-alt-text',
+ code:`await page.getByAltText('Company logo').click();
+await expect(page.getByAltText('User avatar')).toBeVisible();`},
+
+{name:'getByTitle()',
+ level:'intermediate',
+ desc:'Finds an element by its title attribute. The tooltip text shown on hover.',
+ tip:'Useful for icon buttons that have a title but no visible label. Less common than other selectors.',
+ docs:'https://playwright.dev/docs/api/class-page#page-get-by-title',
+ code:`await page.getByTitle('Close dialog').click();
+await expect(page.getByTitle('Settings')).toBeVisible();`},
+
+{name:'frameLocator()',
+ level:'advanced',
+ desc:'Switches the locator context into an iframe so you can interact with elements inside it.',
+ tip:'You must use frameLocator before any query inside an iframe. Normal locators cannot cross iframe boundaries.',
+ docs:'https://playwright.dev/docs/api/class-page#page-frame-locator',
+ code:`await page.frameLocator('#payment-frame')
+  .getByLabel('Card number')
+  .fill('4242 4242 4242 4242');`},
+
+{name:'nth()',
+ level:'intermediate',
+ desc:'Picks the element at a specific index from a list of matches. Index starts at 0.',
+ tip:'Use sparingly index-based selectors are brittle when list order changes. Prefer filter() with text or attribute checks when possible.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-nth',
+ code:`// Third item (index 2)
+await page.locator('li').nth(2).click();
+
+// Last item
+await page.locator('li').last().click();`},
+
+{name:'filter()',
+ level:'intermediate',
+ desc:'Narrows a set of matching elements by additional conditions like text content or the presence of a child element.',
+ tip:'Combine with a broad locator to zero in on a specific item. Much more readable than complex CSS selectors.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-filter',
+ code:`// Find a list item containing "Active"
+await page.locator('li').filter({ hasText: 'Active' }).click();
+
+// Find a table row that contains "John", then click its button
+await page.locator('tr').filter({
+  has: page.locator('td', { hasText: 'John' })
+}).locator('button').click();
+
+// Filter to visible elements only (v1.51+)
+await page.locator('.tooltip').filter({ visible: true }).click();`},
+
+{name:'first() / last()',
+ level:'beginner',
+ desc:'Returns the first or last element from a set of matches. Cleaner aliases for .nth(0) and .nth(-1).',
+ tip:'Prefer first() and last() over nth(0) for readability. Still index-based, so be aware of order changes in dynamic lists.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-first',
+ code:`// First matching element
+await page.locator('li').first().click();
+
+// Last matching element
+await page.locator('li').last().click();
+
+// Assert the last row has specific text
+await expect(page.locator('tr').last()).toContainText('Total');`},
+
+{name:'and()',
+ level:'intermediate',
+ desc:'Returns elements that match both this locator AND another locator. Narrows results by combining two conditions with AND logic.',
+ tip:'Use when you need two independent conditions on the same element: e.g. a button that is both visible and has a specific label.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-and',
+ code:`// Find a button that is also disabled
+const disabledSubmit = page.getByRole('button', { name: 'Submit' })
+  .and(page.locator(':disabled'));
+await expect(disabledSubmit).toBeVisible();`},
+
+{name:'or()',
+ level:'intermediate',
+ desc:'Returns elements matching either this locator OR another locator. Useful when an element can appear in two different ways.',
+ tip:'Good for handling UI states where the same action might appear as a button or a link depending on context.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-or',
+ code:`// Handle a UI that shows either a "Sign in" button or a "Log in" link
+const signIn = page.getByRole('button', { name: 'Sign in' })
+  .or(page.getByRole('link', { name: 'Log in' }));
+await signIn.first().click();`},
 ]},
 
 /* ── ASSERTIONS ───────────────────────────────────────────────── */
@@ -1063,6 +1260,107 @@ await page.route('**/api/items', handler);
 await page.unroute('**/api/items', handler);`},
 ]},
 
+/* ── ACCESSIBILITY ────────────────────────────────────────────── */
+{cat:'Accessibility', cls:'accessibility', color:'#10b981', items:[
+{name:'toMatchAriaSnapshot()',
+ level:'intermediate',
+ desc:'Asserts the ARIA structure of an element matches a YAML snapshot. Captures roles, names, and states in a human-readable format.',
+ tip:'Run with --update-snapshots to generate the baseline. Commit the snapshot files. Great for catching unintended ARIA regressions. Added in v1.50.',
+ docs:'https://playwright.dev/docs/aria-snapshots',
+ code:`// Generate snapshot on first run: npx playwright test --update-snapshots
+await expect(page.locator('nav')).toMatchAriaSnapshot(\`
+  - navigation:
+    - link "Home"
+    - link "Products"
+    - link "Contact"
+\`);`},
+
+{name:'toHaveAccessibleName()',
+ level:'intermediate',
+ desc:'Asserts that an element has the expected accessible name, the label announced by screen readers.',
+ tip:'Use to verify that icon-only buttons, images, and form fields have meaningful accessible names for screen reader users.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-name',
+ code:`await expect(page.getByRole('button', { name: 'Close' }))
+  .toHaveAccessibleName('Close dialog');
+
+// Icon button with no visible label
+await expect(page.locator('#delete-btn')).toHaveAccessibleName('Delete item');`},
+
+{name:'toHaveAccessibleDescription()',
+ level:'intermediate',
+ desc:'Asserts the accessible description of an element in the supplementary text announced by screen readers (from the aria-described by attribute).',
+ tip:'Use to verify that help text, error messages, and tooltips are correctly linked to their inputs via the aria-described by attribute.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-description',
+ code:`await expect(page.getByLabel('Password'))
+  .toHaveAccessibleDescription('Must be at least 8 characters');`},
+
+{name:'toHaveAccessibleErrorMessage()',
+ level:'intermediate',
+ desc:'Asserts the accessible error message of an invalid form field in the text linked via aria-errormessage. Added in v1.50.',
+ tip:'Use when testing form validation. Verifies that errors are properly exposed to assistive technologies, not just visible on screen.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-error-message',
+ code:`// Submit an invalid form and check the error is accessible
+await page.getByRole('button', { name: 'Submit' }).click();
+await expect(page.getByLabel('Email'))
+  .toHaveAccessibleErrorMessage('Please enter a valid email address');`},
+
+{name:'toHaveRole()',
+ level:'intermediate',
+ desc:'Asserts that an element has the specified ARIA role. Checks the implicit or explicit role exposed to assistive technologies.',
+ tip:'Use to verify that custom components correctly expose their role. A div styled as a button should have role="button".',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-role',
+ code:`await expect(page.locator('#save-btn')).toHaveRole('button');
+await expect(page.locator('nav')).toHaveRole('navigation');
+await expect(page.locator('.alert')).toHaveRole('alert');`},
+
+{name:'locator.ariaSnapshot()',
+ level:'advanced',
+ desc:'Returns the ARIA structure of an element as a YAML string. Use to inspect the accessibility tree during test development.',
+ tip:'Call this when authoring a toMatchAriaSnapshot() test to copy the output as your baseline. Shows what screen readers see.',
+ docs:'https://playwright.dev/docs/aria-snapshots#generating-snapshots',
+ code:`// Print the ARIA tree of the navigation to the console
+const snapshot = await page.locator('nav').ariaSnapshot();
+console.log(snapshot);
+// Output:
+// - navigation:
+//   - link "Home"
+//   - link "Products"`},
+
+{name:'Keyboard navigation',
+ level:'intermediate',
+ desc:'Tests that interactive elements are reachable and operable using only the keyboard Tab, Shift+Tab, Enter, Space, and arrow keys.',
+ tip:'Every interactive element must be keyboard accessible. Test Tab order, focus visibility, and that Enter/Space activate buttons and links.',
+ docs:'https://playwright.dev/docs/accessibility-testing',
+ code:`// Tab through the form and verify focus order
+await page.goto('/contact');
+await page.keyboard.press('Tab'); // focus first field
+await expect(page.getByLabel('Name')).toBeFocused();
+
+await page.keyboard.press('Tab'); // move to next field
+await expect(page.getByLabel('Email')).toBeFocused();
+
+// Activate a button with keyboard
+await page.getByRole('button', { name: 'Submit' }).focus();
+await page.keyboard.press('Enter');`},
+
+{name:'Axe integration',
+ level:'advanced',
+ desc:'Runs the axe-core accessibility engine against the page to detect WCAG violations. Requires the @axe-core/playwright package.',
+ tip:'Install with: npm install @axe-core/playwright. Axe catches broad WCAG issues automatically. Combine with specific assertions for full coverage.',
+ docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+ code:`import AxeBuilder from '@axe-core/playwright';
+
+test('page has no accessibility violations', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+
+  expect(results.violations).toEqual([]);
+});`},
+]},
+
 /* ── PATTERNS ─────────────────────────────────────────────────── */
 {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
 {name:'Login flow',
@@ -1467,304 +1765,6 @@ npx playwright test --shard=2/3
 
 # Add to playwright.config.ts for permanent CI enforcement:
 # forbidOnly: !!process.env.CI`},
-]},
-
-/* ── ACCESSIBILITY ────────────────────────────────────────────── */
-{cat:'Accessibility', cls:'accessibility', color:'#10b981', items:[
-{name:'toMatchAriaSnapshot()',
- level:'intermediate',
- desc:'Asserts the ARIA structure of an element matches a YAML snapshot. Captures roles, names, and states in a human-readable format.',
- tip:'Run with --update-snapshots to generate the baseline. Commit the snapshot files. Great for catching unintended ARIA regressions. Added in v1.50.',
- docs:'https://playwright.dev/docs/aria-snapshots',
- code:`// Generate snapshot on first run: npx playwright test --update-snapshots
-await expect(page.locator('nav')).toMatchAriaSnapshot(\`
-  - navigation:
-    - link "Home"
-    - link "Products"
-    - link "Contact"
-\`);`},
-
-{name:'toHaveAccessibleName()',
- level:'intermediate',
- desc:'Asserts that an element has the expected accessible name, the label announced by screen readers.',
- tip:'Use to verify that icon-only buttons, images, and form fields have meaningful accessible names for screen reader users.',
- docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-name',
- code:`await expect(page.getByRole('button', { name: 'Close' }))
-  .toHaveAccessibleName('Close dialog');
-
-// Icon button with no visible label
-await expect(page.locator('#delete-btn')).toHaveAccessibleName('Delete item');`},
-
-{name:'toHaveAccessibleDescription()',
- level:'intermediate',
- desc:'Asserts the accessible description of an element in the supplementary text announced by screen readers (from the aria-described by attribute).',
- tip:'Use to verify that help text, error messages, and tooltips are correctly linked to their inputs via the aria-described by attribute.',
- docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-description',
- code:`await expect(page.getByLabel('Password'))
-  .toHaveAccessibleDescription('Must be at least 8 characters');`},
-
-{name:'toHaveAccessibleErrorMessage()',
- level:'intermediate',
- desc:'Asserts the accessible error message of an invalid form field in the text linked via aria-errormessage. Added in v1.50.',
- tip:'Use when testing form validation. Verifies that errors are properly exposed to assistive technologies, not just visible on screen.',
- docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-error-message',
- code:`// Submit an invalid form and check the error is accessible
-await page.getByRole('button', { name: 'Submit' }).click();
-await expect(page.getByLabel('Email'))
-  .toHaveAccessibleErrorMessage('Please enter a valid email address');`},
-
-{name:'toHaveRole()',
- level:'intermediate',
- desc:'Asserts that an element has the specified ARIA role. Checks the implicit or explicit role exposed to assistive technologies.',
- tip:'Use to verify that custom components correctly expose their role. A div styled as a button should have role="button".',
- docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-role',
- code:`await expect(page.locator('#save-btn')).toHaveRole('button');
-await expect(page.locator('nav')).toHaveRole('navigation');
-await expect(page.locator('.alert')).toHaveRole('alert');`},
-
-{name:'locator.ariaSnapshot()',
- level:'advanced',
- desc:'Returns the ARIA structure of an element as a YAML string. Use to inspect the accessibility tree during test development.',
- tip:'Call this when authoring a toMatchAriaSnapshot() test to copy the output as your baseline. Shows what screen readers see.',
- docs:'https://playwright.dev/docs/aria-snapshots#generating-snapshots',
- code:`// Print the ARIA tree of the navigation to the console
-const snapshot = await page.locator('nav').ariaSnapshot();
-console.log(snapshot);
-// Output:
-// - navigation:
-//   - link "Home"
-//   - link "Products"`},
-
-{name:'Keyboard navigation',
- level:'intermediate',
- desc:'Tests that interactive elements are reachable and operable using only the keyboard Tab, Shift+Tab, Enter, Space, and arrow keys.',
- tip:'Every interactive element must be keyboard accessible. Test Tab order, focus visibility, and that Enter/Space activate buttons and links.',
- docs:'https://playwright.dev/docs/accessibility-testing',
- code:`// Tab through the form and verify focus order
-await page.goto('/contact');
-await page.keyboard.press('Tab'); // focus first field
-await expect(page.getByLabel('Name')).toBeFocused();
-
-await page.keyboard.press('Tab'); // move to next field
-await expect(page.getByLabel('Email')).toBeFocused();
-
-// Activate a button with keyboard
-await page.getByRole('button', { name: 'Submit' }).focus();
-await page.keyboard.press('Enter');`},
-
-{name:'Axe integration',
- level:'advanced',
- desc:'Runs the axe-core accessibility engine against the page to detect WCAG violations. Requires the @axe-core/playwright package.',
- tip:'Install with: npm install @axe-core/playwright. Axe catches broad WCAG issues automatically. Combine with specific assertions for full coverage.',
- docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
- code:`import AxeBuilder from '@axe-core/playwright';
-
-test('page has no accessibility violations', async ({ page }) => {
-  await page.goto('/dashboard');
-
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa'])
-    .analyze();
-
-  expect(results.violations).toEqual([]);
-});`},
-]},
-
-/* ── CONFIG ───────────────────────────────────────────────────── */
-{cat:'Config', cls:'config', color:'#6366f1', items:[
-{name:'baseURL',
- level:'beginner',
- desc:'Sets the base URL for all page.goto() calls. Lets you use relative paths like /login instead of the full URL.',
- tip:'Set this in playwright.config.ts and never hardcode URLs in tests. Change environments by changing baseURL in one place.',
- docs:'https://playwright.dev/docs/test-configuration#baseurl',
- code:`// playwright.config.ts
-export default defineConfig({
-  use: {
-    baseURL: 'http://localhost:3000',
-  },
-});
-
-// In tests relative path works because baseURL is set
-await page.goto('/login');`},
-
-{name:'testDir',
- level:'beginner',
- desc:'Sets the directory where Playwright looks for test files. Defaults to the directory of the config file.',
- tip:'Keep tests separate from source code. A common convention is a top-level tests/ or e2e/ folder.',
- docs:'https://playwright.dev/docs/test-configuration#testdir',
- code:`// playwright.config.ts
-export default defineConfig({
-  testDir: './tests',
-  testMatch: '**/*.spec.ts',
-});`},
-
-{name:'timeout',
- level:'beginner',
- desc:'Sets the maximum time in milliseconds each test is allowed to run before being marked as failed.',
- tip:'Default is 30 seconds. Increase for slow tests. Use test.slow() to triple the timeout for individual tests.',
- docs:'https://playwright.dev/docs/test-timeouts',
- code:`// playwright.config.ts
-export default defineConfig({
-  timeout: 60000, // 60 seconds per test
-  expect: {
-    timeout: 10000, // 10 seconds for each assertion
-  },
-});`},
-
-{name:'retries',
- level:'intermediate',
- desc:'Sets how many times a failing test is retried before being marked as failed. Helps handle rare, intermittent flakiness.',
- tip:'Use 1-2 retries in CI only. Zero retries locally makes failures visible immediately. Never use retries to hide genuinely broken tests.',
- docs:'https://playwright.dev/docs/test-retries',
- code:`// playwright.config.ts
-export default defineConfig({
-  retries: process.env.CI ? 2 : 0,
-});`},
-
-{name:'workers',
- level:'intermediate',
- desc:'Sets the number of parallel worker processes. Defaults to half the number of CPU cores.',
- tip:'More workers means faster runs on powerful machines. Set to 1 when debugging flaky tests or shared state issues.',
- docs:'https://playwright.dev/docs/test-parallel',
- code:`// playwright.config.ts
-export default defineConfig({
-  workers: process.env.CI ? 4 : undefined,
-  // undefined = use default (half CPU cores) locally
-});`},
-
-{name:'fullyParallel',
- level:'intermediate',
- desc:'Runs all tests across all files in parallel, not just files in parallel. Each test gets its own worker.',
- tip:'Enable for maximum speed if your tests are fully isolated. Disable if tests within a file share state or must run in order.',
- docs:'https://playwright.dev/docs/test-parallel#parallelize-tests-in-a-single-file',
- code:`// playwright.config.ts
-export default defineConfig({
-  fullyParallel: true,
-});
-
-// To run tests in a single file serially:
-test.describe.configure({ mode: 'serial' });`},
-
-{name:'use (browser options)',
- level:'beginner',
- desc:'Sets shared browser and context options applied to all tests: viewport, locale, timezone, permissions, and more.',
- tip:'Set common options here once instead of in every test. Override per-project or per-test as needed.',
- docs:'https://playwright.dev/docs/test-use-options',
- code:`// playwright.config.ts
-export default defineConfig({
-  use: {
-    baseURL: 'http://localhost:3000',
-    viewport: { width: 1280, height: 720 },
-    locale: 'en-GB',
-    timezoneId: 'Europe/London',
-    headless: true,
-    screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
-    trace: 'on-first-retry',
-  },
-});`},
-
-{name:'projects',
- level:'intermediate',
- desc:'Defines multiple named test projects, each with its own browser and configuration. Use for cross-browser testing.',
- tip:'Each project can override any use option. Run a specific project with --project=chromium during development.',
- docs:'https://playwright.dev/docs/test-projects',
- code:`// playwright.config.ts
-export default defineConfig({
-  projects: [
-    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
-    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
-    { name: 'mobile',   use: { ...devices['iPhone 14'] } },
-  ],
-});`},
-
-{name:'reporter',
- level:'intermediate',
- desc:'Configures the output format for test results. Can combine multiple reporters at once.',
- tip:'Use html locally for rich visual results. Use dot or line in CI for clean logs, and add junit for test result integration.',
- docs:'https://playwright.dev/docs/test-reporters',
- code:`// playwright.config.ts
-export default defineConfig({
-  reporter: [
-    ['html', { open: 'never' }],
-    ['junit', { outputFile: 'results.xml' }],
-    ['list'],
-  ],
-});`},
-
-{name:'globalSetup / globalTeardown',
- level:'advanced',
- desc:'Runs a script once before all tests start (globalSetup) and once after all tests finish (globalTeardown).',
- tip:'Use globalSetup to log in and save auth state, seed a database, or start a test server. Tear it down in globalTeardown.',
- docs:'https://playwright.dev/docs/test-global-setup-teardown',
- code:`// playwright.config.ts
-export default defineConfig({
-  globalSetup: './global-setup.ts',
-  globalTeardown: './global-teardown.ts',
-});
-
-// global-setup.ts
-export default async function() {
-  await seedDatabase();
-}`},
-
-{name:'trace',
- level:'intermediate',
- desc:'Controls when traces are recorded. A trace is a full recording of browser actions, network, and console output, viewable in the Trace Viewer.',
- tip:'Use retain-on-failure in CI, traces are only kept for failing tests, saving disk space while ensuring you always have debug data.',
- docs:'https://playwright.dev/docs/trace-viewer-intro',
- code:`// playwright.config.ts
-export default defineConfig({
-  use: {
-    // 'off' | 'on' | 'on-first-retry' | 'on-all-retries' | 'retain-on-failure'
-    trace: 'retain-on-failure',
-  },
-});
-
-// View a trace:
-// npx playwright show-trace test-results/trace.zip`},
-
-{name:'screenshot / video',
- level:'intermediate',
- desc:"Controls when screenshots and videos are captured. Set to only-on-failure to automatically capture evidence when a test fails.",
- tip:'Both default to off. Enable in CI so you always have visual evidence for failures without slowing down passing tests.',
- docs:'https://playwright.dev/docs/test-configuration#automatic-screenshots',
- code:`// playwright.config.ts
-export default defineConfig({
-  use: {
-    // 'off' | 'on' | 'only-on-failure'
-    screenshot: 'only-on-failure',
-    // 'off' | 'on' | 'retain-on-failure'
-    video: 'retain-on-failure',
-  },
-});`},
-
-{name:'forbidOnly',
- level:'intermediate',
- desc:'Causes the test run to fail immediately if any test.only() or describe.only() is present. Essential for CI pipelines.',
- tip:'Set this to !!process.env.CI so it is only enforced in CI. Locally you can still use .only() freely during development.',
- docs:'https://playwright.dev/docs/api/class-testconfig#test-config-forbid-only',
- code:`// playwright.config.ts
-export default defineConfig({
-  forbidOnly: !!process.env.CI,
-});`},
-
-{name:'testIdAttribute',
- level:'intermediate',
- desc:'Customizes the HTML attribute that getByTestId() looks for. Defaults to data-testid.',
- tip:'Change this if your codebase uses a different attribute like data-cy (Cypress) or data-qa.',
- docs:'https://playwright.dev/docs/api/class-testconfig#test-config-test-id-attribute',
- code:`// playwright.config.ts
-export default defineConfig({
-  use: {
-    testIdAttribute: 'data-cy', // now getByTestId() reads data-cy
-  },
-});
-
-// In tests
-await page.getByTestId('submit-btn').click();
-// Finds: <button data-cy="submit-btn">`},
 ]},
 
 ]; // end categories
