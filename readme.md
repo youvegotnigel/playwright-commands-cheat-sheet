@@ -4,7 +4,7 @@
 
 An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript 
 
-* no build tools or dependencies required.
+![Dashboard](images/dashboard.jpeg)
 
 ---
 
