@@ -1,4 +1,4 @@
-# 🎭 VitalHub Playwright Cheat Sheet
+# 🎭 VitalHub Playwright Commands Dashboard
 
 > All commands verified against the [Playwright 1.59](https://playwright.dev/docs/release-notes) release version.
 
