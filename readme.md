@@ -62,6 +62,26 @@ The search bar filters across:
 
 ## Categories
 
+### Config (Indigo)
+Key `playwright.config.ts` options for configuring the test runner, browsers, and CI pipelines.
+
+| Option | Level |
+|---|---|
+| `baseURL` | Beginner |
+| `testDir` | Beginner |
+| `timeout` | Beginner |
+| `use (browser options)` | Beginner |
+| `retries` | Intermediate |
+| `workers` | Intermediate |
+| `fullyParallel` | Intermediate |
+| `projects` | Intermediate |
+| `reporter` | Intermediate |
+| `trace` | Intermediate |
+| `screenshot / video` | Intermediate |
+| `forbidOnly` | Intermediate |
+| `testIdAttribute` | Intermediate |
+| `globalSetup / globalTeardown` | Advanced |
+
 ### Setup (Cyan)
 The building blocks every Playwright test file needs.
 
@@ -250,26 +270,6 @@ Assertions and patterns for testing screen reader support, ARIA structure, and k
 | `locator.ariaSnapshot()` | Advanced |
 | Keyboard navigation | Intermediate |
 | Axe integration | Advanced |
-
-### Config (Indigo)
-Key `playwright.config.ts` options for configuring the test runner, browsers, and CI pipelines.
-
-| Option | Level |
-|---|---|
-| `baseURL` | Beginner |
-| `testDir` | Beginner |
-| `timeout` | Beginner |
-| `use (browser options)` | Beginner |
-| `retries` | Intermediate |
-| `workers` | Intermediate |
-| `fullyParallel` | Intermediate |
-| `projects` | Intermediate |
-| `reporter` | Intermediate |
-| `trace` | Intermediate |
-| `screenshot / video` | Intermediate |
-| `forbidOnly` | Intermediate |
-| `testIdAttribute` | Intermediate |
-| `globalSetup / globalTeardown` | Advanced |
 
 ---
 
