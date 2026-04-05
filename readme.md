@@ -15,9 +15,9 @@ An interactive reference dashboard for Playwright test automation, designed for 
 ### Command Tiles
 - Every Playwright command is displayed as a clickable tile
 - Each tile shows a **difficulty indicator** in the corner:
-  - `●` Green     - Beginner
-  - `●●` Orange   - Intermediate
-  - `●●●` Purple  - Advanced
+  - `🟢` Green   - Beginner
+  - `🟠` Orange  - Intermediate
+  - `🟣` Purple  - Advanced
 
 ### Command Modal
 Clicking any tile opens a detailed modal containing:
