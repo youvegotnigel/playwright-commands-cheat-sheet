@@ -15,17 +15,17 @@ An interactive reference dashboard for Playwright test automation, designed for 
 ### Command Tiles
 - Every Playwright command is displayed as a clickable tile
 - Each tile shows a **difficulty indicator** in the corner:
-  - `●` Green — Beginner
-  - `●●` Orange — Intermediate
-  - `●●●` Purple — Advanced
+  - `●` Green     - Beginner
+  - `●●` Orange   - Intermediate
+  - `●●●` Purple  - Advanced
 
 ### Command Modal
 Clicking any tile opens a detailed modal containing:
-- **Plain-English description** — what the command does, in simple terms
-- **Code example** — ready-to-use snippet
-- **Difficulty badge** — colour coded level indicator
-- **Docs ↗ link** — direct link to the official Playwright documentation page
-- **Copy button** — copies the code snippet to clipboard with visual confirmation
+- **Plain-English description** - what the command does, in simple terms
+- **Code example** - ready-to-use snippet
+- **Difficulty badge** - colour coded level indicator
+- **Docs ↗ link** - direct link to the official Playwright documentation page
+- **Copy button** - copies the code snippet to clipboard with visual confirmation
 - Press **Escape** or click outside the modal to close it
 
 ### Filter Tabs
@@ -34,7 +34,7 @@ Filter the grid by category using the pill buttons at the top:
 | Filter | Description |
 |---|---|
 | All | Shows every command |
-| ⭐ Start Here | Shows beginner-level commands only — the best starting point |
+| ⭐ Start Here | Shows beginner level commands for the best starting point |
 | Config | playwright.config.ts options for runner, browsers, and CI |
 | Setup | Test structure commands |
 | Action | User interaction methods |
@@ -48,8 +48,8 @@ Filter the grid by category using the pill buttons at the top:
 
 ### View Modes
 Toggle between two layouts using the **Flat** / **Grouped** buttons:
-- **Flat** — all commands in a single grid (default)
-- **Grouped** — commands organised under their category headers
+- **Flat** - all commands in a single grid (default)
+- **Grouped** - commands organised under their category headers
 
 ### Search
 The search bar filters across:
@@ -292,8 +292,8 @@ playwright-commands-cheat-sheet/
 ├── images/          # Images folder
 ├── js/
 │   ├── data.js      # All commands, descriptions, tips, and docs links
-│   └── app.js       # UI logic — rendering, filtering, modal, search
-├── index.html       # HTML shell — layout and modal structure only
+│   └── app.js       # UI logic - rendering, filtering, modal, search
+├── index.html       # HTML shell - layout and modal structure only
 └── LICENSE
 └── readme.md
 ├── style.css        # All CSS styles
