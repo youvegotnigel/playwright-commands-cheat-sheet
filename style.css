@@ -1,6 +1,6 @@
 * { box-sizing: border-box; }
 body { font-family: Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
-header { padding: 16px; text-align: center; font-size: 22px; background: #020617; }
+header { padding: 16px; text-align: center; font-size: 36px; font-weight: bold; background: #020617; color: #2ead33; }
 
 .container { padding: 15px; max-width: 1200px; margin: auto; }
 
