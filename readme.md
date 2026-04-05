@@ -1,5 +1,7 @@
 # 🎭 VitalHub Playwright Cheat Sheet
 
+> **Playwright version: 1.59** — All commands verified against the [Playwright 1.59 release](https://playwright.dev/docs/release-notes).
+
 An interactive reference dashboard for Playwright test automation, designed for beginners and experienced testers alike. Built with plain HTML, CSS, and JavaScript 
 
 * no build tools or dependencies required.
@@ -99,7 +101,7 @@ Methods for interacting with elements.
 | `clear()` | Beginner |
 | `hover()` | Intermediate |
 | `dblclick()` | Intermediate |
-| `type()` | Intermediate |
+| `pressSequentially()` | Intermediate |
 | `setInputFiles()` | Intermediate |
 | `scrollIntoView()` | Intermediate |
 | `keyboard.press()` | Intermediate |
