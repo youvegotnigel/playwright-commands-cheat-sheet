@@ -6,6 +6,8 @@ An interactive reference dashboard for Playwright test automation, designed for 
 
 ![Dashboard](images/dashboard.jpeg)
 
+![Description](images/description.png)
+
 ---
 
 ## Features
