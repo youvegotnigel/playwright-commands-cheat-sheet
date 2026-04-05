@@ -5,7 +5,7 @@
 // a new object to its `items` array with these fields:
 //   name  — the command name shown on the tile
 //   level — 'beginner' | 'intermediate' | 'advanced'
-//   desc  — plain-English explanation of what it does
+//   desc  — plain English explanation of what it does
 //   tip   — when to use it, gotchas, alternatives
 //   docs  — URL to the official Playwright docs page
 //   code  — example code shown in the modal
@@ -33,7 +33,7 @@ test('user can log in', async ({ page }) => {
 {name:'test.describe()',
  level:'beginner',
  desc:'Groups related tests under a shared name. Keeps your test file organised and makes reports easier to read.',
- tip:'Group tests by feature or page — e.g. "Login page", "User profile". You can nest describe blocks for sub-features.',
+ tip:'Group tests by feature or page: e.g. "Login page", "User profile". You can nest describe blocks for sub-features.',
  docs:'https://playwright.dev/docs/api/class-test#test-describe',
  code:`test.describe('Login page', () => {
   test('shows error for wrong password', async ({ page }) => {
@@ -63,7 +63,7 @@ test('user can log in', async ({ page }) => {
 {name:'afterEach()',
  level:'intermediate',
  desc:'Runs a cleanup block after every test. Useful for logging, resetting state, or capturing a screenshot when a test fails.',
- tip:'Avoid heavy cleanup here — Playwright isolates each test with a fresh browser context by default.',
+ tip:'Avoid heavy cleanup here: Playwright isolates each test with a fresh browser context by default.',
  docs:'https://playwright.dev/docs/api/class-test#test-after-each',
  code:`test.afterEach(async ({ page }, testInfo) => {
   if (testInfo.status !== testInfo.expectedStatus) {
@@ -76,7 +76,7 @@ test('user can log in', async ({ page }) => {
 {name:'beforeAll()',
  level:'intermediate',
  desc:'Runs once before all tests in the describe block. Use for expensive one-time setup like seeding a database.',
- tip:'Unlike beforeEach, this runs once total. Be careful — shared state mutated by one test can affect others.',
+ tip:'Unlike beforeEach, this runs once total. Be careful shared state mutated by one test can affect others.',
  docs:'https://playwright.dev/docs/api/class-test#test-before-all',
  code:`test.beforeAll(async ({ request }) => {
   await request.post('/api/seed', {
@@ -96,7 +96,7 @@ test('user can log in', async ({ page }) => {
 {name:'expect()',
  level:'beginner',
  desc:'Creates an assertion. Wrap a locator or value to check it meets a condition. The test fails if the assertion is not met.',
- tip:"Playwright's expect() is async-aware — it automatically retries until the condition is true or times out. Always await it on locators.",
+ tip:"Playwright's expect() is async aware, it automatically retries until the condition is true or times out. Always await it on locators.",
  docs:'https://playwright.dev/docs/api/class-genericassertions',
  code:`// Assert on a locator (async, retries automatically)
 await expect(page.getByRole('heading')).toHaveText('Dashboard');
@@ -110,7 +110,7 @@ expect(response.status()).toBe(200);`},
 {name:'locator()',
  level:'beginner',
  desc:'Finds elements using a CSS selector or XPath expression. The most flexible selector method.',
- tip:'Use when no semantic selector (getByRole, getByLabel) fits. Prefer semantic selectors — they are more readable and resilient to UI changes.',
+ tip:'Use when no semantic selector (getByRole, getByLabel) fits. Prefer semantic selectors, they are more readable and resilient to UI changes.',
  docs:'https://playwright.dev/docs/api/class-page#page-locator',
  code:`const btn = page.locator('#login');
 await btn.click();
@@ -133,7 +133,7 @@ await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();`},
 {name:'getByText()',
  level:'beginner',
  desc:'Finds an element by its visible text content. Matches substrings by default.',
- tip:'Good for links, labels, and headings. Use exact: true for a strict full-text match. For form inputs, prefer getByLabel().',
+ tip:'Good for links, labels, and headings. Use exact: true for a strict full text match. For form inputs, prefer getByLabel().',
  docs:'https://playwright.dev/docs/api/class-page#page-get-by-text',
  code:`await page.getByText('Welcome back').click();
 
@@ -159,8 +159,8 @@ await page.getByPlaceholder('Enter your email').fill('test@mail.com');`},
 
 {name:'getByTestId()',
  level:'beginner',
- desc:'Finds an element by its data-testid attribute — a stable, test-specific selector that survives style and structure changes.',
- tip:'Best used when you control the codebase and can add data-testid attributes. Test IDs are invisible to design changes — very stable.',
+ desc:'Finds an element by its data-testid attribute, test-specific selector that survives style and structure changes.',
+ tip:'Best used when you control the codebase and can add data-testid attributes. Test IDs are invisible to design changes and very stable.',
  docs:'https://playwright.dev/docs/api/class-page#page-get-by-test-id',
  code:`await page.getByTestId('submit-btn').click();
 await expect(page.getByTestId('error-msg')).toBeVisible();`},
@@ -175,7 +175,7 @@ await expect(page.getByAltText('User avatar')).toBeVisible();`},
 
 {name:'getByTitle()',
  level:'intermediate',
- desc:'Finds an element by its title attribute — the tooltip text shown on hover.',
+ desc:'Finds an element by its title attribute. The tooltip text shown on hover.',
  tip:'Useful for icon buttons that have a title but no visible label. Less common than other selectors.',
  docs:'https://playwright.dev/docs/api/class-page#page-get-by-title',
  code:`await page.getByTitle('Close dialog').click();
@@ -184,7 +184,7 @@ await expect(page.getByTitle('Settings')).toBeVisible();`},
 {name:'frameLocator()',
  level:'advanced',
  desc:'Switches the locator context into an iframe so you can interact with elements inside it.',
- tip:'You must use frameLocator before any query inside an iframe — normal locators cannot cross iframe boundaries.',
+ tip:'You must use frameLocator before any query inside an iframe. Normal locators cannot cross iframe boundaries.',
  docs:'https://playwright.dev/docs/api/class-page#page-frame-locator',
  code:`await page.frameLocator('#payment-frame')
   .getByLabel('Card number')
@@ -193,7 +193,7 @@ await expect(page.getByTitle('Settings')).toBeVisible();`},
 {name:'nth()',
  level:'intermediate',
  desc:'Picks the element at a specific index from a list of matches. Index starts at 0.',
- tip:'Use sparingly — index-based selectors are brittle when list order changes. Prefer filter() with text or attribute checks when possible.',
+ tip:'Use sparingly index-based selectors are brittle when list order changes. Prefer filter() with text or attribute checks when possible.',
  docs:'https://playwright.dev/docs/api/class-locator#locator-nth',
  code:`// Third item (index 2)
 await page.locator('li').nth(2).click();
@@ -220,7 +220,7 @@ await page.locator('tr').filter({
 {name:'click()',
  level:'beginner',
  desc:'Clicks an element. Playwright automatically scrolls it into view and waits for it to be actionable before clicking.',
- tip:"No need to manually scroll or wait — Playwright handles it. For double-click use dblclick(). For right-click, pass { button: 'right' }.",
+ tip:"No need to manually scroll or wait. Playwright handles it. For double-click use dblclick(). For right-click, pass { button: 'right' }.",
  docs:'https://playwright.dev/docs/api/class-locator#locator-click',
  code:`await page.locator('#login').click();
 
@@ -232,8 +232,8 @@ await page.locator('#item').click({ modifiers: ['Control'] });`},
 
 {name:'fill()',
  level:'beginner',
- desc:'Sets the value of an input, textarea, or contenteditable element instantly. Clears any existing content first.',
- tip:"Preferred over type() for most cases — it is faster and more reliable. Use type() only when testing keystroke-by-keystroke behaviour like autocomplete.",
+ desc:'Sets the value of an input, textarea, or content editable element instantly. Clears any existing content first.',
+ tip:"Preferred over type() for most cases. It is faster and more reliable. Use type() only when testing keystroke-by-keystroke behaviour like autocomplete.",
  docs:'https://playwright.dev/docs/api/class-locator#locator-fill',
  code:`await page.getByLabel('Email').fill('test@mail.com');
 
@@ -255,7 +255,7 @@ await page.locator('#email').press('Tab');`},
 {name:'check()',
  level:'beginner',
  desc:'Checks a checkbox or radio button. Does nothing if it is already checked.',
- tip:'More semantic than click() for checkboxes — it guarantees the element ends up checked regardless of its current state.',
+ tip:'More semantic than click() for checkboxes. It guarantees the element ends up checked regardless of its current state.',
  docs:'https://playwright.dev/docs/api/class-locator#locator-check',
  code:`await page.locator('#terms').check();
 await page.getByLabel('Subscribe to newsletter').check();`},
@@ -263,7 +263,7 @@ await page.getByLabel('Subscribe to newsletter').check();`},
 {name:'uncheck()',
  level:'beginner',
  desc:'Unchecks a checkbox. Does nothing if it is already unchecked.',
- tip:'Use instead of click() to ensure the checkbox ends up unchecked — safe to call even if already unchecked.',
+ tip:'Use instead of click() to ensure the checkbox ends up unchecked. Safe to call even if already unchecked.',
  docs:'https://playwright.dev/docs/api/class-locator#locator-uncheck',
  code:`await page.locator('#newsletter').uncheck();
 await page.getByLabel('Remember me').uncheck();`},
@@ -329,7 +329,7 @@ await expect(page.getByLabel('Name')).toHaveValue('');`},
 {name:'setInputFiles()',
  level:'intermediate',
  desc:'Uploads one or more files to a file input element without opening the OS file picker dialog.',
- tip:'Handles file uploads programmatically — no dialog needed. Path is relative to the project root. Pass an array for multiple files.',
+ tip:'Handles file uploads programmatically, no dialog needed. Path is relative to the project root. Pass an array for multiple files.',
  docs:'https://playwright.dev/docs/api/class-locator#locator-set-input-files',
  code:`// Single file
 await page.locator('input[type=file]').setInputFiles('tests/fixtures/doc.pdf');
@@ -372,7 +372,7 @@ await expect(page.locator('#spinner')).not.toBeVisible();`},
 
 {name:'toBeHidden()',
  level:'beginner',
- desc:'Asserts that an element is hidden — either absent from the DOM or not visible (display:none, visibility:hidden, etc.).',
+ desc:'Asserts that an element is hidden, either absent from the DOM or not visible (display:none, visibility:hidden, etc.).',
  tip:'Equivalent to .not.toBeVisible() but reads more clearly when you are intentionally verifying hidden state.',
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-hidden',
  code:`await expect(page.locator('#loading-spinner')).toBeHidden();
@@ -381,7 +381,7 @@ await expect(page.locator('#error-banner')).toBeHidden();`},
 {name:'toHaveText()',
  level:'beginner',
  desc:"Asserts the element's text content matches the expected value exactly. Accepts a string or regex.",
- tip:'Normalises whitespace by default. Use toContainText() for a partial match. Pass a regex for flexible matching.',
+ tip:'Normalizes whitespace by default. Use toContainText() for a partial match. Pass a regex for flexible matching.',
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-text',
  code:`await expect(page.locator('h1')).toHaveText('Dashboard');
 
@@ -390,7 +390,7 @@ await expect(page.locator('.status')).toHaveText(/active/i);`},
 
 {name:'toContainText()',
  level:'beginner',
- desc:"Asserts that the element's text content includes the expected substring. Partial match — other text is allowed.",
+ desc:"Asserts that the element's text content includes the expected substring. Partial match. Other text is allowed.",
  tip:'Use when you only care about part of the text. toHaveText() requires the full text to match.',
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-contain-text',
  code:`await expect(page.locator('#notification')).toContainText('saved successfully');`},
@@ -451,7 +451,7 @@ await expect(page.locator('select#country')).toHaveValue('ca');`},
 {name:'toHaveCount()',
  level:'intermediate',
  desc:'Asserts the number of elements matching a locator. Useful for lists, table rows, and repeated components.',
- tip:'Playwright waits and retries until the count matches — great for asserting after async operations that add or remove items.',
+ tip:'Playwright waits and retries until the count matches. Great for asserting after async operations that add or remove items.',
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-count',
  code:`await expect(page.locator('tbody tr')).toHaveCount(10);
 
@@ -529,7 +529,7 @@ await page.locator('.chart').screenshot({ path: 'chart.png' });`},
 {name:'pause()',
  level:'beginner',
  desc:'Pauses test execution and opens the Playwright Inspector for step-by-step debugging.',
- tip:'Only use during development — remove before committing. Run tests with PWDEBUG=1 to start the Inspector automatically.',
+ tip:'Only use during development. Remove before committing. Run tests with PWDEBUG=1 to start the Inspector automatically.',
  docs:'https://playwright.dev/docs/api/class-page#page-pause',
  code:`// Opens the Playwright Inspector UI
 await page.pause();
@@ -549,15 +549,15 @@ await page.waitForSelector('#spinner', { state: 'hidden' });`},
 {name:'waitForTimeout()',
  level:'beginner',
  desc:'Pauses test execution for a fixed number of milliseconds.',
- tip:'Avoid in production tests — it makes them slow and brittle. Prefer waitForLoadState(), waitForURL(), or waitForSelector() instead.',
+ tip:'Avoid in production tests. It makes them slow and brittle. Prefer waitForLoadState(), waitForURL(), or waitForSelector() instead.',
  docs:'https://playwright.dev/docs/api/class-page#page-wait-for-timeout',
- code:`// Use sparingly — prefer event-based waits
+ code:`// Use sparingly, prefer event-based waits
 await page.waitForTimeout(2000);`},
 
 {name:'waitForLoadState()',
  level:'intermediate',
  desc:"Waits for the page to reach a specific load state: 'load', 'domcontentloaded', or 'networkidle'.",
- tip:"'networkidle' waits until there are no active network requests — useful after actions that trigger background API calls.",
+ tip:"'networkidle' waits until there are no active network requests useful after actions that trigger background API calls.",
  docs:'https://playwright.dev/docs/api/class-page#page-wait-for-load-state',
  code:`// Wait for all network activity to stop
 await page.waitForLoadState('networkidle');
@@ -628,7 +628,7 @@ expect(body).toHaveLength(10);`},
 {name:'request.post()',
  level:'beginner',
  desc:'Sends an HTTP POST request with a JSON body. Use for creating resources or logging in via API.',
- tip:'Faster than UI login flows. Log in via API and inject the session token — saves many seconds per test.',
+ tip:'Faster than UI login flows. Log in via API and inject the session token. Saves many seconds per test.',
  docs:'https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-post',
  code:`const res = await request.post('/api/login', {
   data: {
@@ -641,7 +641,7 @@ expect(res.status()).toBe(200);`},
 {name:'request.put()',
  level:'intermediate',
  desc:'Sends an HTTP PUT request to fully replace a resource.',
- tip:'Use to set up test state via API rather than navigating through the UI — much faster for test setup.',
+ tip:'Use to set up test state via API rather than navigating through the UI. Much faster for test setup.',
  docs:'https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-put',
  code:`const res = await request.put('/api/users/1', {
   data: { name: 'Updated Name', role: 'admin' }
@@ -669,7 +669,7 @@ expect(res.status()).toBe(204);`},
 {name:'route()',
  level:'intermediate',
  desc:'Intercepts network requests matching a URL pattern and lets you fulfill, abort, or modify them.',
- tip:'Essential for mocking API responses in UI tests — makes tests faster and independent of backend state.',
+ tip:'Essential for mocking API responses in UI tests. Makes tests faster and independent of backend state.',
  docs:'https://playwright.dev/docs/api/class-page#page-route',
  code:`await page.route('**/api/users', route => {
   route.fulfill({
@@ -716,7 +716,7 @@ expect(res.status()).toBe(200);`},
 {name:'waitForRequest()',
  level:'intermediate',
  desc:'Waits for the page to send a network request matching a URL pattern. Returns the request object.',
- tip:'Use to verify that an action triggered the expected API call — check the URL, method, and payload.',
+ tip:'Use to verify that an action triggered the expected API call and check the URL, method, and payload.',
  docs:'https://playwright.dev/docs/api/class-page#page-wait-for-request',
  code:`const [req] = await Promise.all([
   page.waitForRequest('**/api/login'),
@@ -745,7 +745,7 @@ expect(req.postDataJSON()).toMatchObject({ email: 'test@mail.com' });`},
 
 {name:'Form submit',
  level:'beginner',
- desc:'Fill in a form, submit it, and assert the success state — the most common pattern in web testing.',
+ desc:'Fill in a form, submit it, and assert the success state the most common pattern in web testing.',
  tip:'Assert on visible UI feedback (success message, new item in list) rather than just the URL to make the test more meaningful.',
  docs:'https://playwright.dev/docs/input',
  code:`test('creates a new contact', async ({ page }) => {
@@ -762,7 +762,7 @@ expect(req.postDataJSON()).toMatchObject({ email: 'test@mail.com' });`},
 {name:'Wait for API',
  level:'intermediate',
  desc:'Trigger an action, wait for the API response, then assert the UI updated. Prevents flaky tests from asserting before data loads.',
- tip:'Wrap the click and waitForResponse in Promise.all so they start at the same time — otherwise you might miss the response event.',
+ tip:'Wrap the click and waitForResponse in Promise.all so they start at the same time, otherwise you might miss the response event.',
  docs:'https://playwright.dev/docs/network#waiting-for-response',
  code:`test('loads user list', async ({ page }) => {
   await page.goto('/users');
@@ -816,11 +816,11 @@ expect(req.postDataJSON()).toMatchObject({ email: 'test@mail.com' });`},
 
 {name:'API login setup',
  level:'intermediate',
- desc:'Log in via the API to get auth state, then inject it into the browser — much faster than UI login for every test.',
+ desc:'Log in via the API to get auth state, then inject it into the browser, much faster than UI login for every test.',
  tip:'Save the storage state to a file and reuse it with storageState in playwright.config.ts for maximum speed across all tests.',
  docs:'https://playwright.dev/docs/auth',
  code:`test.beforeEach(async ({ page, request }) => {
-  // Log in via API — no UI needed
+  // Log in via API, no UI needed
   const res = await request.post('/api/login', {
     data: { email: 'test@mail.com', password: 'secret' }
   });
