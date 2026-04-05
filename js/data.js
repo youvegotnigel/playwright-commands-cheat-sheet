@@ -103,6 +103,77 @@ await expect(page.getByRole('heading')).toHaveText('Dashboard');
 
 // Assert on a plain value (sync)
 expect(response.status()).toBe(200);`},
+
+{name:'test.only()',
+ level:'beginner',
+ desc:'Runs only this test (or describe block), skipping all others in the file. Essential for focusing on one test while developing.',
+ tip:'Never commit test.only() to your repo. Use --forbid-only in CI to catch it. Works on describe blocks too: test.describe.only().',
+ docs:'https://playwright.dev/docs/api/class-test#test-only',
+ code:`test.only('this is the only test that runs', async ({ page }) => {
+  await page.goto('/login');
+  // all other tests in the file are skipped
+});
+
+// Also works on a describe block
+test.describe.only('Login', () => {
+  test('...', async ({ page }) => { /* ... */ });
+});`},
+
+{name:'test.skip()',
+ level:'beginner',
+ desc:'Skips a test unconditionally or based on a condition. Skipped tests appear in the report but are not executed.',
+ tip:'Use conditionally to skip tests that only apply to certain browsers or environments. Works on describe blocks too.',
+ docs:'https://playwright.dev/docs/api/class-test#test-skip',
+ code:`// Unconditional skip
+test.skip('not ready yet', async ({ page }) => { /* ... */ });
+
+// Conditional skip inside a test
+test('safari only', async ({ page, browserName }) => {
+  test.skip(browserName !== 'webkit', 'Only runs on Safari');
+  await page.goto('/');
+});`},
+
+{name:'test.fixme()',
+ level:'intermediate',
+ desc:'Marks a test as broken and expected to fail. Playwright skips it and shows it in the report as a known issue.',
+ tip:'Use instead of test.skip() when the test is intentionally failing due to a known bug. Makes it clear the failure is tracked.',
+ docs:'https://playwright.dev/docs/api/class-test#test-fixme',
+ code:`test.fixme('checkout flow is broken, see JIRA-1234', async ({ page }) => {
+  await page.goto('/checkout');
+  // This test is known to fail and is skipped until fixed
+});`},
+
+{name:'test.slow()',
+ level:'intermediate',
+ desc:'Triples the default timeout for a test that is legitimately slow (e.g. file processing, video rendering, email polling).',
+ tip:'Use sparingly. If many tests need this, increase the global timeout in playwright.config.ts instead.',
+ docs:'https://playwright.dev/docs/api/class-test#test-slow',
+ code:`test('processes large CSV export', async ({ page }) => {
+  test.slow(); // triples the timeout for this test only
+  await page.goto('/export');
+  await page.getByRole('button', { name: 'Export' }).click();
+  await expect(page.getByText('Export complete')).toBeVisible();
+});`},
+
+{name:'test.step()',
+ level:'intermediate',
+ desc:'Groups a set of actions inside a named step. Steps appear in the HTML report and trace viewer, making long tests easier to read.',
+ tip:'Use for tests with many actions. Step names show up in the report timeline, making failures much easier to pinpoint.',
+ docs:'https://playwright.dev/docs/api/class-test#test-step',
+ code:`test('full checkout flow', async ({ page }) => {
+  await test.step('Add item to cart', async () => {
+    await page.goto('/products');
+    await page.getByRole('button', { name: 'Add to cart' }).click();
+  });
+
+  await test.step('Complete checkout', async () => {
+    await page.getByRole('link', { name: 'Checkout' }).click();
+    await page.getByLabel('Card number').fill('4242 4242 4242 4242');
+    await page.getByRole('button', { name: 'Pay' }).click();
+  });
+
+  await expect(page.getByText('Order confirmed')).toBeVisible();
+});`},
 ]},
 
 /* ── QUERIES ──────────────────────────────────────────────────── */
@@ -212,7 +283,44 @@ await page.locator('li').filter({ hasText: 'Active' }).click();
 // Find a table row that contains "John", then click its button
 await page.locator('tr').filter({
   has: page.locator('td', { hasText: 'John' })
-}).locator('button').click();`},
+}).locator('button').click();
+
+// Filter to visible elements only (v1.51+)
+await page.locator('.tooltip').filter({ visible: true }).click();`},
+
+{name:'first() / last()',
+ level:'beginner',
+ desc:'Returns the first or last element from a set of matches. Cleaner aliases for .nth(0) and .nth(-1).',
+ tip:'Prefer first() and last() over nth(0) for readability. Still index-based, so be aware of order changes in dynamic lists.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-first',
+ code:`// First matching element
+await page.locator('li').first().click();
+
+// Last matching element
+await page.locator('li').last().click();
+
+// Assert the last row has specific text
+await expect(page.locator('tr').last()).toContainText('Total');`},
+
+{name:'and()',
+ level:'intermediate',
+ desc:'Returns elements that match both this locator AND another locator. Narrows results by combining two conditions with AND logic.',
+ tip:'Use when you need two independent conditions on the same element: e.g. a button that is both visible and has a specific label.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-and',
+ code:`// Find a button that is also disabled
+const disabledSubmit = page.getByRole('button', { name: 'Submit' })
+  .and(page.locator(':disabled'));
+await expect(disabledSubmit).toBeVisible();`},
+
+{name:'or()',
+ level:'intermediate',
+ desc:'Returns elements matching either this locator OR another locator. Useful when an element can appear in two different ways.',
+ tip:'Good for handling UI states where the same action might appear as a button or a link depending on context.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-or',
+ code:`// Handle a UI that shows either a "Sign in" button or a "Log in" link
+const signIn = page.getByRole('button', { name: 'Sign in' })
+  .or(page.getByRole('link', { name: 'Log in' }));
+await signIn.first().click();`},
 ]},
 
 /* ── ACTIONS ──────────────────────────────────────────────────── */
@@ -356,6 +464,41 @@ await page.screenshot({ path: 'footer.png' });`},
  code:`await page.keyboard.press('Control+A');  // Select all
 await page.keyboard.press('Control+Z');  // Undo
 await page.keyboard.press('Escape');     // Close modal`},
+
+{name:'tap()',
+ level:'intermediate',
+ desc:'Simulates a touch tap on an element. Use when testing mobile viewport sizes or touch-enabled interactions.',
+ tip:'Requires the browser context to be created with hasTouch: true, or set via use: { hasTouch: true } in playwright.config.ts.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-tap',
+ code:`// Enable touch in config: use: { hasTouch: true }
+await page.goto('/mobile-menu');
+await page.locator('#hamburger').tap();
+await expect(page.locator('#nav-drawer')).toBeVisible();`},
+
+{name:'focus()',
+ level:'intermediate',
+ desc:'Moves keyboard focus to an element without clicking it. Triggers focus-related events and styles.',
+ tip:'Useful for testing focus states, keyboard navigation, and tooltip-on-focus behaviour without triggering a click.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-focus',
+ code:`await page.getByLabel('Email').focus();
+await expect(page.locator('.email-tooltip')).toBeVisible();
+
+// Check focus is applied
+await page.getByRole('button', { name: 'Submit' }).focus();
+await expect(page.getByRole('button', { name: 'Submit' })).toBeFocused();`},
+
+{name:'dispatchEvent()',
+ level:'advanced',
+ desc:'Fires a custom DOM event on an element directly. Useful when standard interaction methods cannot trigger framework-specific events.',
+ tip:'Use as a last resort when click() or fill() do not trigger the event your app is listening for (e.g. custom React/Vue events).',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-dispatch-event',
+ code:`// Fire a custom 'change' event on an input
+await page.locator('#custom-input').dispatchEvent('change');
+
+// Fire a drop event
+await page.locator('#drop-zone').dispatchEvent('drop', {
+  dataTransfer: await page.evaluateHandle(() => new DataTransfer())
+});`},
 ]},
 
 /* ── ASSERTIONS ───────────────────────────────────────────────── */
@@ -475,6 +618,100 @@ await expect(page.locator('#menu')).toHaveAttribute('aria-expanded', 'true');`},
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-class',
  code:`await expect(page.locator('#tab-home')).toHaveClass(/active/);
 await expect(page.locator('#form-email')).toHaveClass(/error/);`},
+
+{name:'toContainClass()',
+ level:'intermediate',
+ desc:'Asserts that an element contains the specified CSS class name. Unlike toHaveClass(), it does not require an exact match of all classes.',
+ tip:'Prefer toContainClass() over toHaveClass() when an element has many classes and you only care about one of them. Added in Playwright v1.52.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-contain-class',
+ code:`// Element has class="btn btn-primary active" this passes
+await expect(page.locator('#submit')).toContainClass('active');
+
+// Assert multiple classes are all present
+await expect(page.locator('#submit')).toContainClass('btn btn-primary');`},
+
+{name:'toHaveCSS()',
+ level:'intermediate',
+ desc:'Asserts that an element has a specific computed CSS property value. Checks the rendered style, not just the attribute.',
+ tip:'Reads computed styles, so it reflects cascaded values including those applied by external stylesheets and animations.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-css',
+ code:`await expect(page.locator('.alert')).toHaveCSS('background-color', 'rgb(255, 0, 0)');
+await expect(page.locator('.modal')).toHaveCSS('display', 'flex');
+
+// Use regex for flexible matching
+await expect(page.locator('.card')).toHaveCSS('border-radius', /px$/);`},
+
+{name:'toBeEditable()',
+ level:'intermediate',
+ desc:'Asserts that an input or textarea is editable, not disabled and not readonly.',
+ tip:'Use to verify that a field is available for user input after some state change, like loading completing or a toggle being switched on.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-editable',
+ code:`await expect(page.getByLabel('Email')).toBeEditable();
+
+// Assert it is NOT editable (readonly)
+await expect(page.getByLabel('Username')).not.toBeEditable();`},
+
+{name:'toBeEmpty()',
+ level:'beginner',
+ desc:'Asserts that an input or textarea has no value, or that an element has no text content or children.',
+ tip:'Use after clear() to verify the field was emptied. Also works on container elements to assert they have no children.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-empty',
+ code:`await page.getByLabel('Search').clear();
+await expect(page.getByLabel('Search')).toBeEmpty();
+
+// Assert an error container has no messages
+await expect(page.locator('#error-list')).toBeEmpty();`},
+
+{name:'toBeInViewport()',
+ level:'intermediate',
+ desc:'Asserts that an element is within the visible viewport area of the browser window.',
+ tip:'Use to verify that sticky headers, floating buttons, or scroll-to-top elements are visible at the right scroll position.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-in-viewport',
+ code:`// Assert the element is at least partially visible in the viewport
+await expect(page.locator('#sticky-header')).toBeInViewport();
+
+// Assert at least 50% of the element is visible
+await expect(page.locator('.banner')).toBeInViewport({ ratio: 0.5 });`},
+
+{name:'toHaveScreenshot()',
+ level:'advanced',
+ desc:'Captures a screenshot of an element or page and compares it pixel-by-pixel against a stored baseline image. Fails if they differ.',
+ tip:'Run with --update-snapshots to generate the baseline on first run. Commit the snapshots. Use threshold option to allow minor rendering differences.',
+ docs:'https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-screenshot-1',
+ code:`// Full page visual regression
+await expect(page).toHaveScreenshot('dashboard.png');
+
+// Single element comparison
+await expect(page.locator('.chart')).toHaveScreenshot('chart.png', {
+  maxDiffPixelRatio: 0.01  // allow up to 1% pixel difference
+});`},
+
+{name:'expect.soft()',
+ level:'intermediate',
+ desc:'A soft assertion that records a failure but does not stop the test. All soft assertion failures are reported together at the end.',
+ tip:'Use when you want to check multiple things in one test and see all failures at once, not just the first one.',
+ docs:'https://playwright.dev/docs/test-assertions#soft-assertions',
+ code:`test('checks all dashboard widgets', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  await expect.soft(page.getByTestId('revenue-widget')).toBeVisible();
+  await expect.soft(page.getByTestId('users-widget')).toBeVisible();
+  await expect.soft(page.getByTestId('orders-widget')).toBeVisible();
+
+  // Test continues even if some assertions above fail
+  // All failures are reported together at the end
+});`},
+
+{name:'expect.poll()',
+ level:'advanced',
+ desc:'Polls a function repeatedly until its return value satisfies the assertion. Useful for asserting on values that change asynchronously.',
+ tip:'Use when asserting on a value outside of Playwright locators (e.g. a database call, an API response polled manually).',
+ docs:'https://playwright.dev/docs/test-assertions#expectpoll',
+ code:`// Poll until the database shows the record was created
+await expect.poll(async () => {
+  const res = await request.get('/api/jobs/123');
+  return (await res.json()).status;
+}, { timeout: 10000 }).toBe('completed');`},
 ]},
 
 /* ── UTILITY ──────────────────────────────────────────────────── */
@@ -610,6 +847,78 @@ await page.addInitScript(() => {
     '--transition-duration', '0ms'
   );
 });`},
+
+{name:'locator.innerText()',
+ level:'beginner',
+ desc:'Reads the visible inner text of an element into a JavaScript variable. Returns the rendered text, not raw HTML.',
+ tip:'Use when you need the text value to use in logic or further assertions. For a direct assertion, prefer toHaveText() which auto-retries.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-inner-text',
+ code:`const heading = await page.locator('h1').innerText();
+console.log(heading); // e.g. "Dashboard"
+
+// Use the value in your own assertion
+expect(heading).toContain('Dashboard');`},
+
+{name:'locator.getAttribute()',
+ level:'beginner',
+ desc:'Reads the value of a specific HTML attribute from an element and returns it as a string.',
+ tip:'For assertions, prefer toHaveAttribute() which auto-retries. Use getAttribute() when you need the value in your own logic.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-get-attribute',
+ code:`const href = await page.locator('a.home').getAttribute('href');
+expect(href).toBe('/home');
+
+const expanded = await page.locator('#menu').getAttribute('aria-expanded');
+expect(expanded).toBe('true');`},
+
+{name:'locator.count()',
+ level:'beginner',
+ desc:'Returns the number of elements matching the locator as a JavaScript number. Use for conditional logic.',
+ tip:'For assertions, prefer toHaveCount() which auto-retries. Use count() when the number drives test logic rather than a pass/fail check.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-count',
+ code:`const rows = await page.locator('tbody tr').count();
+console.log(\`Found \${rows} rows\`);
+
+if (rows > 0) {
+  await page.locator('tbody tr').first().click();
+}`},
+
+{name:'locator.isVisible()',
+ level:'intermediate',
+ desc:'Returns true or false immediately without retrying or throwing. Use for conditional branching, not assertions.',
+ tip:'Do not use for assertions use toBeVisible() instead. isVisible() is for when you need to make a decision based on whether something exists.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-is-visible',
+ code:`// Dismiss a cookie banner only if it is present
+if (await page.locator('#cookie-banner').isVisible()) {
+  await page.getByRole('button', { name: 'Accept' }).click();
+}
+
+await page.goto('/dashboard');`},
+
+{name:'waitForFunction()',
+ level:'advanced',
+ desc:'Waits until a JavaScript expression evaluated in the browser returns a truthy value.',
+ tip:'Use when Playwright has no built-in wait for your condition: e.g. waiting for a third-party library to initialize or a custom animation to end.',
+ docs:'https://playwright.dev/docs/api/class-page#page-wait-for-function',
+ code:`// Wait until a custom global flag is set by the app
+await page.waitForFunction(() => window.appReady === true);
+
+// Wait until the number of items in a list reaches 5
+await page.waitForFunction(() =>
+  document.querySelectorAll('.item').length >= 5
+);`},
+
+{name:'page.setViewportSize()',
+ level:'intermediate',
+ desc:'Changes the browser viewport dimensions mid-test. Useful for testing responsive layouts and breakpoints.',
+ tip:'Set a global viewport in playwright.config.ts under use: { viewport }. Use this method in a single test when you need to change it dynamically.',
+ docs:'https://playwright.dev/docs/api/class-page#page-set-viewport-size',
+ code:`// Test tablet layout
+await page.setViewportSize({ width: 768, height: 1024 });
+await expect(page.locator('.sidebar')).toBeHidden();
+
+// Test mobile layout
+await page.setViewportSize({ width: 375, height: 812 });
+await expect(page.locator('.mobile-nav')).toBeVisible();`},
 ]},
 
 /* ── API ──────────────────────────────────────────────────────── */
@@ -724,6 +1033,34 @@ expect(res.status()).toBe(200);`},
 ]);
 expect(req.method()).toBe('POST');
 expect(req.postDataJSON()).toMatchObject({ email: 'test@mail.com' });`},
+
+{name:'route.fetch()',
+ level:'advanced',
+ desc:'Forwards the intercepted request to the real server, then returns the real response so you can modify it before the page receives it.',
+ tip:'The best of both worlds, real data with modifications. Use to patch one field in a large API response without mocking the whole thing.',
+ docs:'https://playwright.dev/docs/api/class-route#route-fetch',
+ code:`await page.route('**/api/products', async route => {
+  // Get the real response from the server
+  const response = await route.fetch();
+  const body = await response.json();
+
+  // Modify one field and return the rest unchanged
+  body[0].price = 0;
+  await route.fulfill({ response, json: body });
+});`},
+
+{name:'page.unroute()',
+ level:'intermediate',
+ desc:'Removes a previously registered route handler so subsequent requests are no longer intercepted.',
+ tip:'Use in afterEach() to clean up routes set in beforeEach(), or mid-test when you only want to mock requests temporarily.',
+ docs:'https://playwright.dev/docs/api/class-page#page-unroute',
+ code:`const handler = route => route.fulfill({ status: 200, body: '[]' });
+await page.route('**/api/items', handler);
+
+// ... run tests with the mock active ...
+
+// Remove the mock and real requests will now go through
+await page.unroute('**/api/items', handler);`},
 ]},
 
 /* ── PATTERNS ─────────────────────────────────────────────────── */
@@ -833,6 +1170,52 @@ expect(req.postDataJSON()).toMatchObject({ email: 'test@mail.com' });`},
 
   await page.goto('/dashboard');
 });`},
+
+{name:'Page Object Model',
+ level:'intermediate',
+ desc:"Encapsulates a page's selectors and actions into a reusable class. Keeps tests readable and centralizes locator maintenance.",
+ tip:'If a locator changes, fix it in one place, not in every test. The biggest maintainability win in large test suites.',
+ docs:'https://playwright.dev/docs/pom',
+ code:`// pages/LoginPage.ts
+export class LoginPage {
+  constructor(private page: Page) {}
+
+  async login(email: string, password: string) {
+    await this.page.getByLabel('Email').fill(email);
+    await this.page.getByLabel('Password').fill(password);
+    await this.page.getByRole('button', { name: 'Log in' }).click();
+  }
+}
+
+// tests/login.spec.ts
+test('user can log in', async ({ page }) => {
+  const loginPage = new LoginPage(page);
+  await page.goto('/login');
+  await loginPage.login('user@test.com', 'secret');
+  await expect(page).toHaveURL('/dashboard');
+});`},
+
+{name:'storageState auth',
+ level:'intermediate',
+ desc:'Saves authenticated browser state (cookies, localStorage) to a file and reuses it across tests, eliminating repeated UI logins.',
+ tip:'Run the login once in a global setup file and save the state. Set storageState in playwright.config.ts so every test starts already logged in.',
+ docs:'https://playwright.dev/docs/auth#basic-shared-account-in-all-tests',
+ code:`// global-setup.ts, runs once before all tests
+import { chromium } from '@playwright/test';
+
+export default async function globalSetup() {
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto('/login');
+  await page.getByLabel('Email').fill('user@test.com');
+  await page.getByLabel('Password').fill('secret');
+  await page.getByRole('button', { name: 'Log in' }).click();
+  await page.context().storageState({ path: 'auth.json' });
+  await browser.close();
+}
+
+// playwright.config.ts
+// use: { storageState: 'auth.json' }`},
 ]},
 
 /* ── CLI ──────────────────────────────────────────────────────── */
@@ -1026,6 +1409,362 @@ npx playwright install --with-deps chromium
 
 npx playwright test --help
 # List all flags for the test runner`},
+
+{name:'--trace',
+ level:'intermediate',
+ desc:'Controls trace recording. Options: on, off, on-first-retry, on-all-retries, retain-on-failure.',
+ tip:'Use retain-on-failure in CI so traces are only kept when a test fails, saving disk space without losing debug info.',
+ docs:'https://playwright.dev/docs/trace-viewer-intro',
+ code:`npx playwright test --trace on
+# Record a trace for every test
+
+npx playwright test --trace on-first-retry
+# Record trace only on the first retry of a failing test
+
+npx playwright test --trace retain-on-failure
+# Keep traces only for failed tests (recommended for CI)`},
+
+{name:'--grep',
+ level:'intermediate',
+ desc:'Runs only tests whose title matches the given regex pattern. More powerful than -g, supports full regex syntax.',
+ tip:'Use --grep-invert to exclude tests matching the pattern. Combine with --project to run a filtered set on a specific browser.',
+ docs:'https://playwright.dev/docs/test-cli#reference',
+ code:`npx playwright test --grep "checkout"
+# Run tests matching "checkout"
+
+npx playwright test --grep-invert "smoke"
+# Run all tests EXCEPT those matching "smoke"`},
+
+{name:'--list',
+ level:'beginner',
+ desc:'Lists all tests that would be run without actually executing them. Useful for auditing test coverage.',
+ tip:'Combine with --grep or --project to preview exactly which tests will run before committing to a full run.',
+ docs:'https://playwright.dev/docs/test-cli#reference',
+ code:`npx playwright test --list
+# Print all discovered test names without running them
+
+npx playwright test --list --grep "login"
+# Preview which tests match "login"`},
+
+{name:'--shard',
+ level:'advanced',
+ desc:'Splits the test suite across multiple CI machines. Each shard runs a portion of the total tests.',
+ tip:'Use with a CI matrix to reduce total pipeline time. Merge the reports afterward with --merge-reports.',
+ docs:'https://playwright.dev/docs/test-sharding',
+ code:`npx playwright test --shard=1/3
+# Run the first third of tests (machine 1 of 3)
+
+npx playwright test --shard=2/3
+# Run the second third (machine 2 of 3)`},
+
+{name:'--forbid-only',
+ level:'intermediate',
+ desc:'Fails the test run immediately if any test.only() or test.describe.only() is found in the code.',
+ tip:'Always enable this in CI. It prevents a developer accidentally committing a test.only() that silently skips the rest of the suite.',
+ docs:'https://playwright.dev/docs/test-cli#reference',
+ code:`npx playwright test --forbid-only
+# Fails fast if test.only() is found anywhere in the suite
+
+# Add to playwright.config.ts for permanent CI enforcement:
+# forbidOnly: !!process.env.CI`},
+]},
+
+/* ── ACCESSIBILITY ────────────────────────────────────────────── */
+{cat:'Accessibility', cls:'accessibility', color:'#10b981', items:[
+{name:'toMatchAriaSnapshot()',
+ level:'intermediate',
+ desc:'Asserts the ARIA structure of an element matches a YAML snapshot. Captures roles, names, and states in a human-readable format.',
+ tip:'Run with --update-snapshots to generate the baseline. Commit the snapshot files. Great for catching unintended ARIA regressions. Added in v1.50.',
+ docs:'https://playwright.dev/docs/aria-snapshots',
+ code:`// Generate snapshot on first run: npx playwright test --update-snapshots
+await expect(page.locator('nav')).toMatchAriaSnapshot(\`
+  - navigation:
+    - link "Home"
+    - link "Products"
+    - link "Contact"
+\`);`},
+
+{name:'toHaveAccessibleName()',
+ level:'intermediate',
+ desc:'Asserts that an element has the expected accessible name, the label announced by screen readers.',
+ tip:'Use to verify that icon-only buttons, images, and form fields have meaningful accessible names for screen reader users.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-name',
+ code:`await expect(page.getByRole('button', { name: 'Close' }))
+  .toHaveAccessibleName('Close dialog');
+
+// Icon button with no visible label
+await expect(page.locator('#delete-btn')).toHaveAccessibleName('Delete item');`},
+
+{name:'toHaveAccessibleDescription()',
+ level:'intermediate',
+ desc:'Asserts the accessible description of an element in the supplementary text announced by screen readers (from the aria-described by attribute).',
+ tip:'Use to verify that help text, error messages, and tooltips are correctly linked to their inputs via the aria-described by attribute.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-description',
+ code:`await expect(page.getByLabel('Password'))
+  .toHaveAccessibleDescription('Must be at least 8 characters');`},
+
+{name:'toHaveAccessibleErrorMessage()',
+ level:'intermediate',
+ desc:'Asserts the accessible error message of an invalid form field in the text linked via aria-errormessage. Added in v1.50.',
+ tip:'Use when testing form validation. Verifies that errors are properly exposed to assistive technologies, not just visible on screen.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-accessible-error-message',
+ code:`// Submit an invalid form and check the error is accessible
+await page.getByRole('button', { name: 'Submit' }).click();
+await expect(page.getByLabel('Email'))
+  .toHaveAccessibleErrorMessage('Please enter a valid email address');`},
+
+{name:'toHaveRole()',
+ level:'intermediate',
+ desc:'Asserts that an element has the specified ARIA role. Checks the implicit or explicit role exposed to assistive technologies.',
+ tip:'Use to verify that custom components correctly expose their role. A div styled as a button should have role="button".',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-role',
+ code:`await expect(page.locator('#save-btn')).toHaveRole('button');
+await expect(page.locator('nav')).toHaveRole('navigation');
+await expect(page.locator('.alert')).toHaveRole('alert');`},
+
+{name:'locator.ariaSnapshot()',
+ level:'advanced',
+ desc:'Returns the ARIA structure of an element as a YAML string. Use to inspect the accessibility tree during test development.',
+ tip:'Call this when authoring a toMatchAriaSnapshot() test to copy the output as your baseline. Shows what screen readers see.',
+ docs:'https://playwright.dev/docs/aria-snapshots#generating-snapshots',
+ code:`// Print the ARIA tree of the navigation to the console
+const snapshot = await page.locator('nav').ariaSnapshot();
+console.log(snapshot);
+// Output:
+// - navigation:
+//   - link "Home"
+//   - link "Products"`},
+
+{name:'Keyboard navigation',
+ level:'intermediate',
+ desc:'Tests that interactive elements are reachable and operable using only the keyboard Tab, Shift+Tab, Enter, Space, and arrow keys.',
+ tip:'Every interactive element must be keyboard accessible. Test Tab order, focus visibility, and that Enter/Space activate buttons and links.',
+ docs:'https://playwright.dev/docs/accessibility-testing',
+ code:`// Tab through the form and verify focus order
+await page.goto('/contact');
+await page.keyboard.press('Tab'); // focus first field
+await expect(page.getByLabel('Name')).toBeFocused();
+
+await page.keyboard.press('Tab'); // move to next field
+await expect(page.getByLabel('Email')).toBeFocused();
+
+// Activate a button with keyboard
+await page.getByRole('button', { name: 'Submit' }).focus();
+await page.keyboard.press('Enter');`},
+
+{name:'Axe integration',
+ level:'advanced',
+ desc:'Runs the axe-core accessibility engine against the page to detect WCAG violations. Requires the @axe-core/playwright package.',
+ tip:'Install with: npm install @axe-core/playwright. Axe catches broad WCAG issues automatically. Combine with specific assertions for full coverage.',
+ docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+ code:`import AxeBuilder from '@axe-core/playwright';
+
+test('page has no accessibility violations', async ({ page }) => {
+  await page.goto('/dashboard');
+
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa'])
+    .analyze();
+
+  expect(results.violations).toEqual([]);
+});`},
+]},
+
+/* ── CONFIG ───────────────────────────────────────────────────── */
+{cat:'Config', cls:'config', color:'#6366f1', items:[
+{name:'baseURL',
+ level:'beginner',
+ desc:'Sets the base URL for all page.goto() calls. Lets you use relative paths like /login instead of the full URL.',
+ tip:'Set this in playwright.config.ts and never hardcode URLs in tests. Change environments by changing baseURL in one place.',
+ docs:'https://playwright.dev/docs/test-configuration#baseurl',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'http://localhost:3000',
+  },
+});
+
+// In tests relative path works because baseURL is set
+await page.goto('/login');`},
+
+{name:'testDir',
+ level:'beginner',
+ desc:'Sets the directory where Playwright looks for test files. Defaults to the directory of the config file.',
+ tip:'Keep tests separate from source code. A common convention is a top-level tests/ or e2e/ folder.',
+ docs:'https://playwright.dev/docs/test-configuration#testdir',
+ code:`// playwright.config.ts
+export default defineConfig({
+  testDir: './tests',
+  testMatch: '**/*.spec.ts',
+});`},
+
+{name:'timeout',
+ level:'beginner',
+ desc:'Sets the maximum time in milliseconds each test is allowed to run before being marked as failed.',
+ tip:'Default is 30 seconds. Increase for slow tests. Use test.slow() to triple the timeout for individual tests.',
+ docs:'https://playwright.dev/docs/test-timeouts',
+ code:`// playwright.config.ts
+export default defineConfig({
+  timeout: 60000, // 60 seconds per test
+  expect: {
+    timeout: 10000, // 10 seconds for each assertion
+  },
+});`},
+
+{name:'retries',
+ level:'intermediate',
+ desc:'Sets how many times a failing test is retried before being marked as failed. Helps handle rare, intermittent flakiness.',
+ tip:'Use 1-2 retries in CI only. Zero retries locally makes failures visible immediately. Never use retries to hide genuinely broken tests.',
+ docs:'https://playwright.dev/docs/test-retries',
+ code:`// playwright.config.ts
+export default defineConfig({
+  retries: process.env.CI ? 2 : 0,
+});`},
+
+{name:'workers',
+ level:'intermediate',
+ desc:'Sets the number of parallel worker processes. Defaults to half the number of CPU cores.',
+ tip:'More workers means faster runs on powerful machines. Set to 1 when debugging flaky tests or shared state issues.',
+ docs:'https://playwright.dev/docs/test-parallel',
+ code:`// playwright.config.ts
+export default defineConfig({
+  workers: process.env.CI ? 4 : undefined,
+  // undefined = use default (half CPU cores) locally
+});`},
+
+{name:'fullyParallel',
+ level:'intermediate',
+ desc:'Runs all tests across all files in parallel, not just files in parallel. Each test gets its own worker.',
+ tip:'Enable for maximum speed if your tests are fully isolated. Disable if tests within a file share state or must run in order.',
+ docs:'https://playwright.dev/docs/test-parallel#parallelize-tests-in-a-single-file',
+ code:`// playwright.config.ts
+export default defineConfig({
+  fullyParallel: true,
+});
+
+// To run tests in a single file serially:
+test.describe.configure({ mode: 'serial' });`},
+
+{name:'use (browser options)',
+ level:'beginner',
+ desc:'Sets shared browser and context options applied to all tests: viewport, locale, timezone, permissions, and more.',
+ tip:'Set common options here once instead of in every test. Override per-project or per-test as needed.',
+ docs:'https://playwright.dev/docs/test-use-options',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'http://localhost:3000',
+    viewport: { width: 1280, height: 720 },
+    locale: 'en-GB',
+    timezoneId: 'Europe/London',
+    headless: true,
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure',
+    trace: 'on-first-retry',
+  },
+});`},
+
+{name:'projects',
+ level:'intermediate',
+ desc:'Defines multiple named test projects, each with its own browser and configuration. Use for cross-browser testing.',
+ tip:'Each project can override any use option. Run a specific project with --project=chromium during development.',
+ docs:'https://playwright.dev/docs/test-projects',
+ code:`// playwright.config.ts
+export default defineConfig({
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'firefox',  use: { ...devices['Desktop Firefox'] } },
+    { name: 'webkit',   use: { ...devices['Desktop Safari'] } },
+    { name: 'mobile',   use: { ...devices['iPhone 14'] } },
+  ],
+});`},
+
+{name:'reporter',
+ level:'intermediate',
+ desc:'Configures the output format for test results. Can combine multiple reporters at once.',
+ tip:'Use html locally for rich visual results. Use dot or line in CI for clean logs, and add junit for test result integration.',
+ docs:'https://playwright.dev/docs/test-reporters',
+ code:`// playwright.config.ts
+export default defineConfig({
+  reporter: [
+    ['html', { open: 'never' }],
+    ['junit', { outputFile: 'results.xml' }],
+    ['list'],
+  ],
+});`},
+
+{name:'globalSetup / globalTeardown',
+ level:'advanced',
+ desc:'Runs a script once before all tests start (globalSetup) and once after all tests finish (globalTeardown).',
+ tip:'Use globalSetup to log in and save auth state, seed a database, or start a test server. Tear it down in globalTeardown.',
+ docs:'https://playwright.dev/docs/test-global-setup-teardown',
+ code:`// playwright.config.ts
+export default defineConfig({
+  globalSetup: './global-setup.ts',
+  globalTeardown: './global-teardown.ts',
+});
+
+// global-setup.ts
+export default async function() {
+  await seedDatabase();
+}`},
+
+{name:'trace',
+ level:'intermediate',
+ desc:'Controls when traces are recorded. A trace is a full recording of browser actions, network, and console output, viewable in the Trace Viewer.',
+ tip:'Use retain-on-failure in CI, traces are only kept for failing tests, saving disk space while ensuring you always have debug data.',
+ docs:'https://playwright.dev/docs/trace-viewer-intro',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    // 'off' | 'on' | 'on-first-retry' | 'on-all-retries' | 'retain-on-failure'
+    trace: 'retain-on-failure',
+  },
+});
+
+// View a trace:
+// npx playwright show-trace test-results/trace.zip`},
+
+{name:'screenshot / video',
+ level:'intermediate',
+ desc:"Controls when screenshots and videos are captured. Set to only-on-failure to automatically capture evidence when a test fails.",
+ tip:'Both default to off. Enable in CI so you always have visual evidence for failures without slowing down passing tests.',
+ docs:'https://playwright.dev/docs/test-configuration#automatic-screenshots',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    // 'off' | 'on' | 'only-on-failure'
+    screenshot: 'only-on-failure',
+    // 'off' | 'on' | 'retain-on-failure'
+    video: 'retain-on-failure',
+  },
+});`},
+
+{name:'forbidOnly',
+ level:'intermediate',
+ desc:'Causes the test run to fail immediately if any test.only() or describe.only() is present. Essential for CI pipelines.',
+ tip:'Set this to !!process.env.CI so it is only enforced in CI. Locally you can still use .only() freely during development.',
+ docs:'https://playwright.dev/docs/api/class-testconfig#test-config-forbid-only',
+ code:`// playwright.config.ts
+export default defineConfig({
+  forbidOnly: !!process.env.CI,
+});`},
+
+{name:'testIdAttribute',
+ level:'intermediate',
+ desc:'Customizes the HTML attribute that getByTestId() looks for. Defaults to data-testid.',
+ tip:'Change this if your codebase uses a different attribute like data-cy (Cypress) or data-qa.',
+ docs:'https://playwright.dev/docs/api/class-testconfig#test-config-test-id-attribute',
+ code:`// playwright.config.ts
+export default defineConfig({
+  use: {
+    testIdAttribute: 'data-cy', // now getByTestId() reads data-cy
+  },
+});
+
+// In tests
+await page.getByTestId('submit-btn').click();
+// Finds: <button data-cy="submit-btn">`},
 ]},
 
 ]; // end categories
