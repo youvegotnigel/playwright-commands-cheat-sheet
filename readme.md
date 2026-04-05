@@ -289,12 +289,14 @@ Key `playwright.config.ts` options for configuring the test runner, browsers, an
 
 ```
 playwright-commands-cheat-sheet/
-├── index.html       # HTML shell — layout and modal structure only
-├── style.css        # All CSS styles
+├── images/          # Images folder
 ├── js/
 │   ├── data.js      # All commands, descriptions, tips, and docs links
 │   └── app.js       # UI logic — rendering, filtering, modal, search
+├── index.html       # HTML shell — layout and modal structure only
+└── LICENSE
 └── readme.md
+├── style.css        # All CSS styles
 ```
 
 ### Adding a New Command
