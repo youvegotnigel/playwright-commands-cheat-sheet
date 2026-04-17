@@ -11,7 +11,10 @@
 <header>🎭 Playwright Commands Dashboard 🎭</header>
 
 <div class="container">
-  <input type="text" placeholder="Search commands, descriptions, tips..." oninput="search(this.value)">
+  <div class="search-wrap">
+    <input type="text" id="search-input" placeholder="Search commands, descriptions, tips..." aria-label="Search commands" oninput="search(this.value)">
+    <span class="search-shortcut" id="search-shortcut"></span>
+  </div>
   <div class="filters" id="filters"></div>
   <div class="toolbar">
     <button class="view-btn active" id="btnFlat"    onclick="setView('flat')">Flat</button>
