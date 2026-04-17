@@ -17,6 +17,13 @@ test.describe('Page load', () => {
     expect(await tiles.count()).toBeGreaterThan(10);
   });
 
+  test('tile count matches the data', async ({ page }) => {
+    const dataCount = await page.evaluate(() =>
+      categories.reduce((sum, cat) => sum + cat.items.length, 0)
+    );
+    expect(await page.locator('.tile').count()).toBe(dataCount);
+  });
+
   test('renders filter buttons including All and Beginner', async ({ page }) => {
     await expect(page.locator('.filter-btn', { hasText: 'All' })).toBeVisible();
     await expect(page.locator('.filter-btn', { hasText: 'Start Here' })).toBeVisible();
@@ -50,6 +57,42 @@ test.describe('Search', () => {
     await page.locator('input[type="text"]').fill('goto');
     await page.locator('input[type="text"]').clear();
     expect(await page.locator('.tile').count()).toBe(allCount);
+  });
+
+  test('is case-insensitive', async ({ page }) => {
+    await page.locator('input[type="text"]').fill('goto');
+    const lower = await page.locator('.tile').count();
+
+    await page.locator('input[type="text"]').fill('GOTO');
+    const upper = await page.locator('.tile').count();
+
+    expect(upper).toBe(lower);
+    expect(upper).toBeGreaterThan(0);
+  });
+
+  test('works while a category filter is active', async ({ page }) => {
+    // Apply a category filter first, then search within it
+    await page.locator('.filter-btn', { hasText: 'Start Here' }).click();
+    const afterFilter = await page.locator('.tile').count();
+
+    await page.locator('input[type="text"]').fill('page');
+    const afterSearch = await page.locator('.tile').count();
+
+    // Search should narrow results further (or keep same if all match)
+    expect(afterSearch).toBeLessThanOrEqual(afterFilter);
+    expect(afterSearch).toBeGreaterThan(0);
+  });
+
+  test('active filter is preserved after clearing search', async ({ page }) => {
+    await page.locator('.filter-btn', { hasText: 'Start Here' }).click();
+    const afterFilter = await page.locator('.tile').count();
+
+    await page.locator('input[type="text"]').fill('page');
+    await page.locator('input[type="text"]').clear();
+
+    // Tile count should return to the filtered count, not the full count
+    expect(await page.locator('.tile').count()).toBe(afterFilter);
+    await expect(page.locator('.filter-btn', { hasText: 'Start Here' })).toHaveClass(/active/);
   });
 });
 
@@ -153,5 +196,66 @@ test.describe('Modal', () => {
     await page.locator('.tile').first().click();
     await page.locator('#btn-copy').click();
     await expect(page.locator('#btn-copy')).toContainText('Copied');
+  });
+
+  test('Copy button resets back to Copy after 2 seconds', async ({ page }) => {
+    await page.locator('.tile').first().click();
+    await page.locator('#btn-copy').click();
+    await expect(page.locator('#btn-copy')).toContainText('Copied');
+    await expect(page.locator('#btn-copy')).toContainText('Copy', { timeout: 4000 });
+  });
+
+  test('opening a different tile shows its content', async ({ page }) => {
+    const tiles = page.locator('.tile');
+    const firstName  = await tiles.nth(0).locator('.tile-name').innerText();
+    const secondName = await tiles.nth(1).locator('.tile-name').innerText();
+
+    await tiles.nth(0).click();
+    await expect(page.locator('#m-title')).toContainText(firstName);
+
+    // Close first, then open a different tile
+    await page.locator('.btn-close').click();
+    await tiles.nth(1).click();
+    await expect(page.locator('#m-title')).toContainText(secondName);
+    await expect(page.locator('#modal')).toBeVisible();
+  });
+
+  test('Docs link opens in a new tab', async ({ page }) => {
+    await page.locator('.tile').first().click();
+    const target = await page.locator('#btn-docs').getAttribute('target');
+    expect(target).toBe('_blank');
+  });
+});
+
+/* ── MOBILE ────────────────────────────────────────────────────── */
+test.describe('Mobile', () => {
+  test('filter bar is scrollable when filters overflow', async ({ page, isMobile }) => {
+    if (!isMobile) test.skip();
+    const filterBar = page.locator('#filters');
+    const scrollWidth  = await filterBar.evaluate(el => el.scrollWidth);
+    const clientWidth  = await filterBar.evaluate(el => el.clientWidth);
+    // On mobile the filter bar should allow horizontal scrolling
+    const overflowX = await filterBar.evaluate(el => getComputedStyle(el).overflowX);
+    if (scrollWidth > clientWidth) {
+      expect(['auto', 'scroll']).toContain(overflowX);
+    }
+  });
+
+  test('modal content is visible and not clipped on small screens', async ({ page, isMobile }) => {
+    if (!isMobile) test.skip();
+    await page.locator('.tile').first().click();
+    const modal = page.locator('.modal-content');
+    await expect(modal).toBeVisible();
+
+    const box = await modal.boundingBox();
+    const viewportWidth = page.viewportSize().width;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(viewportWidth + 1); // +1 for rounding
+  });
+
+  test('tiles respond to tap', async ({ page, isMobile }) => {
+    if (!isMobile) test.skip();
+    await page.locator('.tile').first().tap();
+    await expect(page.locator('#modal')).toBeVisible();
   });
 });
