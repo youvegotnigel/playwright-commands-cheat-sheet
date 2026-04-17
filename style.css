@@ -4,13 +4,20 @@ header { padding: 16px; text-align: center; font-size: 36px; font-weight: bold; 
 
 .container { padding: 15px; max-width: 1200px; margin: auto; }
 
+.search-wrap { position: relative; margin-bottom: 12px; }
 input[type=text] {
-  width: 100%; padding: 10px 14px; margin-bottom: 12px;
+  width: 100%; padding: 10px 70px 10px 14px;
   border-radius: 8px; border: 1px solid #334155;
   background: #1e293b; color: #e2e8f0; font-size: 15px;
 }
 input[type=text]::placeholder { color: #64748b; }
 input[type=text]:focus { outline: none; border-color: #64748b; }
+.search-shortcut {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: #0f172a; border: 1px solid #334155; color: #475569;
+  padding: 2px 6px; border-radius: 4px; font-size: 11px; font-family: monospace;
+  pointer-events: none; user-select: none;
+}
 
 .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
 .filter-btn {
