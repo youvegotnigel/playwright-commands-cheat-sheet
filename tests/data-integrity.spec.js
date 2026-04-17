@@ -87,4 +87,78 @@ test.describe('Data integrity', () => {
     });
     expect(duplicates).toEqual([]);
   });
+
+  test('no duplicate command names across all categories', async ({ page }) => {
+    const duplicates = await page.evaluate(() => {
+      const seen = new Set();
+      const dupes = [];
+      categories.forEach(cat => {
+        cat.items.forEach(item => {
+          if (seen.has(item.name))
+            dupes.push(`"${item.name}" appears in more than one category`);
+          seen.add(item.name);
+        });
+      });
+      return dupes;
+    });
+    expect(duplicates).toEqual([]);
+  });
+
+  test('no field value is blank or whitespace only', async ({ page }) => {
+    const issues = await page.evaluate(() => {
+      const required = ['name', 'level', 'desc', 'tip', 'docs', 'code'];
+      const problems = [];
+      categories.forEach(cat => {
+        cat.items.forEach(item => {
+          required.forEach(field => {
+            if (typeof item[field] === 'string' && item[field].trim() === '')
+              problems.push(`"${item.name}" in "${cat.cat}" has blank "${field}"`);
+          });
+        });
+      });
+      return problems;
+    });
+    expect(issues).toEqual([]);
+  });
+
+  test('all docs URLs point to playwright.dev', async ({ page }) => {
+    const invalid = await page.evaluate(() => {
+      const bad = [];
+      categories.forEach(cat => {
+        cat.items.forEach(item => {
+          if (!item.docs.includes('playwright.dev'))
+            bad.push(`"${item.name}" docs URL does not point to playwright.dev: "${item.docs}"`);
+        });
+      });
+      return bad;
+    });
+    expect(invalid).toEqual([]);
+  });
+
+  test('all code snippets are non-trivial (at least 20 characters)', async ({ page }) => {
+    const issues = await page.evaluate(() => {
+      const bad = [];
+      categories.forEach(cat => {
+        cat.items.forEach(item => {
+          if (item.code.trim().length < 20)
+            bad.push(`"${item.name}" has a suspiciously short code snippet: "${item.code.trim()}"`);
+        });
+      });
+      return bad;
+    });
+    expect(issues).toEqual([]);
+  });
+
+  test('all category colors are valid hex codes', async ({ page }) => {
+    const invalid = await page.evaluate(() => {
+      const hexPattern = /^#[0-9a-fA-F]{6}$/;
+      const bad = [];
+      categories.forEach(cat => {
+        if (!hexPattern.test(cat.color))
+          bad.push(`Category "${cat.cat}" has invalid color: "${cat.color}"`);
+      });
+      return bad;
+    });
+    expect(invalid).toEqual([]);
+  });
 });
