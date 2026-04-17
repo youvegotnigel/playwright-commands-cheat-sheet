@@ -227,6 +227,101 @@ test.describe('Modal', () => {
   });
 });
 
+/* ── URL DEEP-LINKING ──────────────────────────────────────────── */
+test.describe('URL deep-linking', () => {
+  test('applying a category filter updates the URL hash', async ({ page }) => {
+    await page.locator('.filter-btn', { hasText: 'Action' }).click();
+    expect(page.url()).toContain('filter=Action');
+  });
+
+  test('typing in search updates the URL hash', async ({ page }) => {
+    await page.locator('#search-input').fill('click');
+    expect(page.url()).toContain('search=click');
+  });
+
+  test('both filter and search are reflected in the URL hash', async ({ page }) => {
+    await page.locator('.filter-btn', { hasText: 'Action' }).click();
+    await page.locator('#search-input').fill('click');
+    const url = page.url();
+    expect(url).toContain('filter=Action');
+    expect(url).toContain('search=click');
+  });
+
+  test('resetting to All removes filter from URL hash', async ({ page }) => {
+    await page.locator('.filter-btn', { hasText: 'Action' }).click();
+    await page.locator('.filter-btn', { hasText: 'All' }).click();
+    expect(page.url()).not.toContain('filter=');
+  });
+
+  test('clearing search removes search from URL hash', async ({ page }) => {
+    await page.locator('#search-input').fill('click');
+    await page.locator('#search-input').clear();
+    expect(page.url()).not.toContain('search=');
+  });
+
+  test('loading with #filter hash pre-applies the category filter', async ({ page }) => {
+    const totalCount = await page.locator('.tile').count();
+
+    await page.goto('/#filter=Action');
+    await expect(page.locator('.filter-btn', { hasText: 'Action' })).toHaveClass(/active/);
+    const filteredCount = await page.locator('.tile').count();
+    expect(filteredCount).toBeGreaterThan(0);
+    expect(filteredCount).toBeLessThan(totalCount);
+  });
+
+  test('loading with #filter=beginner hash applies the Start Here filter', async ({ page }) => {
+    const totalCount = await page.locator('.tile').count();
+
+    await page.goto('/#filter=beginner');
+    await expect(page.locator('.filter-btn', { hasText: 'Start Here' })).toHaveClass(/active/);
+    const filteredCount = await page.locator('.tile').count();
+    expect(filteredCount).toBeGreaterThan(0);
+    expect(filteredCount).toBeLessThan(totalCount);
+  });
+
+  test('loading with #search hash pre-populates the search input and filters tiles', async ({ page }) => {
+    const totalCount = await page.locator('.tile').count();
+
+    await page.goto('/#search=click');
+    const inputValue = await page.locator('#search-input').inputValue();
+    expect(inputValue).toBe('click');
+    const filteredCount = await page.locator('.tile').count();
+    expect(filteredCount).toBeGreaterThan(0);
+    expect(filteredCount).toBeLessThan(totalCount);
+  });
+
+  test('loading with both #filter and #search applies both simultaneously', async ({ page }) => {
+    await page.goto('/#filter=Action&search=click');
+    await expect(page.locator('.filter-btn', { hasText: 'Action' })).toHaveClass(/active/);
+    const inputValue = await page.locator('#search-input').inputValue();
+    expect(inputValue).toBe('click');
+    expect(await page.locator('.tile').count()).toBeGreaterThan(0);
+  });
+});
+
+/* ── KEYBOARD SHORTCUTS ────────────────────────────────────────── */
+test.describe('Keyboard shortcuts', () => {
+  test('search shortcut hint badge is visible in the search bar', async ({ page }) => {
+    await expect(page.locator('#search-shortcut')).toBeVisible();
+    const text = await page.locator('#search-shortcut').innerText();
+    expect(['⌘K', 'Ctrl+K']).toContain(text);
+  });
+
+  test('Ctrl+K focuses the search input', async ({ page }) => {
+    await page.locator('body').click(); // ensure focus is away from search
+    await page.keyboard.press('Control+k');
+    const isFocused = await page.locator('#search-input').evaluate(
+      el => document.activeElement === el
+    );
+    expect(isFocused).toBe(true);
+  });
+
+  test('search input has an accessible aria-label', async ({ page }) => {
+    const label = await page.locator('#search-input').getAttribute('aria-label');
+    expect(label).toBeTruthy();
+  });
+});
+
 /* ── MOBILE ────────────────────────────────────────────────────── */
 test.describe('Mobile', () => {
   test('filter bar is scrollable when filters overflow', async ({ page, isMobile }) => {

@@ -168,17 +168,26 @@ function updateHash() {
   history.replaceState(null, '', qs ? '#' + qs : location.pathname + location.search);
 }
 
-function readHash() {
-  if (!location.hash) return;
-  const params = new URLSearchParams(location.hash.slice(1));
+// Reads current URL hash and applies filter/search state.
+// Called on initial page load and on hashchange (e.g. browser back/forward).
+function applyHashState() {
+  const params = location.hash ? new URLSearchParams(location.hash.slice(1)) : new URLSearchParams();
   const filter = params.get('filter');
   const search = params.get('search');
-  if (filter) activeFilter = filter;
-  if (search) {
-    searchVal = search.toLowerCase();
-    document.getElementById('search-input').value = search;
-  }
+
+  activeFilter = filter || 'all';
+  searchVal    = search ? search.toLowerCase() : '';
+  document.getElementById('search-input').value = search || '';
+
+  document.querySelectorAll('.filter-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.filter === activeFilter)
+  );
+  render();
 }
+
+// history.replaceState (used by updateHash) does NOT fire hashchange,
+// so this only triggers on external hash changes (back/forward, manual edits).
+window.addEventListener('hashchange', applyHashState);
 
 /* ── FILTERS & VIEW ───────────────────────────────────────────── */
 function setFilter(f) {
@@ -233,15 +242,10 @@ document.addEventListener('keydown', e => {
 
 /* ── INIT ─────────────────────────────────────────────────────── */
 buildFilters();
-readHash();
-// Sync filter button active state after reading hash
-document.querySelectorAll('.filter-btn').forEach(b =>
-  b.classList.toggle('active', b.dataset.filter === activeFilter)
-);
 // Show platform-appropriate keyboard shortcut hint
 (function () {
   const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
   const el = document.getElementById('search-shortcut');
   if (el) el.textContent = isMac ? '⌘K' : 'Ctrl+K';
 }());
-render();
+applyHashState();
