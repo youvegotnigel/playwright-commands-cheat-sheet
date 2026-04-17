@@ -4,6 +4,10 @@
   "private": true,
   "scripts": {
     "test": "playwright test",
+    "test:chromium": "playwright test --project=chromium",
+    "test:iphone": "playwright test --project='iPhone 16'",
+    "test:pixel": "playwright test --project='Pixel 7'",
+    "test:mobile": "playwright test --project='iPhone 16' --project='Pixel 7'",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report"
   },
