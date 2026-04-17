@@ -12,7 +12,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [chromium, iPhone 16, Pixel 7]
+        include:
+          - project: chromium
+            script: test:chromium
+          - project: iPhone 16
+            script: test:iphone
+          - project: Pixel 7
+            script: test:pixel
 
     name: ${{ matrix.project }}
 
@@ -31,7 +37,7 @@ jobs:
         run: npx playwright install --with-deps chromium webkit
 
       - name: Run tests
-        run: npx playwright test --project="${{ matrix.project }}"
+        run: npm run ${{ matrix.script }}
 
       - name: Upload test report
         if: always()
