@@ -247,22 +247,18 @@ test('user can log in', async ({ page }) => {
  desc:'Overrides browser context options (viewport, locale, permissions, etc.) for all tests in the current file or describe block. The per-test counterpart to the global use: {} in playwright.config.ts.',
  tip:'Scope it inside a test.describe() to apply only to that group. Use it to test a specific locale, timezone, or device without creating a new project.',
  docs:'https://playwright.dev/docs/api/class-test#test-use',
- code:`// Apply to all tests in the file
-test.use({ locale: 'fr-FR', timezoneId: 'Europe/Paris' });
-
-// Apply only to a describe group
-test.describe('Mobile layout', () => {
-  test.use({ viewport: { width: 390, height: 844 } });
-
-  test('shows mobile nav', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.locator('.mobile-nav')).toBeVisible();
-  });
-});
-
-// Emulate a specific device
-import { devices } from '@playwright/test';
-test.use({ ...devices['iPhone 14'] });`},
+ code:`test.use({
+  baseURL: 'https://example.com',
+  viewport: { width: 1920, height: 1080 },
+  userAgent: 'custom-agent',
+  locale: 'en-GB',
+  timezoneId: 'Asia/Colombo',
+  permissions: ['clipboard-read'],
+  geolocation: { latitude: 6.9, longitude: 79.8 },
+  colorScheme: 'dark',
+  ignoreHTTPSErrors: true,
+  storageState: 'state.json'
+});`},
 
 {name:'beforeEach()',
  level:'beginner',
