@@ -1435,6 +1435,85 @@ test('page has no accessibility violations', async ({ page }) => {
 
   expect(results.violations).toEqual([]);
 });`},
+
+{name:'AxeBuilder - scan scope',
+ level:'advanced',
+ desc:'Scope an axe-core scan to specific components using .include(), or exclude noisy/irrelevant sections using .exclude().',
+ tip:'Use .include() to focus on the component under test. Use .exclude() to skip third-party widgets or known-broken sections you do not own.',
+ docs:'https://playwright.dev/docs/accessibility-testing#scanning-a-subset-of-a-page',
+ code:`// Scan an entire page
+const results = await new AxeBuilder({ page })
+  .analyze();
+
+// Scan specific component(s) only
+const results = await new AxeBuilder({ page })
+  .include('#pane666')
+  .include('#pane777')
+  .analyze();
+
+// Exclude specific component(s) from the scan
+const results = await new AxeBuilder({ page })
+  .exclude('#pane666')
+  .analyze();`},
+
+{name:'AxeBuilder - WCAG tags & rules',
+ level:'advanced',
+ desc:'Target a specific WCAG standard with .withTags(), or suppress known false-positives by disabling individual rule IDs with .disableRules().',
+ tip:'Pass multiple tags like [\'wcag2a\',\'wcag2aa\'] to broaden coverage. Get rule IDs from the axe violation output\'s .id field, then disable only what you intentionally accept.',
+ docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+ code:`// Scan against a specific WCAG standard
+const results = await new AxeBuilder({ page })
+  .withTags(['wcag2a'])
+  .analyze();
+
+// Disable specific rule ID(s) during scan
+const results = await new AxeBuilder({ page })
+  .disableRules(['duplicate-id'])
+  .analyze();`},
+
+{name:'AxeBuilder - full example',
+ level:'advanced',
+ desc:'End-to-end axe scan with page setup, navigation, network-idle wait, violation assertion, and detailed console reporting.',
+ tip:'Always wait for networkidle before scanning dynamic pages — axe runs synchronously on the DOM, so elements must be fully rendered.',
+ docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+ code:`test('Sample Accessibility Test', tag: ['@unstable'] , async ({ page }) => {
+
+  // 1. Page set up (navigates to app and logs in)
+  const { topWidget } = await setUpERequestTest(page);
+
+  // 2. Simulate user actions to navigate to the page you want to scan
+  await topWidget.inboxDropdown.click();
+  await topWidget.reactInboxDropdownFax.click();
+
+  // 3. Wait for elements on the page to fully load
+  await page.waitForLoadState('networkidle');
+
+  // 4. Scan the entire page
+  const results = await new AxeBuilder({ page })
+    .analyze();
+
+  // 5. Assert no violations (or log a report)
+  expect(results.violations).toEqual([]);
+
+  // Example reporting: counts for violations, passes etc.
+  console.log("Counts:", {
+    violations: results.violations.length,
+    passes: results.passes.length,
+    incomplete: results.incomplete.length,
+    inapplicable: results.inapplicable.length,
+  });
+
+  // Example reporting: detailed violation info
+  if (results.violations.length > 0) {
+    results.violations.forEach(violation => {
+      console.log(\`[\${violation.impact}] \${violation.id}: \${violation.description}\`);
+      violation.nodes.forEach(node => {
+        let failureSummary = (node.failureSummary.split(":"))[1];
+        console.log(\`   - Failure Summary: \${failureSummary}\`);
+      })
+    })
+  }
+})`},
 ]},
 
 /* ── PATTERNS ─────────────────────────────────────────────────── */
