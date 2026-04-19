@@ -354,3 +354,50 @@ test.describe('Mobile', () => {
     await expect(page.locator('#modal')).toBeVisible();
   });
 });
+
+/* ── NEW ASSERTIONS (from screenshot) ─────────────────────────── */
+test.describe('New assertion tiles', () => {
+  const newAssertions = [
+    'toBeFocused()',
+    'toBeOK()',
+    'toBe()',
+    'toContain()',
+    'toBeTruthy()',
+    'toHaveLength()',
+    'toMatchObject()',
+    'toBeGreaterThan()',
+    'expect().toPass()',
+  ];
+
+  test('all 9 new assertion commands are rendered as tiles', async ({ page }) => {
+    await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
+    for (const name of newAssertions) {
+      await expect(
+        page.locator('.tile', { hasText: name }),
+        `Expected tile for "${name}" to be visible`
+      ).toBeVisible();
+    }
+  });
+
+  test('Assertions category tile count increased to 30', async ({ page }) => {
+    await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
+    await expect(page.locator('.tile')).toHaveCount(30);
+  });
+
+  for (const name of newAssertions) {
+    test(`modal for "${name}" shows description, code, and docs link`, async ({ page }) => {
+      await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
+      await page.locator('.tile', { hasText: name }).click();
+
+      await expect(page.locator('#modal')).toBeVisible();
+      await expect(page.locator('#m-title')).toContainText(name);
+      await expect(page.locator('#m-desc')).not.toBeEmpty();
+      await expect(page.locator('#m-code')).not.toBeEmpty();
+
+      const href = await page.locator('#btn-docs').getAttribute('href');
+      expect(href).toMatch(/^https:\/\/playwright\.dev/);
+
+      await page.locator('.btn-close').click();
+    });
+  }
+});
