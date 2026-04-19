@@ -798,6 +798,18 @@ await expect(page.getByRole('button', { name: 'Submit' })).toBeDisabled();`},
 // Assert NOT checked
 await expect(page.locator('#newsletter')).not.toBeChecked();`},
 
+{name:'toBeFocused()',
+ level:'intermediate',
+ desc:'Asserts that an element currently has keyboard focus — it is the active element in the document.',
+ tip:'Use after clicking an input or triggering a focus event to verify focus landed correctly. Also useful for testing focus management in modals and dialogs.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-focused',
+ code:`await page.getByLabel('Email').click();
+await expect(page.getByLabel('Email')).toBeFocused();
+
+// Verify focus moves to first field when a dialog opens
+await page.getByRole('button', { name: 'Open Dialog' }).click();
+await expect(page.getByRole('textbox').first()).toBeFocused();`},
+
 {name:'toHaveValue()',
  level:'intermediate',
  desc:'Asserts that an input, textarea, or select element has the expected value.',
@@ -901,6 +913,92 @@ await expect(page.locator('.chart')).toHaveScreenshot('chart.png', {
   maxDiffPixelRatio: 0.01  // allow up to 1% pixel difference
 });`},
 
+{name:'toBeOK()',
+ level:'intermediate',
+ desc:'Asserts that an API response has a status code in the 2xx range (200–299). Use with APIRequestContext.',
+ tip:'The quickest sanity-check for API tests. Combine with response.json() to also validate the response body shape.',
+ docs:'https://playwright.dev/docs/api/class-apiresponseassertions#api-response-assertions-to-be-ok',
+ code:`const response = await request.get('/api/users');
+await expect(response).toBeOK();
+
+// Also validate the body
+const data = await response.json();
+expect(data.users).toHaveLength(10);`},
+
+{name:'toBe()',
+ level:'beginner',
+ desc:'Generic assertion that checks a value is strictly equal to the expected value using Object.is() comparison.',
+ tip:'Use for primitive values (string, number, boolean). For objects/arrays use toEqual() for deep equality. Works with expect.poll() for async values.',
+ docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-be',
+ code:`const count = await page.locator('.item').count();
+expect(count).toBe(5);
+
+const isLoggedIn = await page.evaluate(() => !!localStorage.getItem('token'));
+expect(isLoggedIn).toBe(true);`},
+
+{name:'toContain()',
+ level:'beginner',
+ desc:'Generic assertion that checks a string contains a substring, or an array contains an item. Not to be confused with toContainText() which targets DOM elements.',
+ tip:'Use on JavaScript values, not locators. For DOM text matching use toContainText(). For matching objects inside arrays, use expect.arrayContaining().',
+ docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-contain',
+ code:`// String contains substring
+const url = page.url();
+expect(url).toContain('/dashboard');
+
+// Array contains item
+const tags = await page.evaluate(() => window.__tags__);
+expect(tags).toContain('featured');`},
+
+{name:'toBeTruthy()',
+ level:'beginner',
+ desc:'Generic assertion that checks a value is truthy — anything that is not false, 0, "", null, undefined, or NaN.',
+ tip:'Use when you care that a value exists but not its exact content. For a stricter check use toBe(true). Pairs well with page.evaluate() results.',
+ docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-be-truthy',
+ code:`const token = await page.evaluate(() => localStorage.getItem('session'));
+expect(token).toBeTruthy();
+
+// Verify an object was returned from the page
+const user = await page.evaluate(() => window.currentUser);
+expect(user).toBeTruthy();`},
+
+{name:'toHaveLength()',
+ level:'beginner',
+ desc:'Generic assertion that checks a string or array has the expected length.',
+ tip:'Use on JavaScript values. For counting DOM elements use toHaveCount() instead — it has built-in auto-retry logic that toHaveLength() lacks.',
+ docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-have-length',
+ code:`// Check array length
+const items = await page.evaluate(() => window.cart.items);
+expect(items).toHaveLength(3);
+
+// Check string length (e.g. a generated OTP code)
+const code = await page.locator('#otp-code').inputValue();
+expect(code).toHaveLength(6);`},
+
+{name:'toMatchObject()',
+ level:'intermediate',
+ desc:'Generic assertion that checks an object contains the expected subset of properties. Extra properties in the received object are ignored.',
+ tip:'Use for partial object matching when you only care about some fields of an API response or page state. Use toEqual() when you need a complete exact match.',
+ docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-match-object',
+ code:`const profile = await page.evaluate(() => window.userProfile);
+expect(profile).toMatchObject({ name: 'Jane', role: 'admin' });
+
+// Works with arrays of objects too
+const items = await response.json();
+expect(items).toMatchObject([{ id: 1, active: true }, { id: 2 }]);`},
+
+{name:'toBeGreaterThan()',
+ level:'beginner',
+ desc:'Generic assertion that checks a number is greater than the expected value. Related: toBeGreaterThanOrEqual(), toBeLessThan(), toBeLessThanOrEqual().',
+ tip:'Useful for asserting counts, prices, timestamps, or any numeric value with a minimum requirement. Pair with page.evaluate() to extract numbers from the page.',
+ docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-be-greater-than',
+ code:`const resultCount = await page.locator('.result').count();
+expect(resultCount).toBeGreaterThan(0);
+
+// Assert page load time is within budget
+const start = Date.now();
+await page.goto('/dashboard');
+expect(Date.now() - start).toBeLessThan(3000);`},
+
 {name:'expect.soft()',
  level:'intermediate',
  desc:'A soft assertion that records a failure but does not stop the test. All soft assertion failures are reported together at the end.',
@@ -927,6 +1025,18 @@ await expect.poll(async () => {
   const res = await request.get('/api/jobs/123');
   return (await res.json()).status;
 }, { timeout: 10000 }).toBe('completed');`},
+
+{name:'expect().toPass()',
+ level:'advanced',
+ desc:'Retries an async callback containing assertions until all assertions inside pass or the timeout expires.',
+ tip:'Use when you need to retry a block with multiple assertions together (e.g. check both a status code and response body). For single-value polling, expect.poll() is simpler.',
+ docs:'https://playwright.dev/docs/test-assertions#expecttopass',
+ code:`await expect(async () => {
+  const res = await page.request.get('/api/status');
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(body.ready).toBe(true);
+}).toPass({ timeout: 10000 });`},
 ]},
 
 /* ── UTILITY ──────────────────────────────────────────────────── */
