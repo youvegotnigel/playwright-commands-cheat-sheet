@@ -278,7 +278,7 @@ test('user can log in', async ({ page }) => {
 {name:'afterEach()',
  level:'intermediate',
  desc:'Runs a cleanup block after every test. Useful for logging, resetting state, or capturing a screenshot when a test fails.',
- tip:'Avoid heavy cleanup here: Playwright isolates each test with a fresh browser context by default.',
+ tip:'Avoid heavy cleanup here: Playwright isolates each test with a fresh browser context by default. The testInfo parameter passed to the hook is the same object as calling test.info() inside a test; they are identical.',
  docs:'https://playwright.dev/docs/api/class-test#test-after-each',
  code:`test.afterEach(async ({ page }, testInfo) => {
   if (testInfo.status !== testInfo.expectedStatus) {
@@ -388,6 +388,39 @@ test('safari only', async ({ page, browserName }) => {
   });
 
   await expect(page.getByText('Order confirmed')).toBeVisible();
+});`},
+
+{name:'test.info()',
+ level:'intermediate',
+ desc:'Returns the TestInfo object for the currently running test. Exposes metadata like title, status, retry count, output directory, and methods to attach files or adjust the timeout mid-test.',
+ tip:'Call test.info() anywhere inside a test body. In beforeEach / afterEach hooks the same object is passed directly as the testInfo parameter: testInfo === test.info(), they are identical.',
+ docs:'https://playwright.dev/docs/api/class-testinfo',
+ code:`test('upload report', async ({ page }) => {
+  const info = test.info();
+
+  console.log(info.title);        // 'upload report'
+  console.log(info.retry);        // 0 first run, 1 on first retry
+  console.log(info.workerIndex);  // which parallel worker is running this
+  console.log(info.outputDir);    // per-test directory for saving artifacts
+
+  // Extend the timeout mid-test
+  info.setTimeout(info.timeout + 15000);
+
+  // Attach a screenshot directly to the HTML report
+  await info.attach('screenshot', {
+    body: await page.screenshot(),
+    contentType: 'image/png',
+  });
+});
+
+// In hooks, testInfo IS test.info() (the same object)
+test.afterEach(async ({ page }, testInfo) => {
+  if (testInfo.status !== testInfo.expectedStatus) {
+    await testInfo.attach('on-failure', {
+      body: await page.screenshot(),
+      contentType: 'image/png',
+    });
+  }
 });`},
 ]},
 
@@ -800,7 +833,7 @@ await expect(page.locator('#newsletter')).not.toBeChecked();`},
 
 {name:'toBeFocused()',
  level:'intermediate',
- desc:'Asserts that an element currently has keyboard focus — it is the active element in the document.',
+ desc:'Asserts that an element currently has keyboard focus (it is the active element in the document).',
  tip:'Use after clicking an input or triggering a focus event to verify focus landed correctly. Also useful for testing focus management in modals and dialogs.',
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-focused',
  code:`await page.getByLabel('Email').click();
@@ -951,7 +984,7 @@ expect(tags).toContain('featured');`},
 
 {name:'toBeTruthy()',
  level:'beginner',
- desc:'Generic assertion that checks a value is truthy — anything that is not false, 0, "", null, undefined, or NaN.',
+ desc:'Generic assertion that checks a value is truthy: anything that is not false, 0, "", null, undefined, or NaN.',
  tip:'Use when you care that a value exists but not its exact content. For a stricter check use toBe(true). Pairs well with page.evaluate() results.',
  docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-be-truthy',
  code:`const token = await page.evaluate(() => localStorage.getItem('session'));
@@ -964,7 +997,7 @@ expect(user).toBeTruthy();`},
 {name:'toHaveLength()',
  level:'beginner',
  desc:'Generic assertion that checks a string or array has the expected length.',
- tip:'Use on JavaScript values. For counting DOM elements use toHaveCount() instead — it has built-in auto-retry logic that toHaveLength() lacks.',
+ tip:'Use on JavaScript values. For counting DOM elements use toHaveCount() instead, which has built-in auto-retry logic that toHaveLength() lacks.',
  docs:'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-have-length',
  code:`// Check array length
 const items = await page.evaluate(() => window.cart.items);
@@ -1580,7 +1613,7 @@ const results = await new AxeBuilder({ page })
 {name:'AxeBuilder - full example',
  level:'advanced',
  desc:'End-to-end axe scan with page setup, navigation, network-idle wait, violation assertion, and detailed console reporting.',
- tip:'Always wait for networkidle before scanning dynamic pages — axe runs synchronously on the DOM, so elements must be fully rendered.',
+ tip:'Always wait for networkidle before scanning dynamic pages, as axe runs synchronously on the DOM and elements must be fully rendered.',
  docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
  code:`test('Sample Accessibility Test', tag: ['@unstable'] , async ({ page }) => {
 
