@@ -162,3 +162,59 @@ test.describe('Data integrity', () => {
     expect(invalid).toEqual([]);
   });
 });
+
+test.describe('test.info() entry', () => {
+  test('test.info() exists in the Setup category', async ({ page }) => {
+    const found = await page.evaluate(() => {
+      const setup = categories.find(c => c.cat === 'Setup');
+      return setup ? setup.items.some(i => i.name === 'test.info()') : false;
+    });
+    expect(found).toBe(true);
+  });
+
+  test('test.info() has level intermediate', async ({ page }) => {
+    const level = await page.evaluate(() => {
+      const setup = categories.find(c => c.cat === 'Setup');
+      return setup?.items.find(i => i.name === 'test.info()')?.level;
+    });
+    expect(level).toBe('intermediate');
+  });
+
+  test('test.info() docs URL points to the TestInfo class', async ({ page }) => {
+    const docs = await page.evaluate(() => {
+      const setup = categories.find(c => c.cat === 'Setup');
+      return setup?.items.find(i => i.name === 'test.info()')?.docs ?? '';
+    });
+    expect(docs).toBe('https://playwright.dev/docs/api/class-testinfo');
+  });
+
+  test('test.info() code covers key properties and methods', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const setup = categories.find(c => c.cat === 'Setup');
+      return setup?.items.find(i => i.name === 'test.info()')?.code ?? '';
+    });
+    expect(code).toContain('title');
+    expect(code).toContain('retry');
+    expect(code).toContain('outputDir');
+    expect(code).toContain('setTimeout');
+    expect(code).toContain('attach');
+  });
+
+  test('test.info() tip clarifies that testInfo and test.info() are identical', async ({ page }) => {
+    const tip = await page.evaluate(() => {
+      const setup = categories.find(c => c.cat === 'Setup');
+      return setup?.items.find(i => i.name === 'test.info()')?.tip ?? '';
+    });
+    expect(tip).toContain('testInfo');
+    expect(tip.toLowerCase()).toContain('identical');
+  });
+
+  test('afterEach() tip mentions testInfo === test.info() equivalence', async ({ page }) => {
+    const tip = await page.evaluate(() => {
+      const setup = categories.find(c => c.cat === 'Setup');
+      return setup?.items.find(i => i.name === 'afterEach()')?.tip ?? '';
+    });
+    expect(tip).toContain('testInfo');
+    expect(tip).toContain('test.info()');
+  });
+});
