@@ -127,7 +127,7 @@ expect(errors).toHaveLength(0);`},
 {name:'on(pageerror)',
  level:'intermediate',
  desc:"Listens for uncaught JavaScript exceptions thrown in the browser page. Fires whenever the page has an unhandled error.",
- tip:"Different from on('console') — this only fires for uncaught exceptions, not console.error() calls. Use both together for full error coverage.",
+ tip:"Different from on('console'): this only fires for uncaught exceptions, not console.error() calls. Use both together for full error coverage.",
  docs:'https://playwright.dev/docs/api/class-page#page-event-page-error',
  code:`// Fail the test if any uncaught JS error occurs
 const errors = [];
@@ -191,6 +191,243 @@ page.on('dialog', async dialog => {
   expect(msg).toContain('Are you sure you want to delete');
   await dialog.accept();
 });`},
+
+{name:"on('close')",
+ level:'intermediate',
+ desc:'Fires when the page is closed. Use to clean up resources or log when a page shuts down during a test.',
+ tip:'Useful in multi-page or multi-tab tests. Set up before opening the page so cleanup logic always runs, even on unexpected close.',
+ docs:'https://playwright.dev/docs/api/class-page#page-event-close',
+ code:`page.on('close', () => {
+  console.log('Page was closed');
+});
+
+// Track open pages in a multi-tab test
+const openPages = new Set([page]);
+page.on('close', () => openPages.delete(page));`},
+
+{name:"on('crash')",
+ level:'advanced',
+ desc:"Fires when the browser page crashes. A crash is distinct from a JS error: the browser process itself has failed.",
+ tip:"Crashes are rare but can happen with WebGL, heavy memory use, or native plugins. Use to log diagnostic info and fail the test explicitly rather than hanging.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-crash',
+ code:`// Fail the test explicitly if the page crashes
+test('renders heavy canvas', async ({ page }) => {
+  let crashed = false;
+  page.on('crash', () => { crashed = true; });
+
+  await page.goto('/canvas-app');
+
+  expect(crashed, 'Page should not crash').toBe(false);
+});`},
+
+{name:"on('domcontentloaded')",
+ level:'intermediate',
+ desc:"Fires when the page's DOMContentLoaded event fires: the HTML is parsed and the DOM is ready, but images and stylesheets may still be loading.",
+ tip:"Playwright's goto() waits for 'load' by default, so you rarely need this. Use it to measure DOM-ready time or run code at the earliest interactive point.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-dom-content-loaded',
+ code:`// Measure time to DOM ready
+const start = Date.now();
+page.on('domcontentloaded', () => {
+  console.log(\`DOM ready in \${Date.now() - start}ms\`);
+});
+
+await page.goto('/dashboard');`},
+
+{name:"on('download')",
+ level:'intermediate',
+ desc:"Fires when a file download starts. Provides a Download object with methods to save the file, get the suggested filename, or read its path.",
+ tip:"Use page.waitForEvent('download') for a single, predictable download. Use on('download') when multiple downloads may occur or the timing is uncertain.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-download',
+ code:`// Handle any download that starts during the test
+page.on('download', async download => {
+  console.log('Downloading:', download.suggestedFilename());
+  await download.saveAs(\`./downloads/\${download.suggestedFilename()}\`);
+});
+
+await page.getByRole('button', { name: 'Export CSV' }).click();`},
+
+{name:"on('filechooser')",
+ level:'intermediate',
+ desc:"Fires when the page opens a file chooser dialog (e.g. when a file input is clicked). Lets you set files programmatically without the OS picker appearing.",
+ tip:"Use page.waitForEvent('filechooser') for a single, predictable upload. Use on('filechooser') when multiple file choosers may appear or timing is uncertain.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-file-chooser',
+ code:`// Intercept the file chooser and provide files directly
+page.on('filechooser', async fileChooser => {
+  await fileChooser.setFiles('tests/fixtures/sample.pdf');
+});
+
+await page.getByRole('button', { name: 'Upload' }).click();
+await expect(page.getByText('sample.pdf')).toBeVisible();`},
+
+{name:"on('frameattached')",
+ level:'advanced',
+ desc:"Fires when a new frame (iframe) is attached to the page. Provides the Frame object for the newly added frame.",
+ tip:"Use to detect when iframes are dynamically injected, for example a payment widget or chat widget loaded lazily. Follow up with frameLocator() to interact with it.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-frame-attached',
+ code:`page.on('frameattached', frame => {
+  console.log('Frame attached:', frame.url());
+});
+
+// Detect when a third-party payment iframe loads
+page.on('frameattached', frame => {
+  if (frame.url().includes('payment-provider.com')) {
+    console.log('Payment iframe is ready');
+  }
+});`},
+
+{name:"on('framedetached')",
+ level:'advanced',
+ desc:"Fires when a frame (iframe) is removed from the page DOM. Provides the Frame object that was detached.",
+ tip:"Useful for verifying that a widget or modal iframe is correctly removed after a user action, such as closing a payment form or chat window.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-frame-detached',
+ code:`const detachedFrames = [];
+page.on('framedetached', frame => {
+  detachedFrames.push(frame.url());
+});
+
+// Close a modal that contains an iframe
+await page.getByRole('button', { name: 'Close' }).click();
+
+// Verify the iframe was removed
+expect(detachedFrames.some(url => url.includes('widget'))).toBe(true);`},
+
+{name:"on('framenavigated')",
+ level:'advanced',
+ desc:"Fires when any frame on the page navigates to a new URL, including the main frame and child iframes.",
+ tip:"Filter by frame === page.mainFrame() to focus on top-level navigations only. Useful for building a navigation log or detecting unexpected redirects in multi-frame apps.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-frame-navigated',
+ code:`const navLog = [];
+page.on('framenavigated', frame => {
+  navLog.push({
+    url: frame.url(),
+    isMain: frame === page.mainFrame(),
+  });
+});
+
+await page.goto('/dashboard');
+await page.getByRole('link', { name: 'Settings' }).click();
+
+// navLog now contains all frame navigation events`},
+
+{name:"on('load')",
+ level:'intermediate',
+ desc:"Fires when the page's load event fires: the page and all its dependent resources (images, stylesheets, scripts) have finished loading.",
+ tip:"Playwright's goto() already waits for 'load' by default, so you rarely need this listener. Use it to measure load time or trigger logic exactly at the load boundary.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-load',
+ code:`// Measure full page load time
+const start = Date.now();
+page.on('load', () => {
+  console.log(\`Page fully loaded in \${Date.now() - start}ms\`);
+});
+
+await page.goto('/dashboard');`},
+
+{name:"on('popup')",
+ level:'intermediate',
+ desc:"Fires when the page opens a new browser tab or window via window.open() or a target='_blank' link. Provides the new Page object.",
+ tip:"Use page.waitForEvent('popup') for a single predictable popup. Use on('popup') to handle multiple popups or when the timing is uncertain.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-popup',
+ code:`// Handle any popup that opens during the test
+page.on('popup', async popup => {
+  await popup.waitForLoadState();
+  console.log('Popup opened:', popup.url());
+  await expect(popup).toHaveURL(/preview/);
+});
+
+await page.getByRole('link', { name: 'Open preview' }).click();`},
+
+{name:"on('request')",
+ level:'intermediate',
+ desc:"Fires when the page issues any network request. The Request object exposes the URL, method, headers, and POST body.",
+ tip:"Use to assert that specific API calls are made during a test. For intercepting and modifying requests, use page.route() instead. Combine with on('response') for full request/response logging.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-request',
+ code:`// Assert a specific API call was made
+const apiCalls = [];
+page.on('request', req => {
+  if (req.url().includes('/api/')) apiCalls.push(req.url());
+});
+
+await page.getByRole('button', { name: 'Load Users' }).click();
+expect(apiCalls.some(url => url.includes('/api/users'))).toBe(true);`},
+
+{name:"on('requestfailed')",
+ level:'intermediate',
+ desc:"Fires when a network request fails due to a network error, timeout, or abort. The Request object's failure() method returns the error reason.",
+ tip:"Use to detect broken resources automatically during a test (missing images, failed API calls, or DNS errors) without asserting on every individual request.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-request-failed',
+ code:`const failedRequests = [];
+page.on('requestfailed', req => {
+  failedRequests.push({
+    url: req.url(),
+    reason: req.failure()?.errorText,
+  });
+});
+
+await page.goto('/dashboard');
+expect(failedRequests, 'No requests should fail').toHaveLength(0);`},
+
+{name:"on('requestfinished')",
+ level:'advanced',
+ desc:"Fires when a network request completes successfully, after the full response body has been downloaded. Provides the Request object.",
+ tip:"Unlike on('response') which fires when response headers arrive, on('requestfinished') fires after the body is fully received. Use for accurate timing measurements.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-request-finished',
+ code:`// Measure how long a specific API call takes end-to-end
+page.on('requestfinished', async req => {
+  if (req.url().includes('/api/report')) {
+    const timing = req.timing();
+    console.log(\`Report API: \${timing.responseEnd - timing.startTime}ms\`);
+  }
+});
+
+await page.getByRole('button', { name: 'Generate Report' }).click();`},
+
+{name:"on('response')",
+ level:'intermediate',
+ desc:"Fires when the page receives a network response. The Response object exposes the status code, headers, and body.",
+ tip:"Use to passively observe API responses without intercepting them. Unlike waitForResponse(), on('response') captures all responses; filter by URL to target a specific endpoint.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-response',
+ code:`// Capture and assert on a specific API response
+const responses = [];
+page.on('response', res => {
+  if (res.url().includes('/api/users')) {
+    responses.push(res.status());
+  }
+});
+
+await page.getByRole('button', { name: 'Load Users' }).click();
+expect(responses).toContain(200);`},
+
+{name:"on('websocket')",
+ level:'advanced',
+ desc:"Fires when a WebSocket connection is opened by the page. The WebSocket object lets you listen for frames sent and received over the connection.",
+ tip:"Use to inspect real-time WebSocket traffic in tests for chat apps, live dashboards, or collaborative tools. Attach ws.on('framesent') and ws.on('framereceived') to log individual messages.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-web-socket',
+ code:`page.on('websocket', ws => {
+  console.log('WebSocket opened:', ws.url());
+
+  ws.on('framesent',    frame => console.log('Sent:',     frame.payload));
+  ws.on('framereceived',frame => console.log('Received:', frame.payload));
+  ws.on('close',        ()    => console.log('WebSocket closed'));
+});
+
+await page.goto('/live-chat');`},
+
+{name:"on('worker')",
+ level:'advanced',
+ desc:"Fires when a dedicated web worker is created by the page. The Worker object exposes the worker script URL and allows evaluating code in the worker's context.",
+ tip:"Use to detect and inspect web workers spawned by your app. Call worker.evaluate() to run code inside the worker context and assert on its state.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-worker',
+ code:`page.on('worker', worker => {
+  console.log('Worker created:', worker.url());
+});
+
+// Execute code inside the worker's context
+page.on('worker', async worker => {
+  const name = await worker.evaluate(() => self.name);
+  console.log('Worker name:', name);
+});
+
+await page.goto('/app-with-workers');`},
 
 {name:'addInitScript()',
  level:'advanced',
