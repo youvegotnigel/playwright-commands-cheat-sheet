@@ -1069,7 +1069,15 @@ await expect.poll(async () => {
   expect(res.status()).toBe(200);
   const body = await res.json();
   expect(body.ready).toBe(true);
-}).toPass({ timeout: 10000 });`},
+}).toPass({ timeout: 10000 });
+
+// With custom retry intervals (ms between retries)
+await expect(async () => {
+  const res = await page.request.get('/api/status');
+  expect(res.status()).toBe(200);
+  const body = await res.json();
+  expect(body.ready).toBe(true);
+}).toPass({ timeout: 10000, intervals: [1000, 2000, 5000] });`},
 ]},
 
 /* ── UTILITY ──────────────────────────────────────────────────── */
