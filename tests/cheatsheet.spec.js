@@ -40,30 +40,30 @@ test.describe('Search', () => {
   test('filters tiles as user types', async ({ page }) => {
     const allCount = await page.locator('.tile').count();
 
-    await page.locator('input[type="text"]').fill('goto');
+    await page.locator('#search-input').fill('goto');
     const filtered = page.locator('.tile');
     expect(await filtered.count()).toBeLessThan(allCount);
     expect(await filtered.count()).toBeGreaterThan(0);
   });
 
   test('shows empty state for a nonsense query', async ({ page }) => {
-    await page.locator('input[type="text"]').fill('xyzxyzxyznonexistent');
+    await page.locator('#search-input').fill('xyzxyzxyznonexistent');
     await expect(page.locator('.empty-state')).toBeVisible();
     await expect(page.locator('.empty-state')).toContainText('No commands match');
   });
 
   test('restores all tiles after clearing search', async ({ page }) => {
     const allCount = await page.locator('.tile').count();
-    await page.locator('input[type="text"]').fill('goto');
-    await page.locator('input[type="text"]').clear();
+    await page.locator('#search-input').fill('goto');
+    await page.locator('#search-input').clear();
     expect(await page.locator('.tile').count()).toBe(allCount);
   });
 
   test('is case-insensitive', async ({ page }) => {
-    await page.locator('input[type="text"]').fill('goto');
+    await page.locator('#search-input').fill('goto');
     const lower = await page.locator('.tile').count();
 
-    await page.locator('input[type="text"]').fill('GOTO');
+    await page.locator('#search-input').fill('GOTO');
     const upper = await page.locator('.tile').count();
 
     expect(upper).toBe(lower);
@@ -75,7 +75,7 @@ test.describe('Search', () => {
     await page.locator('.filter-btn', { hasText: 'Start Here' }).click();
     const afterFilter = await page.locator('.tile').count();
 
-    await page.locator('input[type="text"]').fill('page');
+    await page.locator('#search-input').fill('page');
     const afterSearch = await page.locator('.tile').count();
 
     // Search should narrow results further (or keep same if all match)
@@ -87,8 +87,8 @@ test.describe('Search', () => {
     await page.locator('.filter-btn', { hasText: 'Start Here' }).click();
     const afterFilter = await page.locator('.tile').count();
 
-    await page.locator('input[type="text"]').fill('page');
-    await page.locator('input[type="text"]').clear();
+    await page.locator('#search-input').fill('page');
+    await page.locator('#search-input').clear();
 
     // Tile count should return to the filtered count, not the full count
     expect(await page.locator('.tile').count()).toBe(afterFilter);
@@ -378,9 +378,12 @@ test.describe('New assertion tiles', () => {
     }
   });
 
-  test('Assertions category tile count increased to 32', async ({ page }) => {
+  test('Assertions category tile count matches data', async ({ page }) => {
     await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
-    await expect(page.locator('.tile')).toHaveCount(32);
+    const expected = await page.evaluate(() =>
+      categories.find(c => c.cat === 'Assertions').items.length
+    );
+    await expect(page.locator('.tile')).toHaveCount(expected);
   });
 
   for (const name of newAssertions) {

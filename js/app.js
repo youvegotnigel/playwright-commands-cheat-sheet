@@ -1,7 +1,11 @@
 // =============================================================
 // app.js — UI logic: rendering, filtering, modal, search
-// Depends on: categories (defined in data.js, loaded first)
 // =============================================================
+
+import { categories } from './data/index.js';
+
+// Expose as a global so data-integrity tests can access it via page.evaluate()
+window.categories = categories;
 
 /* ── STATE ────────────────────────────────────────────────────── */
 let activeFilter = 'all';
@@ -9,7 +13,7 @@ let activeView   = 'flat';
 let searchVal    = '';
 
 // Flatten all items into a single array, tagging each with its category info
-let allItems = [];
+const allItems = [];
 categories.forEach(sec =>
   sec.items.forEach(item =>
     allItems.push({ ...item, cls: sec.cls, cat: sec.cat, color: sec.color })
@@ -112,7 +116,7 @@ function makeTile(item, n) {
       <span class="tile-num">#${n}</span>
       <span class="tile-name">${item.name}</span>
     </div>`;
-  div.onclick = () => openModal(item);
+  div.addEventListener('click', () => openModal(item));
   return div;
 }
 
@@ -206,12 +210,6 @@ function setView(v) {
   render();
 }
 
-function search(val) {
-  searchVal = val.toLowerCase();
-  updateHash();
-  render();
-}
-
 function buildFilters() {
   const container = document.getElementById('filters');
   const defs = [
@@ -223,7 +221,7 @@ function buildFilters() {
     const btn = document.createElement('button');
     btn.className      = 'filter-btn' + (filter === 'all' ? ' active' : '');
     btn.dataset.filter = filter;
-    btn.onclick        = () => setFilter(filter);
+    btn.addEventListener('click', () => setFilter(filter));
     btn.innerHTML      = color
       ? `<span class="filter-dot" style="background:${color}"></span>${label}`
       : label;
@@ -241,11 +239,30 @@ document.addEventListener('keydown', e => {
 });
 
 /* ── INIT ─────────────────────────────────────────────────────── */
+document.getElementById('search-input').addEventListener('input', e => {
+  searchVal = e.target.value.toLowerCase();
+  updateHash();
+  render();
+});
+
+document.getElementById('btnFlat').addEventListener('click',    () => setView('flat'));
+document.getElementById('btnGrouped').addEventListener('click', () => setView('grouped'));
+
+document.getElementById('modal').addEventListener('click', closeModal);
+document.querySelector('.modal-content').addEventListener('click', e => e.stopPropagation());
+document.getElementById('btn-close-icon').addEventListener('click', closeModal);
+document.getElementById('btn-close').addEventListener('click', closeModal);
+document.getElementById('btn-copy').addEventListener('click', copyCode);
+
 buildFilters();
+
 // Show platform-appropriate keyboard shortcut hint
 (function () {
-  const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform);
+  const isMac = /Mac|iPhone|iPad|iPod/.test(
+    navigator.userAgentData?.platform ?? navigator.platform
+  );
   const el = document.getElementById('search-shortcut');
   if (el) el.textContent = isMac ? '⌘K' : 'Ctrl+K';
 }());
+
 applyHashState();
