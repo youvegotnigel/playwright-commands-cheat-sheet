@@ -9,10 +9,18 @@
     "test:pixel": "playwright test --project='Pixel 7'",
     "test:mobile": "playwright test --project='iPhone 16' --project='Pixel 7'",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "lint": "eslint js/",
+    "lint:fix": "eslint js/ --fix",
+    "format": "prettier --write js/ tests/",
+    "format:check": "prettier --check js/ tests/"
   },
   "devDependencies": {
+    "@eslint/js": "^9.0.0",
     "@playwright/test": "^1.49.0",
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.3",
     "serve": "^14.2.0"
   }
 }
