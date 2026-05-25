@@ -230,7 +230,7 @@ export const test = base.extend<MyFixtures>({
 
 export { expect } from '@playwright/test';
 
-// my.spec.ts — import from fixtures, not @playwright/test
+// my.spec.ts: import from fixtures, not @playwright/test
 import { test, expect } from './fixtures';
 
 test('user can log in', async ({ loginPage }) => {
