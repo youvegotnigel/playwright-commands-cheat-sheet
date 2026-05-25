@@ -242,9 +242,8 @@ test.describe('URL deep-linking', () => {
   test('both filter and search are reflected in the URL hash', async ({ page }) => {
     await page.locator('.filter-btn', { hasText: 'Action' }).click();
     await page.locator('#search-input').fill('click');
-    const url = page.url();
-    expect(url).toContain('filter=Action');
-    expect(url).toContain('search=click');
+    await expect(page).toHaveURL(/filter=Action/);
+    await expect(page).toHaveURL(/search=click/);
   });
 
   test('resetting to All removes filter from URL hash', async ({ page }) => {
@@ -379,9 +378,9 @@ test.describe('New assertion tiles', () => {
     }
   });
 
-  test('Assertions category tile count increased to 30', async ({ page }) => {
+  test('Assertions category tile count increased to 32', async ({ page }) => {
     await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
-    await expect(page.locator('.tile')).toHaveCount(30);
+    await expect(page.locator('.tile')).toHaveCount(32);
   });
 
   for (const name of newAssertions) {
