@@ -422,6 +422,34 @@ test.afterEach(async ({ page }, testInfo) => {
     });
   }
 });`},
+
+{name:'test.extend()',
+ level:'advanced',
+ desc:'Creates a new test object with custom fixtures. Fixtures are values injected into tests and hooks via destructuring, automatically set up and torn down.',
+ tip:'The recommended way to implement the Page Object Model in Playwright. Define page objects as fixtures so they are instantiated once per test and shared cleanly.',
+ docs:'https://playwright.dev/docs/test-fixtures#creating-a-fixture',
+ code:`// fixtures.ts
+import { test as base } from '@playwright/test';
+import { LoginPage } from './pages/LoginPage';
+
+type MyFixtures = { loginPage: LoginPage };
+
+export const test = base.extend<MyFixtures>({
+  loginPage: async ({ page }, use) => {
+    await use(new LoginPage(page));
+  },
+});
+
+export { expect } from '@playwright/test';
+
+// my.spec.ts — import from fixtures, not @playwright/test
+import { test, expect } from './fixtures';
+
+test('user can log in', async ({ loginPage }) => {
+  await loginPage.goto();
+  await loginPage.login('user@test.com', 'secret');
+  await expect(loginPage.welcomeMessage).toBeVisible();
+});`},
 ]},
 
 /* ── ACTIONS ──────────────────────────────────────────────────── */
@@ -769,6 +797,18 @@ await expect(page.locator('#spinner')).not.toBeVisible();`},
  code:`await expect(page.locator('#loading-spinner')).toBeHidden();
 await expect(page.locator('#error-banner')).toBeHidden();`},
 
+{name:'toBeAttached()',
+ level:'intermediate',
+ desc:'Asserts that an element is present in the DOM, regardless of whether it is visible. An element can be attached but hidden.',
+ tip:'Use when you need to verify an element exists in the DOM without caring about visibility. Use .not.toBeAttached() to assert an element was removed entirely.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-attached',
+ code:`// Element exists in the DOM even though it may not be visible
+await expect(page.locator('#tooltip')).toBeAttached();
+
+// Assert modal is fully removed from the DOM after closing
+await page.getByRole('button', { name: 'Close' }).click();
+await expect(page.locator('#modal')).not.toBeAttached();`},
+
 {name:'toHaveText()',
  level:'beginner',
  desc:"Asserts the element's text content matches the expected value exactly. Accepts a string or regex.",
@@ -850,6 +890,18 @@ await expect(page.getByRole('textbox').first()).toBeFocused();`},
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-value',
  code:`await expect(page.locator('#email')).toHaveValue('test@mail.com');
 await expect(page.locator('select#country')).toHaveValue('ca');`},
+
+{name:'toHaveValues()',
+ level:'intermediate',
+ desc:'Asserts that a multi-select element has exactly the expected set of selected option values.',
+ tip:'Only for <select multiple> elements. For a single-select use toHaveValue(). Matches the value attributes of the options, not their display text.',
+ docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-values',
+ code:`await page.locator('select#skills').selectOption(['javascript', 'typescript']);
+await expect(page.locator('select#skills')).toHaveValues(['javascript', 'typescript']);
+
+// Assert partial selection changed
+await page.locator('select#skills').selectOption(['javascript']);
+await expect(page.locator('select#skills')).toHaveValues(['javascript']);`},
 
 {name:'toHaveCount()',
  level:'intermediate',
@@ -1192,14 +1244,33 @@ await page.evaluate(() => {
 {name:'on(console)',
  level:'intermediate',
  desc:"Listens for console messages emitted by the browser page. Useful for debugging and verifying logs in tests.",
- tip:"Set this up before the action that triggers the log. Use page.on('pageerror') to catch uncaught JS errors.",
+ tip:"Set this up before the action that triggers the log. msg.type() returns 'log', 'warn', 'error', or 'debug' so you can filter by level.",
  docs:'https://playwright.dev/docs/api/class-page#page-event-console',
  code:`page.on('console', msg => {
   console.log(\`[\${msg.type()}] \${msg.text()}\`);
 });
 
-// Catch uncaught JS errors
-page.on('pageerror', err => console.error('Page error:', err));`},
+// Collect all console errors during a test
+const errors = [];
+page.on('console', msg => {
+  if (msg.type() === 'error') errors.push(msg.text());
+});
+await page.goto('/dashboard');
+expect(errors).toHaveLength(0);`},
+
+{name:'on(pageerror)',
+ level:'intermediate',
+ desc:"Listens for uncaught JavaScript exceptions thrown in the browser page. Fires whenever the page has an unhandled error.",
+ tip:"Different from on('console') — this only fires for uncaught exceptions, not console.error() calls. Use both together for full error coverage.",
+ docs:'https://playwright.dev/docs/api/class-page#page-event-page-error',
+ code:`// Fail the test if any uncaught JS error occurs
+const errors = [];
+page.on('pageerror', err => errors.push(err.message));
+
+await page.goto('/dashboard');
+await page.getByRole('button', { name: 'Load Data' }).click();
+
+expect(errors, 'No uncaught JS errors expected').toHaveLength(0);`},
 
 {name:'on(dialog)',
  level:'intermediate',
@@ -1314,6 +1385,96 @@ if (await page.locator('#cookie-banner').isVisible()) {
 
 await page.goto('/dashboard');`},
 
+{name:'locator.isEnabled()',
+ level:'intermediate',
+ desc:'Returns true or false immediately. Checks if the element is enabled (not disabled). Use for conditional logic, not assertions.',
+ tip:'For assertions use toBeEnabled() which auto-retries. Use isEnabled() when you need to branch on the state of an element.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-is-enabled',
+ code:`const submitBtn = page.getByRole('button', { name: 'Submit' });
+
+if (await submitBtn.isEnabled()) {
+  await submitBtn.click();
+} else {
+  console.log('Button is disabled, skipping');
+}`},
+
+{name:'locator.isChecked()',
+ level:'intermediate',
+ desc:'Returns true or false immediately. Checks if a checkbox or radio button is in the checked state. Use for conditional logic, not assertions.',
+ tip:'For assertions use toBeChecked() which auto-retries. Use isChecked() when the result drives test branching logic.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-is-checked',
+ code:`const termsCheckbox = page.locator('#terms');
+
+if (!await termsCheckbox.isChecked()) {
+  await termsCheckbox.check();
+}`},
+
+{name:'locator.isEditable()',
+ level:'intermediate',
+ desc:'Returns true or false immediately. Checks if an input is editable (not disabled and not readonly). Use for conditional logic, not assertions.',
+ tip:'For assertions use toBeEditable() which auto-retries. Use isEditable() when you need to decide whether to fill a field.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-is-editable',
+ code:`const field = page.getByLabel('Notes');
+
+if (await field.isEditable()) {
+  await field.fill('Test note');
+}`},
+
+{name:'locator.inputValue()',
+ level:'intermediate',
+ desc:'Reads the current value of an input, textarea, or select element and returns it as a string.',
+ tip:'For assertions use toHaveValue() which auto-retries. Use inputValue() when you need the actual value in test logic, e.g. to reuse it in a later step.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-input-value',
+ code:`const searchTerm = await page.getByLabel('Search').inputValue();
+console.log(searchTerm); // e.g. "Playwright"
+
+// Reuse the value in a later assertion
+expect(searchTerm).toContain('Play');`},
+
+{name:'locator.textContent()',
+ level:'intermediate',
+ desc:'Returns the raw text content of an element including hidden text. Unlike innerText(), this is not affected by CSS visibility.',
+ tip:'Use innerText() for user-visible text. Use textContent() when you need hidden or script text. For assertions, prefer toHaveText().',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-text-content',
+ code:`const raw = await page.locator('#description').textContent();
+console.log(raw); // includes hidden text nodes`},
+
+{name:'locator.innerHTML()',
+ level:'advanced',
+ desc:'Returns the inner HTML of an element as a string, including all child elements and their markup.',
+ tip:'Use when you need to inspect or snapshot the HTML structure of a component. For text only, innerText() or textContent() are simpler.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-inner-html',
+ code:`const html = await page.locator('.card').innerHTML();
+expect(html).toContain('<img');
+expect(html).toContain('data-testid="card-image"');`},
+
+{name:'locator.all()',
+ level:'intermediate',
+ desc:'Returns an array of locator objects for every element currently matching the locator. Useful for iterating over a list.',
+ tip:'Resolves immediately against the current DOM, so call it after the list has finished loading. Each item is a full locator you can act on individually.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-all',
+ code:`// Click every checkbox in a list
+const checkboxes = await page.locator('input[type="checkbox"]').all();
+for (const checkbox of checkboxes) {
+  await checkbox.check();
+}
+
+// Read all row texts into an array
+const rows = await page.locator('tbody tr').all();
+const labels = await Promise.all(rows.map(r => r.innerText()));`},
+
+{name:'locator.allTextContents()',
+ level:'intermediate',
+ desc:'Returns an array of the text content strings for all elements matching the locator in a single call.',
+ tip:'More concise than calling all() and mapping over innerText(). Use allInnerTexts() for the visible rendered text equivalent.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-all-text-contents',
+ code:`const tags = await page.locator('.tag').allTextContents();
+// ['JavaScript', 'TypeScript', 'Playwright']
+expect(tags).toContain('Playwright');
+
+// allInnerTexts() returns only visible rendered text
+const labels = await page.locator('li').allInnerTexts();`},
+
 {name:'waitForFunction()',
  level:'advanced',
  desc:'Waits until a JavaScript expression evaluated in the browser returns a truthy value.',
@@ -1339,6 +1500,101 @@ await expect(page.locator('.sidebar')).toBeHidden();
 // Test mobile layout
 await page.setViewportSize({ width: 375, height: 812 });
 await expect(page.locator('.mobile-nav')).toBeVisible();`},
+
+{name:'locator.waitFor()',
+ level:'intermediate',
+ desc:'Waits for a locator to reach a specific state: visible, hidden, attached, or detached. More targeted than page-level waits.',
+ tip:'Use when you need to wait for one specific element rather than the whole page. Accepts the same state options as waitForSelector() but on a locator.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-wait-for',
+ code:`// Wait until a specific element becomes visible
+await page.locator('#results-table').waitFor({ state: 'visible' });
+
+// Wait for a loading spinner to disappear
+await page.locator('#spinner').waitFor({ state: 'hidden' });
+
+// Wait for an element to be removed from the DOM entirely
+await page.locator('#modal').waitFor({ state: 'detached' });`},
+
+{name:'page.waitForEvent()',
+ level:'intermediate',
+ desc:"Waits for a browser page event to fire and returns its value. Common events: 'download', 'popup', 'filechooser', 'console', 'dialog'.",
+ tip:'Always set up the wait before the action that triggers the event, using Promise.all to avoid race conditions.',
+ docs:'https://playwright.dev/docs/api/class-page#page-wait-for-event',
+ code:`// Handle a file download
+const [download] = await Promise.all([
+  page.waitForEvent('download'),
+  page.getByRole('button', { name: 'Export CSV' }).click(),
+]);
+await download.saveAs('./downloads/export.csv');
+
+// Handle a new popup window
+const [popup] = await Promise.all([
+  page.waitForEvent('popup'),
+  page.getByRole('link', { name: 'Open preview' }).click(),
+]);
+await popup.waitForLoadState();
+await expect(popup).toHaveURL(/preview/);`},
+
+{name:'page.emulateMedia()',
+ level:'intermediate',
+ desc:"Changes the CSS media type ('screen' or 'print') or color scheme ('light', 'dark', 'no-preference') mid-test.",
+ tip:'Use to test print stylesheets or dark mode without spinning up a separate browser project. Call it before the action you want to observe.',
+ docs:'https://playwright.dev/docs/api/class-page#page-emulate-media',
+ code:`// Test dark mode styles
+await page.emulateMedia({ colorScheme: 'dark' });
+await expect(page.locator('body')).toHaveCSS('background-color', 'rgb(18, 18, 18)');
+
+// Test print layout
+await page.emulateMedia({ media: 'print' });
+await expect(page.locator('.no-print')).toBeHidden();
+
+// Restore to defaults
+await page.emulateMedia({ colorScheme: 'light', media: 'screen' });`},
+
+{name:'context.grantPermissions()',
+ level:'intermediate',
+ desc:"Grants the browser context one or more permissions like 'geolocation', 'notifications', or 'clipboard-read' without a user prompt.",
+ tip:'Grant permissions in beforeEach or in a global setup file so tests are never blocked by a browser permission dialog.',
+ docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-grant-permissions',
+ code:`// Grant geolocation permission and set a mock location
+await context.grantPermissions(['geolocation']);
+await context.setGeolocation({ latitude: 51.5, longitude: -0.1 });
+await page.goto('/store-locator');
+await expect(page.locator('.nearest-store')).toBeVisible();
+
+// Grant clipboard access
+await context.grantPermissions(['clipboard-read', 'clipboard-write']);`},
+
+{name:'page.addLocatorHandler()',
+ level:'advanced',
+ desc:'Registers a handler that fires automatically when a specific element appears, so your test can dismiss overlays without adding explicit waits.',
+ tip:'Use for cookie banners, survey prompts, or newsletter pop-ups that appear unpredictably mid-test. Removes flakiness without polluting every test with dismissal code.',
+ docs:'https://playwright.dev/docs/api/class-page#page-add-locator-handler',
+ code:`// Auto-dismiss a cookie banner whenever it appears
+await page.addLocatorHandler(
+  page.getByRole('button', { name: 'Accept cookies' }),
+  async (btn) => { await btn.click(); }
+);
+
+// From this point any action that triggers the banner is handled automatically
+await page.goto('/products');
+await page.locator('.product-card').first().click();`},
+
+{name:'page.clock',
+ level:'advanced',
+ desc:"Playwright's built-in clock API for controlling Date, setTimeout, setInterval, and requestAnimationFrame in the browser.",
+ tip:"Replaces addInitScript Date mocking. Use setFixedTime() for a static date, or install() + runFor() to simulate the passage of time and trigger timers.",
+ docs:'https://playwright.dev/docs/clock',
+ code:`// Set a fixed date for the entire test
+await page.clock.setFixedTime(new Date('2025-01-01T12:00:00'));
+await page.goto('/dashboard');
+await expect(page.locator('.date-display')).toHaveText('January 1, 2025');
+
+// Install the clock and fast-forward timers by 5 seconds
+await page.clock.install({ time: new Date('2025-06-01') });
+await page.goto('/session-timer');
+await page.clock.runFor(5000); // advances timers by 5 s
+await expect(page.locator('#countdown')).toHaveText('4:55');`},
 ]},
 
 /* ── API ──────────────────────────────────────────────────────── */
@@ -1406,6 +1662,33 @@ expect(res.status()).toBe(204);`},
     contentType: 'application/json',
     body: JSON.stringify([{ id: 1, name: 'Mock User' }])
   });
+});`},
+
+{name:'route.fulfill()',
+ level:'intermediate',
+ desc:'Responds to an intercepted request with a fully custom status code, headers, and body, without hitting the real server.',
+ tip:'The primary tool for mocking API responses. Use json: shorthand to skip serialising the body manually. Combine with route() to mock entire endpoints.',
+ docs:'https://playwright.dev/docs/api/class-route#route-fulfill',
+ code:`// Mock a successful JSON response
+await page.route('**/api/products', route => {
+  route.fulfill({
+    status: 200,
+    json: [{ id: 1, name: 'Widget', price: 9.99 }],
+  });
+});
+
+// Simulate an error response
+await page.route('**/api/orders', route => {
+  route.fulfill({
+    status: 500,
+    contentType: 'application/json',
+    body: JSON.stringify({ error: 'Internal Server Error' }),
+  });
+});
+
+// Serve a local fixture file as the response
+await page.route('**/api/config', route => {
+  route.fulfill({ path: './fixtures/config.json' });
 });`},
 
 {name:'route.abort()',
