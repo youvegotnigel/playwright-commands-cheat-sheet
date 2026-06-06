@@ -143,4 +143,23 @@ await expect(disabledSubmit).toBeVisible();`},
 const signIn = page.getByRole('button', { name: 'Sign in' })
   .or(page.getByRole('link', { name: 'Log in' }));
 await signIn.first().click();`},
+
+{name:'describe()',
+ level:'intermediate',
+ desc:'Attaches a human-readable description to a locator. The description appears in the trace viewer, HTML report, and error messages instead of the raw selector.',
+ tip:'Added in Playwright v1.53. Use it to make traces and failures readable, especially for complex chained or filtered locators. It returns the same locator, so you can chain actions directly.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-describe',
+ code:`// Without describe: report shows the raw selector
+await page.getByTestId('btn-sub').click();
+
+// With describe: report shows "Subscribe button"
+await page.getByTestId('btn-sub')
+  .describe('Subscribe button')
+  .click();
+
+// Especially useful for complex locators
+const row = page.getByRole('row')
+  .filter({ hasText: 'John' })
+  .describe('Johns table row');
+await row.getByRole('button', { name: 'Delete' }).click();`},
 ]};
