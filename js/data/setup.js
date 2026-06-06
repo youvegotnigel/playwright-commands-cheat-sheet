@@ -146,6 +146,19 @@ test('safari only', async ({ page, browserName }) => {
   // This test is known to fail and is skipped until fixed
 });`},
 
+{name:'test.abort()',
+ level:'intermediate',
+ desc:'An emergency stop button for a test. Call it to stop the test right now and mark it as FAILED. Added in Playwright 1.60.',
+ tip:'Use it for guardrails: when a fixture or route handler detects a "this should never happen" situation and a normal expect() cannot reach it. The message you pass shows up in the failure. Unlike test.skip()/test.fixme() (which skip), test.abort() fails the test.',
+ docs:'https://playwright.dev/docs/api/class-test#test-abort',
+ code:`test('does not publish to shared page', async ({ page }) => {
+  await page.route('**/publish', route => {
+    test.abort('Tests must not publish to the shared page. Use the \`clone\` option.');
+    return route.abort();
+  });
+  // ...
+});`},
+
 {name:'test.slow()',
  level:'intermediate',
  desc:'Triples the default timeout for a test that is legitimately slow (e.g. file processing, video rendering, email polling).',
