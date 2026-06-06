@@ -256,6 +256,42 @@ document.getElementById('btn-copy').addEventListener('click', copyCode);
 
 buildFilters();
 
+/* ── META BAR ─────────────────────────────────────────────────── */
+// Command count comes from the data; version and last-updated date are
+// fetched live so they never go stale. Both fetches fail gracefully,
+// leaving the fallback values already present in the HTML.
+const GITHUB_REPO = 'youvegotnigel/playwright-commands-cheat-sheet';
+
+(function initMetaBar() {
+  const countEl = document.getElementById('cmd-count');
+  if (countEl) countEl.textContent = allItems.length;
+
+  // Playwright version — read from package.json's declared dependency
+  fetch('./package.json')
+    .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then(pkg => {
+      const dep =
+        pkg.devDependencies?.['@playwright/test'] ??
+        pkg.dependencies?.['@playwright/test'];
+      if (!dep) return;
+      const clean = dep.replace(/^[\^~>=<\s]+/, ''); // strip range prefix
+      const el = document.getElementById('pw-version');
+      if (el) el.textContent = 'v' + clean;
+    })
+    .catch(() => {});
+
+  // Last updated — date of the most recent commit on master
+  fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/master`)
+    .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then(commit => {
+      const iso = commit?.commit?.committer?.date;
+      if (!iso) return;
+      const el = document.getElementById('last-updated');
+      if (el) el.textContent = iso.slice(0, 10); // YYYY-MM-DD
+    })
+    .catch(() => {});
+}());
+
 // Show platform-appropriate keyboard shortcut hint
 (function () {
   const isMac = /Mac|iPhone|iPad|iPod/.test(
