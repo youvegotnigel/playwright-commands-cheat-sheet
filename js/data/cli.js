@@ -161,6 +161,17 @@ npx playwright test -g "checkout" --repeat-each=5
 npx playwright test -x
 # Stop immediately on the first failure`},
 
+{name:'--fail-on-flaky-tests',
+ level:'intermediate',
+ desc:'Marks the whole run as failed if any test passes only on retry (a flaky test). Without it, a test that fails then passes on retry counts as a pass.',
+ tip:'Added in Playwright v1.52. Enable in CI to surface flakiness instead of silently hiding it behind retries. Equivalent to setting failOnFlakyTests: true in playwright.config.ts.',
+ docs:'https://playwright.dev/docs/test-cli#reference',
+ code:`npx playwright test --fail-on-flaky-tests
+# Fail the run if any test only passes on retry
+
+# Permanent enforcement in playwright.config.ts:
+# export default defineConfig({ failOnFlakyTests: !!process.env.CI });`},
+
 {name:'--timeout',
  level:'intermediate',
  desc:'Sets the maximum time in milliseconds that each test is allowed to run before it is automatically failed.',

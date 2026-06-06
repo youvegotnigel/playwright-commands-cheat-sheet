@@ -17,8 +17,11 @@ await page.goto('/login');`},
  docs:'https://playwright.dev/docs/api/class-page#page-reload',
  code:`await page.reload();
 
-// Wait until all network activity settles after reload
-await page.reload({ waitUntil: 'networkidle' });`},
+// Wait until the DOM is parsed after reload
+await page.reload({ waitUntil: 'domcontentloaded' });
+
+// 'networkidle' still works but is DISCOURAGED, prefer a
+// web assertion (toBeVisible) to confirm the page is ready`},
 
 {name:'goBack()',
  level:'beginner',
@@ -78,13 +81,17 @@ await page.waitForTimeout(2000);`},
 {name:'waitForLoadState()',
  level:'intermediate',
  desc:"Waits for the page to reach a specific load state: 'load', 'domcontentloaded', or 'networkidle'.",
- tip:"'networkidle' waits until there are no active network requests useful after actions that trigger background API calls.",
+ tip:"'networkidle' is now DISCOURAGED by Playwright, it is flaky on apps with long-polling or analytics. Prefer auto-waiting actions and web assertions (e.g. expect(locator).toBeVisible()) to confirm readiness instead.",
  docs:'https://playwright.dev/docs/api/class-page#page-wait-for-load-state',
- code:`// Wait for all network activity to stop
-await page.waitForLoadState('networkidle');
+ code:`// Wait for the DOM to be fully parsed (recommended)
+await page.waitForLoadState('domcontentloaded');
 
-// Wait for the DOM to be fully parsed
-await page.waitForLoadState('domcontentloaded');`},
+// Wait for the load event (default state)
+await page.waitForLoadState('load');
+
+// DISCOURAGED, avoid networkidle, assert on the UI instead:
+// await page.waitForLoadState('networkidle');
+await expect(page.getByRole('table')).toBeVisible();`},
 
 {name:'waitForURL()',
  level:'intermediate',

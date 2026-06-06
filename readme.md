@@ -1,7 +1,7 @@
 # 🎭 VitalHub Playwright Commands Cheat Sheet
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20Dashboard-0a7cff?style=for-the-badge)](https://youvegotnigel.github.io/playwright-commands-cheat-sheet/)
-[![Playwright Version](https://img.shields.io/badge/Playwright-1.49.0-2EAD33?style=for-the-badge&logo=playwright)](https://playwright.dev/)
+[![Playwright Version](https://img.shields.io/badge/Playwright-1.60.0-2EAD33?style=for-the-badge&logo=playwright)](https://playwright.dev/)
 
 An interactive browser-based reference for Playwright users who want to quickly browse commands, examples, and official docs links in one place.
 
@@ -39,7 +39,18 @@ playwright-commands-cheat-sheet/
 │   └── description.jpg
 ├── js/
 │   ├── app.js
-│   └── data.js
+│   └── data/
+│       ├── index.js        # imports each category and exports `categories`
+│       ├── config.js
+│       ├── setup.js
+│       ├── actions.js
+│       ├── queries.js
+│       ├── assertions.js
+│       ├── utility.js
+│       ├── api.js
+│       ├── accessibility.js
+│       ├── patterns.js
+│       └── cli.js
 ├── tests/
 │   ├── cheatsheet.spec.js
 │   └── data-integrity.spec.js
@@ -53,7 +64,7 @@ playwright-commands-cheat-sheet/
 
 ## Contributing
 ### Adding a New Command
-Open [js/data.js](js/data.js), find the relevant category section, and add a new object to its `items` array:
+Open the relevant category file in [js/data/](js/data/) (e.g. [js/data/queries.js](js/data/queries.js) for a locator, [js/data/cli.js](js/data/cli.js) for a CLI flag), and add a new object to its `items` array:
 
 ```javascript
 {
@@ -67,18 +78,21 @@ Open [js/data.js](js/data.js), find the relevant category section, and add a new
 ```
 
 ### Adding a New Category
-In [js/data.js](js/data.js), add a new object to the `categories` array:
+Create a new file in [js/data/](js/data/) (e.g. `js/data/network.js`) that default-exports the category object:
 
 ```javascript
-{
+/** @type {import('./index.js').Category} */
+export default {
   cat:   'CategoryName',
   cls:   'category-css-class',
   color: '#hexcolor',
   items: [ /* commands go here */ ]
-},
+};
 ```
 
-Then add the corresponding CSS class in [style.css](style.css):
+Then register it in [js/data/index.js](js/data/index.js) by importing the file and adding it to the `categories` array.
+
+Finally, add the corresponding CSS class in [style.css](style.css):
 
 ```css
 .category-css-class {
