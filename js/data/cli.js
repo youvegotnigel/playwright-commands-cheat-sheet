@@ -298,7 +298,7 @@ npx playwright install --with-deps chromium
  tip:'Check this when debugging unexpected behaviour. The Playwright version and the browser binaries must be in sync.',
  docs:'https://playwright.dev/docs/test-cli',
  code:`npx playwright --version
-# Prints the installed version, e.g. Version 1.44.0`},
+# Prints the installed version, e.g. Version 1.60.0`},
 
 {name:'--help',
  level:'beginner',
