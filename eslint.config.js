@@ -43,6 +43,7 @@ export default [
         categories: 'readonly',
         window: 'readonly',
         document: 'readonly',
+        navigator: 'readonly',
         getComputedStyle: 'readonly',
         fetch: 'readonly',
         localStorage: 'readonly',

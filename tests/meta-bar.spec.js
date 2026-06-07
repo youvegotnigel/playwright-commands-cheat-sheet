@@ -158,8 +158,30 @@ test.describe('Visitor counter — display', () => {
 });
 
 /* ── VISITOR COUNTER: INCREMENT ────────────────────────────────── */
+// The counter skips automated browsers (navigator.webdriver === true), which is
+// true under Playwright. Tests that assert the increment fires must pose as a
+// real visitor by faking navigator.webdriver = false before the page loads.
+async function poseAsRealVisitor(page) {
+  await page.addInitScript(() =>
+    Object.defineProperty(navigator, 'webdriver', { get: () => false })
+  );
+}
+
 test.describe('Visitor counter — increment', () => {
-  test('increments exactly once on first load', async ({ page }) => {
+  test('does NOT increment in automated browsers (CI / bots)', async ({
+    page,
+  }) => {
+    const state = await mockBackends(page);
+    await page.goto('/'); // navigator.webdriver is true under Playwright
+    await page.waitForTimeout(500);
+
+    expect(state.posts).toBe(0);
+  });
+
+  test('increments exactly once on first load (real visitor)', async ({
+    page,
+  }) => {
+    await poseAsRealVisitor(page);
     const state = await mockBackends(page);
     await page.goto('/');
     await page.waitForTimeout(500);
@@ -170,6 +192,7 @@ test.describe('Visitor counter — increment', () => {
   test('does not increment again on refresh (once per session)', async ({
     page,
   }) => {
+    await poseAsRealVisitor(page);
     const state = await mockBackends(page);
     await page.goto('/');
     await page.waitForTimeout(500);
@@ -183,6 +206,7 @@ test.describe('Visitor counter — increment', () => {
   test('counts again in a fresh session', async ({ browser }) => {
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
+    await poseAsRealVisitor(page);
     const state = await mockBackends(page);
 
     await page.goto('/');
