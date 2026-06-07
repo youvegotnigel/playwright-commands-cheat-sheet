@@ -1,0 +1,39 @@
+name: Stamp last-updated date
+
+# Records the date of the most recent merge to master into js/meta.json
+# so the dashboard's "last updated" badge stays accurate without any
+# runtime API calls. The commit it pushes carries [skip ci] so it does
+# not re-trigger this (or the test) workflow.
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: stamp-date
+  cancel-in-progress: false
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write last-updated date
+        run: |
+          DATE=$(git log -1 --format=%cs)   # committer date, YYYY-MM-DD
+          printf '{\n  "lastUpdated": "%s"\n}\n' "$DATE" > js/meta.json
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- js/meta.json; then
+            echo "meta.json already up to date"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add js/meta.json
+          git commit -m "chore: stamp last-updated date [skip ci]"
+          git push
