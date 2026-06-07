@@ -131,6 +131,30 @@ All fetches fail gracefully, falling back to the hardcoded values in `index.html
   in the Supabase SQL editor (cannot be done from client/anon key).
 - The Edge Function slug **must** be exactly `increment-visitor`.
 
+## Popular commands (Supabase)
+
+Reuses the visitor-counter infra to count command **opens** and surface the most
+popular ones.
+
+- **Backend**: `supabase/migrations/0002_command_views.sql` (`command_views`
+  table keyed by `command_id` + atomic `increment_command_view(cmd_id)` upsert
+  RPC + read-only RLS) and `functions/increment-command-view/index.ts` (Edge
+  Function; validates `command_id`, writes with the service-role key). The
+  function slug **must** be exactly `increment-command-view`.
+- **Client**: `js/popular-commands.js`. Reads all counts via REST with the anon
+  key; writes go only through the Edge Function. `commandId(item)` is
+  `` `${item.cls}:${item.name}` `` — the stable per-command key (the data has no
+  ids). `app.js` calls `recordOpen()` from `openModal()` and re-renders after
+  `loadCounts()` resolves.
+- **Counted once per session per command** (`sessionStorage` `cmd-opened:<id>`
+  guard) and **never for automated browsers** (`navigator.webdriver`), same as
+  the visitor counter.
+- **"Popular" = top ~10%** of commands that have at least one view, ranked by
+  count. Surfaced as a 🔥 badge on tiles and a "🔥 Popular" filter (next to
+  "⭐ Start Here") that sorts most-viewed-first.
+- **Reset the counts:** run `delete from public.command_views;` in the Supabase
+  SQL editor (cannot be done from the client/anon key).
+
 ## Testing
 
 Playwright, configured in `playwright.config.js`. Projects: `chromium`,
@@ -164,8 +188,5 @@ Non-trivial features follow brainstorm → spec → plan, saved under
 `docs/superpowers/specs/` and `docs/superpowers/plans/`. Check there for context.
 
 ### Known / planned improvements
-- **Popular commands (Supabase):** track command opens via the existing Supabase
-  backend and surface a "🔥 Popular" badge / "most viewed" sort. Designed-but-not-yet:
-  needs its own spec + plan.
 - Other ideas raised: favorites (localStorage), deep-link to a specific command,
   keyboard navigation, light/dark theme toggle, PWA/offline, multi-language snippets.
