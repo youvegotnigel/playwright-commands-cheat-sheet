@@ -22,6 +22,7 @@ export default [
         fetch: 'readonly',
         console: 'readonly',
         localStorage: 'readonly',
+        sessionStorage: 'readonly',
         AbortSignal: 'readonly',
         IntersectionObserver: 'readonly',
       },
