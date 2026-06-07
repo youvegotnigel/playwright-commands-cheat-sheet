@@ -19,6 +19,17 @@ header { padding: 16px; text-align: center; font-size: 36px; font-weight: bold; 
   padding: 5px 10px; font-weight: 700; color: #020617; white-space: nowrap;
 }
 
+/* Mobile: equal-width badges in a tidy two-column grid */
+@media (max-width: 600px) {
+  .meta-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 12px 10px; }
+  .meta-badge { width: 100%; min-width: 0; font-size: 10px; }
+  .meta-badge .k {
+    flex: 1 1 auto; min-width: 0; padding: 5px 7px;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .meta-badge .v { flex: 0 0 auto; padding: 5px 7px; text-align: right; }
+}
+
 /* Visitor badge glows once when first scrolled into view */
 .visitor-counter { position: relative; }
 .visitor-counter.loaded { animation: visitorGlow 2s ease-in-out 1; }
@@ -133,6 +144,13 @@ pre {
   overflow: auto; white-space: pre-wrap; word-break: break-word;
   font-size: 13px; line-height: 1.65; margin: 0 0 14px;
 }
+/* Syntax highlighting tokens (see js/highlight.js) */
+#m-code .tok-keyword { color: #38bdf8; }
+#m-code .tok-string  { color: #4ade80; }
+#m-code .tok-api     { color: #c084fc; }
+#m-code .tok-number  { color: #fb923c; }
+#m-code .tok-comment { color: #64748b; font-style: italic; }
+#m-code .tok-fn      { color: #fbbf24; }
 .modal-tip {
   background: #0f172a; border-left: 3px solid #38bdf8;
   padding: 10px 14px; border-radius: 0 6px 6px 0;
