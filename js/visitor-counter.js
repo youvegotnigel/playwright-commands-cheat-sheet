@@ -1,10 +1,16 @@
-// Visitor Counter - Increment on page load
+// Visitor Counter - Increment once per tab session
 (function initVisitorCounter() {
   const SUPABASE_FUNCTION_URL =
     "https://tilbhgcncnwibnfgebkg.supabase.co/functions/v1/increment-visitor";
+  const SESSION_KEY = "visitor-counted-session";
 
   function incrementCounter() {
     try {
+      // Only count once per tab session — refreshes reuse sessionStorage,
+      // so they don't re-increment; a new tab/session counts again.
+      if (sessionStorage.getItem(SESSION_KEY)) return;
+      sessionStorage.setItem(SESSION_KEY, "1");
+
       fetch(SUPABASE_FUNCTION_URL, {
         method: "POST",
         headers: {
