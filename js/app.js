@@ -4,12 +4,15 @@
 
 import { categories } from './data/index.js';
 import { highlight, highlightShell } from './highlight.js';
+import * as popularCmds from './popular-commands.js';
 
 // Expose as a global so data-integrity tests can access it via page.evaluate()
 window.categories = categories;
 // Expose for tests via page.evaluate() (same rationale as window.categories)
 window.highlight = highlight;
 window.highlightShell = highlightShell;
+// Expose for tests via page.evaluate() (same rationale as window.categories)
+window.popularCommands = popularCmds;
 
 /* ── STATE ────────────────────────────────────────────────────── */
 let activeFilter = 'all';
@@ -30,6 +33,14 @@ function getItems() {
 
   if (activeFilter === 'beginner') {
     items = items.filter(i => i.level === 'beginner');
+  } else if (activeFilter === 'popular') {
+    items = items
+      .filter(i => popularCmds.isPopular(popularCmds.commandId(i)))
+      .sort(
+        (a, b) =>
+          popularCmds.getViewCount(popularCmds.commandId(b)) -
+          popularCmds.getViewCount(popularCmds.commandId(a))
+      );
   } else if (activeFilter !== 'all') {
     items = items.filter(i => i.cat === activeFilter);
   }
@@ -114,8 +125,12 @@ function levelDots(level) {
 function makeTile(item, n) {
   const div = document.createElement('div');
   div.className = `tile ${item.cls}`;
+  const popularBadge = popularCmds.isPopular(popularCmds.commandId(item))
+    ? '<span class="tile-popular" title="Popular">🔥</span>'
+    : '';
   div.innerHTML = `
     <span class="tile-level">${levelDots(item.level)}</span>
+    ${popularBadge}
     <div class="tile-inner">
       <span class="tile-num">#${n}</span>
       <span class="tile-name">${item.name}</span>
@@ -151,6 +166,9 @@ function openModal(item) {
   const copyBtn = document.getElementById('btn-copy');
   copyBtn.textContent = 'Copy';
   copyBtn.className   = 'btn-copy';
+
+  // Record this open for the popularity counter (no-op for bots / repeat opens)
+  popularCmds.recordOpen(item);
 }
 
 function closeModal() {
@@ -220,6 +238,7 @@ function buildFilters() {
   const defs = [
     { label: 'All',          filter: 'all',      color: null },
     { label: '⭐ Start Here', filter: 'beginner', color: null },
+    { label: '🔥 Popular',   filter: 'popular',  color: null },
     ...categories.map(c => ({ label: c.cat, filter: c.cat, color: c.color }))
   ];
   defs.forEach(({ label, filter, color }) => {
@@ -306,3 +325,8 @@ buildFilters();
 }());
 
 applyHashState();
+
+// Popularity data arrives after first paint; re-render once it lands so the
+// 🔥 badges appear and the "🔥 Popular" filter has content. Fails gracefully
+// (no badges) if the backend is unreachable.
+popularCmds.loadCounts().then(render).catch(() => {});
