@@ -38,7 +38,13 @@ export default [
       ecmaVersion: 2022,
       sourceType: 'module',
       globals: {
+        // `categories` and the browser globals below are referenced inside
+        // page.evaluate() callbacks, which run in the browser, not Node.
         categories: 'readonly',
+        document: 'readonly',
+        getComputedStyle: 'readonly',
+        fetch: 'readonly',
+        localStorage: 'readonly',
       },
     },
   },
