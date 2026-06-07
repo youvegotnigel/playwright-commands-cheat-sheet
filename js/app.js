@@ -3,9 +3,12 @@
 // =============================================================
 
 import { categories } from './data/index.js';
+import { highlight } from './highlight.js';
 
 // Expose as a global so data-integrity tests can access it via page.evaluate()
 window.categories = categories;
+// Expose for tests via page.evaluate() (same rationale as window.categories)
+window.highlight = highlight;
 
 /* ── STATE ────────────────────────────────────────────────────── */
 let activeFilter = 'all';
