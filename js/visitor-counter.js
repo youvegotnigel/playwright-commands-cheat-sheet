@@ -6,6 +6,10 @@
 
   function incrementCounter() {
     try {
+      // Skip automated browsers (Playwright/CI, Selenium, most bots set
+      // navigator.webdriver) so test runs and crawlers don't inflate the count.
+      if (navigator.webdriver) return;
+
       // Only count once per tab session — refreshes reuse sessionStorage,
       // so they don't re-increment; a new tab/session counts again.
       if (sessionStorage.getItem(SESSION_KEY)) return;
