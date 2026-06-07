@@ -257,11 +257,9 @@ document.getElementById('btn-copy').addEventListener('click', copyCode);
 buildFilters();
 
 /* ── META BAR ─────────────────────────────────────────────────── */
-// Command count comes from the data; version and last-updated date are
-// fetched live so they never go stale. Both fetches fail gracefully,
-// leaving the fallback values already present in the HTML.
-const GITHUB_REPO = 'youvegotnigel/playwright-commands-cheat-sheet';
-
+// Command count comes from the data; the Playwright version and the
+// last-updated date are fetched at load so they never go stale. Both
+// fetches fail gracefully, leaving the fallback values present in the HTML.
 (function initMetaBar() {
   const countEl = document.getElementById('cmd-count');
   if (countEl) countEl.textContent = allItems.length;
@@ -280,14 +278,15 @@ const GITHUB_REPO = 'youvegotnigel/playwright-commands-cheat-sheet';
     })
     .catch(() => {});
 
-  // Last updated — date of the most recent commit on master
-  fetch(`https://api.github.com/repos/${GITHUB_REPO}/commits/master`)
+  // Last updated — stamped into js/meta.json by the "Stamp last-updated
+  // date" GitHub Action on every push to master, so it reflects the most
+  // recent merge without any runtime API call or rate limits.
+  fetch('./js/meta.json', { cache: 'no-cache' })
     .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then(commit => {
-      const iso = commit?.commit?.committer?.date;
-      if (!iso) return;
+    .then(meta => {
+      if (!meta?.lastUpdated) return;
       const el = document.getElementById('last-updated');
-      if (el) el.textContent = iso.slice(0, 10); // YYYY-MM-DD
+      if (el) el.textContent = meta.lastUpdated; // YYYY-MM-DD
     })
     .catch(() => {});
 }());
