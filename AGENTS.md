@@ -122,6 +122,11 @@ All fetches fail gracefully, falling back to the hardcoded values in `index.html
   put the service-role key in client code).
 - **Increment is once per tab session** (`sessionStorage` guard) — refreshes don't
   re-count.
+- **Automated browsers don't count.** `incrementCounter()` returns early when
+  `navigator.webdriver` is true (Playwright/CI, Selenium, most bots), so test runs
+  and crawlers never inflate the count. Tests that assert the increment fires must
+  fake `navigator.webdriver = false` via `addInitScript` before `goto` (see the
+  `poseAsRealVisitor` helper in `tests/meta-bar.spec.js`).
 - **Reset the count:** run `update public.visits set total_count = 0 where id = 1;`
   in the Supabase SQL editor (cannot be done from client/anon key).
 - The Edge Function slug **must** be exactly `increment-visitor`.
