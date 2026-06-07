@@ -33,6 +33,14 @@ function getItems() {
 
   if (activeFilter === 'beginner') {
     items = items.filter(i => i.level === 'beginner');
+  } else if (activeFilter === 'popular') {
+    items = items
+      .filter(i => popularCmds.isPopular(popularCmds.commandId(i)))
+      .sort(
+        (a, b) =>
+          popularCmds.getViewCount(popularCmds.commandId(b)) -
+          popularCmds.getViewCount(popularCmds.commandId(a))
+      );
   } else if (activeFilter !== 'all') {
     items = items.filter(i => i.cat === activeFilter);
   }
@@ -117,8 +125,12 @@ function levelDots(level) {
 function makeTile(item, n) {
   const div = document.createElement('div');
   div.className = `tile ${item.cls}`;
+  const popularBadge = popularCmds.isPopular(popularCmds.commandId(item))
+    ? '<span class="tile-popular" title="Popular">🔥</span>'
+    : '';
   div.innerHTML = `
     <span class="tile-level">${levelDots(item.level)}</span>
+    ${popularBadge}
     <div class="tile-inner">
       <span class="tile-num">#${n}</span>
       <span class="tile-name">${item.name}</span>
@@ -226,6 +238,7 @@ function buildFilters() {
   const defs = [
     { label: 'All',          filter: 'all',      color: null },
     { label: '⭐ Start Here', filter: 'beginner', color: null },
+    { label: '🔥 Popular',   filter: 'popular',  color: null },
     ...categories.map(c => ({ label: c.cat, filter: c.cat, color: c.color }))
   ];
   defs.forEach(({ label, filter, color }) => {
@@ -312,3 +325,8 @@ buildFilters();
 }());
 
 applyHashState();
+
+// Popularity data arrives after first paint; re-render once it lands so the
+// 🔥 badges appear and the "🔥 Popular" filter has content. Fails gracefully
+// (no badges) if the backend is unreachable.
+popularCmds.loadCounts().then(render).catch(() => {});

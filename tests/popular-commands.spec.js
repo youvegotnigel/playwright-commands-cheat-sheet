@@ -118,3 +118,55 @@ test.describe('Popular commands — record opens', () => {
     expect(state.opens.length).toBe(1);
   });
 });
+
+test.describe('Popular commands — badge + filter', () => {
+  // Returns the flat list of { id, name } for every command, in render order.
+  async function allCommands(page) {
+    return page.evaluate(() =>
+      window.categories.flatMap((c) =>
+        c.items.map((i) => ({ id: `${c.cls}:${i.name}`, name: i.name }))
+      )
+    );
+  }
+
+  test('badges only the popular commands (top ~10% with views)', async ({ page }) => {
+    const state = await mockBackends(page);
+    await page.goto('/');
+    const cmds = await allCommands(page);
+
+    // Give 20 commands views → top 10% = ceil(2.0) = 2 popular tiles.
+    state.rows = cmds.slice(0, 20).map((c, i) => ({ command_id: c.id, view_count: 20 - i }));
+    await page.reload();
+
+    await expect(page.locator('.tile-popular')).toHaveCount(2);
+  });
+
+  test('🔥 Popular filter shows popular commands, most-viewed first', async ({ page }) => {
+    const state = await mockBackends(page);
+    await page.goto('/');
+    const cmds = await allCommands(page);
+
+    state.rows = cmds.slice(0, 20).map((c, i) => ({ command_id: c.id, view_count: 20 - i }));
+    await page.reload();
+    // Wait for the async loadCounts().then(render) to paint badges before filtering.
+    await page.locator('.tile-popular').first().waitFor();
+
+    await page.getByRole('button', { name: '🔥 Popular' }).click();
+
+    const names = await page.locator('.tile .tile-name').allInnerTexts();
+    expect(names.length).toBe(2); // ceil(20 * 0.1)
+    expect(names[0]).toBe(cmds[0].name); // highest view_count first
+  });
+
+  test('no badges and page still works when counts fail to load', async ({ page }) => {
+    await mockBackends(page, { offline: true });
+    await page.goto('/');
+    // The command_views route aborts immediately, so loadCounts() rejects and
+    // the only render is the first (empty-popular) one — wait for the network
+    // to settle rather than guessing a timeout.
+    await page.waitForLoadState('networkidle');
+
+    expect(await page.locator('.tile-popular').count()).toBe(0);
+    expect(await page.locator('.tile').count()).toBeGreaterThan(10);
+  });
+});
