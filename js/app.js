@@ -3,12 +3,13 @@
 // =============================================================
 
 import { categories } from './data/index.js';
-import { highlight } from './highlight.js';
+import { highlight, highlightShell } from './highlight.js';
 
 // Expose as a global so data-integrity tests can access it via page.evaluate()
 window.categories = categories;
 // Expose for tests via page.evaluate() (same rationale as window.categories)
 window.highlight = highlight;
+window.highlightShell = highlightShell;
 
 /* ── STATE ────────────────────────────────────────────────────── */
 let activeFilter = 'all';
@@ -128,7 +129,8 @@ function openModal(item) {
   document.getElementById('modal').style.display = 'flex';
   document.getElementById('m-title').innerHTML = item.name;
   document.getElementById('m-desc').innerText  = item.desc;
-  document.getElementById('m-code').innerHTML  = highlight(item.code);
+  document.getElementById('m-code').innerHTML  =
+    item.cls === 'cli' ? highlightShell(item.code) : highlight(item.code);
   document.getElementById('btn-docs').href     = item.docs;
 
   // Difficulty badge

@@ -89,3 +89,51 @@ test.describe('highlight() — in the modal', () => {
     }
   });
 });
+
+test.describe('highlightShell() — CLI snippets', () => {
+  test('dims # comments and colors flags and programs', async ({ page }) => {
+    const html = await page.evaluate(() =>
+      window.highlightShell('npx playwright test --config=ci.ts # run it')
+    );
+    expect(html).toContain('<span class="tok-api">npx</span>');
+    expect(html).toContain('<span class="tok-keyword">--config</span>');
+    expect(html).toContain('<span class="tok-comment"># run it</span>');
+  });
+
+  test('does NOT treat // in a URL as a comment', async ({ page }) => {
+    const html = await page.evaluate(() =>
+      window.highlightShell('npx playwright codegen https://example.com')
+    );
+    expect(html).not.toContain('tok-comment');
+  });
+
+  test('preserves the original text exactly (Copy stays correct)', async ({
+    page,
+  }) => {
+    const code = 'npx playwright test --grep "log in" # filter';
+    const text = await page.evaluate((c) => {
+      const div = document.createElement('div');
+      div.innerHTML = window.highlightShell(c);
+      return div.textContent;
+    }, code);
+    expect(text).toBe(code);
+  });
+
+  test('CLI commands render with the shell highlighter in the modal', async ({
+    page,
+  }) => {
+    await page.locator('.filter-btn', { hasText: 'CLI' }).click();
+    await page.locator('.tile', { hasText: 'codegen' }).first().click();
+    // shell '#' comment lines ARE dimmed
+    await expect(page.locator('#m-code .tok-comment').first()).toContainText(
+      '# Record'
+    );
+    // ...but the URL's '//' is NOT swallowed into a comment
+    const comments = (
+      await page.locator('#m-code .tok-comment').allInnerTexts()
+    ).join('\n');
+    expect(comments).not.toContain('example.com');
+    // the full URL is still present in the rendered code
+    await expect(page.locator('#m-code')).toContainText('https://example.com');
+  });
+});

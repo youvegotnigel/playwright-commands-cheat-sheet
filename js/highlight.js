@@ -1,8 +1,10 @@
 // =============================================================
-// highlight.js — tiny dependency-free highlighter for JS/TS snippets
+// highlight.js — tiny dependency-free highlighter for code snippets.
 // Returns HTML-escaped markup with <span class="tok-*"> wrappers.
 // Single pass: text between matched tokens is escaped and emitted
 // plain, so every character is escaped exactly once.
+// highlight()      — JS/TS snippets
+// highlightShell() — CLI / shell snippets
 // =============================================================
 
 const KEYWORDS = new Set([
@@ -49,6 +51,45 @@ export function highlight(code) {
         : escapeHtml(ident);
     }
     last = TOKEN_RE.lastIndex;
+  }
+  out += escapeHtml(code.slice(last));
+  return out;
+}
+
+// Programs that lead a CLI command — colored like APIs.
+const SHELL_PROGRAMS = new Set([
+  'npx', 'npm', 'pnpm', 'yarn', 'node', 'deno', 'bun', 'git', 'playwright',
+]);
+
+// Shell variant for CLI snippets: '#' comments (not '//'), quoted strings,
+// flags (-x / --xyz), numbers, and known program names. URLs and paths are
+// left plain — crucially, '//' is NOT treated as a comment here.
+// Ordered alternatives: comment | string | flag | number | identifier
+const SHELL_TOKEN_RE =
+  /(#[^\n]*)|('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*")|((?<![\w-])--?[A-Za-z][\w-]*)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/g;
+
+export function highlightShell(code) {
+  let out = '';
+  let last = 0;
+  let m;
+  SHELL_TOKEN_RE.lastIndex = 0;
+  while ((m = SHELL_TOKEN_RE.exec(code)) !== null) {
+    out += escapeHtml(code.slice(last, m.index));
+    const [, comment, string, flag, number, ident] = m;
+    if (comment !== undefined) {
+      out += `<span class="tok-comment">${escapeHtml(comment)}</span>`;
+    } else if (string !== undefined) {
+      out += `<span class="tok-string">${escapeHtml(string)}</span>`;
+    } else if (flag !== undefined) {
+      out += `<span class="tok-keyword">${escapeHtml(flag)}</span>`;
+    } else if (number !== undefined) {
+      out += `<span class="tok-number">${escapeHtml(number)}</span>`;
+    } else {
+      out += SHELL_PROGRAMS.has(ident)
+        ? `<span class="tok-api">${escapeHtml(ident)}</span>`
+        : escapeHtml(ident);
+    }
+    last = SHELL_TOKEN_RE.lastIndex;
   }
   out += escapeHtml(code.slice(last));
   return out;
