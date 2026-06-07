@@ -13,6 +13,26 @@ header { padding: 16px; text-align: center; font-size: 36px; font-weight: bold; 
 .meta-pill strong { color: #fff; font-weight: 600; }
 .meta-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
+/* Visitor counter — styled to match the meta-bar pills */
+.visitor-counter {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); color: #cbd5e1;
+  font-size: 13px; font-weight: 500;
+  border: 1px solid transparent;
+  position: relative; overflow: hidden;
+  transition: background 0.15s, border-color 0.3s, box-shadow 0.3s;
+}
+.visitor-counter:hover { background: rgba(255,255,255,0.12); }
+.visitor-counter.loaded { animation: visitorGlow 2s ease-in-out 1; }
+@keyframes visitorGlow {
+  0%   { border-color: #fb923c; box-shadow: 0 0 0 0 rgba(251,146,60,0.4); }
+  50%  { box-shadow: 0 0 0 4px rgba(251,146,60,0.1); }
+  100% { border-color: transparent; box-shadow: 0 0 0 0 rgba(251,146,60,0); }
+}
+.visitor-counter-icon { display: inline-flex; opacity: 0.7; }
+.visitor-counter-number { color: #fb923c; font-weight: 600; font-family: monospace; }
+
 .container { padding: 15px; max-width: 1200px; margin: auto; }
 
 .search-wrap { position: relative; margin-bottom: 12px; }
