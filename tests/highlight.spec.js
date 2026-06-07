@@ -57,3 +57,35 @@ test.describe('highlight() — tokenizing', () => {
     expect(text).toBe(code);
   });
 });
+
+test.describe('highlight() — in the modal', () => {
+  test('renders token spans inside the code block', async ({ page }) => {
+    await page.locator('.tile').first().click();
+    await expect(
+      page
+        .locator('#m-code .tok-keyword, #m-code .tok-string, #m-code .tok-api')
+        .first()
+    ).toBeVisible();
+  });
+
+  test('modal code text matches the source command exactly', async ({
+    page,
+  }) => {
+    const tiles = page.locator('.tile');
+    const count = Math.min(await tiles.count(), 8);
+    for (let i = 0; i < count; i++) {
+      const name = await tiles.nth(i).locator('.tile-name').innerText();
+      await tiles.nth(i).click();
+      const shown = await page
+        .locator('#m-code')
+        .evaluate((el) => el.textContent);
+      const expected = await page.evaluate((n) => {
+        for (const cat of window.categories)
+          for (const item of cat.items) if (item.name === n) return item.code;
+        return null;
+      }, name);
+      expect(shown).toBe(expected);
+      await page.locator('.btn-close').click();
+    }
+  });
+});

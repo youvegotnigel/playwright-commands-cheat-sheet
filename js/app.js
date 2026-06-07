@@ -128,7 +128,7 @@ function openModal(item) {
   document.getElementById('modal').style.display = 'flex';
   document.getElementById('m-title').innerHTML = item.name;
   document.getElementById('m-desc').innerText  = item.desc;
-  document.getElementById('m-code').innerText  = item.code;
+  document.getElementById('m-code').innerHTML  = highlight(item.code);
   document.getElementById('btn-docs').href     = item.docs;
 
   // Difficulty badge

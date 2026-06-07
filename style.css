@@ -133,6 +133,13 @@ pre {
   overflow: auto; white-space: pre-wrap; word-break: break-word;
   font-size: 13px; line-height: 1.65; margin: 0 0 14px;
 }
+/* Syntax highlighting tokens (see js/highlight.js) */
+#m-code .tok-keyword { color: #38bdf8; }
+#m-code .tok-string  { color: #4ade80; }
+#m-code .tok-api     { color: #c084fc; }
+#m-code .tok-number  { color: #fb923c; }
+#m-code .tok-comment { color: #64748b; font-style: italic; }
+#m-code .tok-fn      { color: #fbbf24; }
 .modal-tip {
   background: #0f172a; border-left: 3px solid #38bdf8;
   padding: 10px 14px; border-radius: 0 6px 6px 0;
