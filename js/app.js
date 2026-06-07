@@ -4,12 +4,15 @@
 
 import { categories } from './data/index.js';
 import { highlight, highlightShell } from './highlight.js';
+import * as popularCmds from './popular-commands.js';
 
 // Expose as a global so data-integrity tests can access it via page.evaluate()
 window.categories = categories;
 // Expose for tests via page.evaluate() (same rationale as window.categories)
 window.highlight = highlight;
 window.highlightShell = highlightShell;
+// Expose for tests via page.evaluate() (same rationale as window.categories)
+window.popularCommands = popularCmds;
 
 /* ── STATE ────────────────────────────────────────────────────── */
 let activeFilter = 'all';
@@ -151,6 +154,9 @@ function openModal(item) {
   const copyBtn = document.getElementById('btn-copy');
   copyBtn.textContent = 'Copy';
   copyBtn.className   = 'btn-copy';
+
+  // Record this open for the popularity counter (no-op for bots / repeat opens)
+  popularCmds.recordOpen(item);
 }
 
 function closeModal() {
