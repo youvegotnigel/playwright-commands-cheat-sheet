@@ -11,9 +11,28 @@ test.describe('highlight() — tokenizing', () => {
     const html = await page.evaluate(() =>
       window.highlight("await page.goto('/home');")
     );
-    expect(html).toContain('tok-keyword'); // await
-    expect(html).toContain('tok-api'); // page
-    expect(html).toContain('tok-string'); // '/home'
+    expect(html).toContain('<span class="tok-keyword">await</span>');
+    expect(html).toContain('<span class="tok-api">page</span>');
+    expect(html).toContain('tok-string'); // string literal '/home'
+  });
+
+  test('classifies function calls and comments', async ({ page }) => {
+    const html = await page.evaluate(() =>
+      window.highlight('locator.click(); // do it')
+    );
+    expect(html).toContain('<span class="tok-fn">click</span>');
+    expect(html).toContain('<span class="tok-comment">// do it</span>');
+  });
+
+  test('is deterministic across repeated calls (regex lastIndex reset)', async ({
+    page,
+  }) => {
+    const [a, b] = await page.evaluate(() => {
+      const code = "await page.goto('/x');";
+      return [window.highlight(code), window.highlight(code)];
+    });
+    expect(a).toBe(b);
+    expect(a).toContain('<span class="tok-keyword">await</span>');
   });
 
   test('escapes HTML so snippets cannot inject markup', async ({ page }) => {

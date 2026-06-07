@@ -19,6 +19,8 @@ function escapeHtml(s) {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// Note: the number arm matches decimal integers/floats only (e.g. 5000, 0.5);
+// hex/binary/exponent literals are not specially highlighted — fine for these snippets.
 // Ordered alternatives: comment | string | number | identifier
 const TOKEN_RE =
   /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|('(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`)|(\b\d+(?:\.\d+)?\b)|([A-Za-z_$][\w$]*)/g;
