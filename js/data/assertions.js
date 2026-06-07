@@ -55,7 +55,7 @@ await expect(page.locator('.status')).toHaveText(/active/i);`},
  code:`await expect(page).toHaveURL('/dashboard');
 
 // Regex for partial match
-await expect(page).toHaveURL(/\/users\/\d+/);`},
+await expect(page).toHaveURL(/\\/users\\/\\d+/);`},
 
 {name:'toHaveTitle()',
  level:'beginner',
