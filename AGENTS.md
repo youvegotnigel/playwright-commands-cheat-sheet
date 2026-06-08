@@ -68,6 +68,11 @@ Accessibility→accessibility, Patterns→pattern, CLI→cli.
 it — the tile renders, the modal works, and syntax highlighting applies
 automatically (see below). All `Item` fields are required.
 
+**No em-dashes or en-dashes in command data.** Never use `—` (em-dash) or `–`
+(en-dash) in any `Item` field (`name`, `desc`, `tip`, `code`, etc.). Use a period,
+comma, or colon to break a sentence, and a hyphen `-` for ranges (e.g. `200-299`).
+This is enforced by `data-integrity.spec.js`, so a stray dash fails the test suite.
+
 **To add a new category:** create `js/data/<name>.js` exporting a `Category`, then
 import and add it to the array in `js/data/index.js`. Add a matching tile-gradient
 rule `.<cls> { … }` and (if you want it in the modal token theme) nothing else is
