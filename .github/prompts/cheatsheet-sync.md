@@ -2,11 +2,18 @@
 
 You are running headless in GitHub Actions. Your job is to keep this repo's
 command data (`js/data/*.js`) accurate against the **current** Playwright release
-and open a **pre-validated pull request** with any fixes. You never merge.
+and open a **pre-validated pull request** with any fixes.
 
-Read and obey `CLAUDE.md` and `AGENTS.md` in full — they define the data schema,
-the "all fields required" rule, the Context7 accuracy rule, and the **no
-em-dash / en-dash rule**. Everything below is the task on top of those rules.
+**You never merge, and never push to `master` or `develop`.** Every change goes
+through a pull request that the maintainer (Nigel) reviews and merges manually.
+Do not enable auto-merge, do not approve your own PR, and do not bypass branch
+protection. Your output is always a PR awaiting human approval, nothing more.
+
+Read and obey `CLAUDE.md`, `AGENTS.md`, and `README.md` in full — they define the
+data schema, the "all fields required" rule, the Context7 accuracy rule, the **no
+em-dash / en-dash rule**, and the contributor conventions for adding commands.
+Any new command you add must follow the "Adding a New Command" guidance in
+`README.md` and `AGENTS.md`. Everything below is the task on top of those rules.
 
 ## Authoritative source: Context7 (not your training data)
 
@@ -20,7 +27,8 @@ If Context7 is unavailable or rate-limited, stop: log the failure and exit
 
 ## Steps
 
-1. Read `package.json`, every file in `js/data/`, `CLAUDE.md`, and `AGENTS.md`.
+1. Read `package.json`, every file in `js/data/`, `CLAUDE.md`, `AGENTS.md`, and
+   `README.md`.
 2. Determine the **latest stable** Playwright version (via Context7 / npm).
    Note the version currently pinned as `@playwright/test` in `package.json`.
 3. For each documented command, verify against the current docs:
@@ -37,6 +45,31 @@ If Context7 is unavailable or rate-limited, stop: log the failure and exit
    version, bump the `@playwright/test` devDependency in `package.json` to it in
    this same PR, so the version badge, the dependency, and the documented
    behavior stay consistent.
+6. **Keep the documentation consistent.** If your changes warrant it, update the
+   docs in the same PR so nothing drifts:
+   - On a version bump, update every hardcoded Playwright version reference,
+     including the **version badge in `README.md`** and the **version line in
+     `CLAUDE.md`**, to match `package.json`.
+   - If you add a command in a way that affects documented examples, category
+     lists, or counts in `README.md`, `AGENTS.md`, or `CLAUDE.md`, update those
+     too. (The live command count in the app is computed automatically, so it
+     needs no manual edit.)
+   - Make only the documentation changes that your data changes actually require.
+     Do not rewrite or restructure the docs beyond that.
+7. **Add or update tests for what you change.** Tests live in `tests/`.
+   - The generic checks in `data-integrity.spec.js` already validate every
+     entry's schema, level, docs URL, and the no-dash rule, so a plain new entry
+     needs no extra test.
+   - When you add a **notable** new command or change an existing feature in a
+     way worth pinning down, add or update a **targeted** test, following the
+     existing per-entry pattern (see the `test.info() entry` block in
+     `data-integrity.spec.js`): assert the entry exists in the right category,
+     has the expected `level`, and that its `code` covers the key API.
+   - When you change an existing entry that a test already asserts on, update
+     that test so it matches the new behavior.
+   - Keep tests meaningful: do not add redundant tests that merely duplicate the
+     generic schema checks, and do not weaken or delete a failing assertion just
+     to make it pass.
 
 ## Hard rules for any edit
 
@@ -47,11 +80,14 @@ If Context7 is unavailable or rate-limited, stop: log the failure and exit
 - `level` is one of `beginner` | `intermediate` | `advanced`.
 - `docs` URLs must start with `https://` and point to `playwright.dev`.
 - Do **not** rename categories, change `cls`/`color`, restructure files, mass-add
-  every new API, or touch the highlighter, UI, or tests.
+  every new API, or touch the highlighter or UI. You **may** add or update
+  targeted tests in `tests/` for the entries you change (see step 7), but do not
+  restructure the test suite or alter unrelated tests.
 
 ## Validate, then open the PR
 
-Run the project's own gates and only proceed on green:
+Run the project's own gates and only proceed on green. This includes any tests
+you added or updated in step 7 — they are part of the gate, not optional:
 
 ```bash
 npm run lint
@@ -76,9 +112,14 @@ changed:
      body must list **every** change (what and why, with the Playwright version),
      a "New entries added" section, and a "Suggested follow-ups" section for
      anything you chose not to include.
-- **`DRY_RUN` is `false` but lint or tests fail and you cannot fix them:** open
-  the PR as a **draft** with `gh pr create --draft`, and put the failing command
-  output in the PR body. Never open a non-draft PR that is not green. Never merge.
+- **`DRY_RUN` is `false` but lint or tests fail and you cannot legitimately fix
+  them:** the PR must be **flagged, not hidden**. Open it as a **draft**
+  (`gh pr create --draft`), prefix the title with `[CI FAILING]`, add the
+  `ci-failing` label if available (`gh pr edit --add-label ci-failing`, ignore if
+  the label does not exist), and paste the full failing `npm run lint` / `npm test`
+  output into the PR body under a "Failing checks" heading. Never open a non-draft
+  PR when lint or tests are red, never silence a failure by weakening a test, and
+  never merge. A human decides what to do with a flagged PR.
 
 ## Bot identity for commits
 
