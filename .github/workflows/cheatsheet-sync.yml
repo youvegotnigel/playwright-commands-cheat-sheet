@@ -1,0 +1,70 @@
+name: Cheat sheet sync
+
+# Keeps js/data/ in sync with Playwright releases. Once a month (and on demand)
+# Claude Code reads the data, checks each command against the CURRENT Playwright
+# docs via the Context7 MCP server, and opens a pre-validated PR with any fixes.
+# It never merges. A no-drift run opens no PR. See the design spec in
+# docs/superpowers/specs/ and the task brief in .github/prompts/cheatsheet-sync.md.
+on:
+  schedule:
+    - cron: '0 6 1 * *' # 06:00 UTC on the 1st of each month (~Playwright cadence)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Scan and print the proposed diff to the job summary without opening a PR'
+        type: boolean
+        default: false
+
+# Least privilege: edit files on a branch and open a PR, nothing more.
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: cheatsheet-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # Default GITHUB_TOKEN lets the agent push a branch. Supplying a PAT
+          # here instead also makes the existing Tests workflow run on the PR.
+          token: ${{ secrets.PAT || github.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Run cheat sheet sync agent
+        uses: anthropics/claude-code-action@v1
+        env:
+          # Expanded inside .github/cheatsheet-sync.mcp.json as ${CONTEXT7_API_KEY}.
+          CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
+          # Read by the agent to decide whether to open a PR. False on schedule.
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+          # gh pr create needs this; falls back to GITHUB_TOKEN when no PAT is set.
+          GH_TOKEN: ${{ secrets.PAT || github.token }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          github_token: ${{ secrets.PAT || github.token }}
+          prompt: |
+            Follow the instructions in .github/prompts/cheatsheet-sync.md exactly.
+            The DRY_RUN environment variable controls whether you open a PR.
+          # Sonnet 4.6 is the cost-effective choice for a monthly doc sync.
+          # Switch --model to claude-opus-4-8 for maximum quality if desired.
+          claude_args: |
+            --model claude-sonnet-4-6
+            --max-turns 60
+            --mcp-config .github/cheatsheet-sync.mcp.json
+            --allowedTools Read,Edit,Write,Bash,mcp__context7
