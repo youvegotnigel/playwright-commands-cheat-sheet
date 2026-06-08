@@ -1,5 +1,5 @@
 /** @type {import('./index.js').Category} */
-export default {cat:'Fixtures', cls:'fixture', color:'#8b5cf6', items:[
+export default {cat:'Fixtures', cls:'fixture', color:'#84cc16', items:[
 {name:'test.extend()',
  level:'advanced',
  desc:'Creates a new test object with custom fixtures. Fixtures are values injected into tests and hooks via destructuring, automatically set up and torn down.',
