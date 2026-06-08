@@ -138,6 +138,17 @@ test.describe('View toggle', () => {
     await page.locator('#btnFlat').click();
     await expect(page.locator('.group-header')).toHaveCount(0);
   });
+
+  test('group counts sum to the total command count in the meta bar', async ({ page }) => {
+    await page.locator('#btnGrouped').click();
+    await expect(page.locator('.group-header').first()).toBeVisible();
+
+    const counts = await page.locator('.group-count').allInnerTexts();
+    const sum = counts.reduce((acc, t) => acc + Number(t.replace(/[()]/g, '')), 0);
+
+    const total = Number(await page.locator('#cmd-count').innerText());
+    expect(sum).toBe(total);
+  });
 });
 
 /* ── MODAL ─────────────────────────────────────────────────────── */
