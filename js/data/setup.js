@@ -251,4 +251,55 @@ test('user can log in', async ({ loginPage }) => {
   await loginPage.login('user@test.com', 'secret');
   await expect(loginPage.welcomeMessage).toBeVisible();
 });`},
+
+{name:'test() tags',
+ level:'intermediate',
+ desc:'Attaches one or more tags to a test or describe block via the { tag } option. Tags let you slice the suite at runtime with --grep / --grep-invert. Added in Playwright 1.42.',
+ tip:'Tag names must start with @. Use tags like @smoke, @slow, @vrt to run subsets, e.g. a fast smoke gate in CI. Run with: npx playwright test --grep @smoke.',
+ docs:'https://playwright.dev/docs/test-annotations#tag-tests',
+ code:`// Tag a single test
+test('login', { tag: ['@smoke', '@fast'] }, async ({ page }) => {
+  await page.goto('/login');
+});
+
+// Tag an entire describe block
+test.describe('Reports', { tag: '@slow' }, () => {
+  test('exports CSV', async ({ page }) => { /* ... */ });
+});
+
+// Run only smoke tests:  npx playwright test --grep @smoke
+// Skip slow tests:       npx playwright test --grep-invert @slow`},
+
+{name:'test.describe.configure()',
+ level:'intermediate',
+ desc:'Controls the execution mode and retries for the tests in a file or describe block. mode: "serial" runs them in order and stops on the first failure; mode: "parallel" runs them concurrently even when fullyParallel is off; "default" restores normal behaviour.',
+ tip:'Use mode: "serial" only when tests genuinely depend on each other (e.g. a multi-step wizard). A failure skips the rest. Prefer isolated parallel tests everywhere else. You can also set a per-block retries count.',
+ docs:'https://playwright.dev/docs/api/class-test#test-describe-configure',
+ code:`// Run every test in this file in order; stop on first failure
+test.describe.configure({ mode: 'serial' });
+
+// Or scope it to a single describe block
+test.describe('Checkout wizard', () => {
+  test.describe.configure({ mode: 'serial', retries: 2 });
+
+  test('step 1: add to cart', async ({ page }) => { /* ... */ });
+  test('step 2: pay',         async ({ page }) => { /* ... */ });
+});
+
+// mode: 'parallel' forces concurrency even if fullyParallel is off`},
+
+{name:'test.describe.skip() / fixme()',
+ level:'intermediate',
+ desc:'Skips or marks-as-broken an entire describe block in one call, instead of annotating every test inside. skip() drops the whole group; fixme() flags it as a known-failing group that is not run.',
+ tip:'Reach for the describe-level variant when a whole feature is unavailable on a browser/environment or is temporarily broken. Far cleaner than adding test.skip() to every test in the block.',
+ docs:'https://playwright.dev/docs/api/class-test#test-describe-skip',
+ code:`// Skip a whole group unconditionally
+test.describe.skip('Beta dashboard', () => {
+  test('shows widgets', async ({ page }) => { /* ... */ });
+});
+
+// Mark a whole group as broken (known failure, not run)
+test.describe.fixme('Legacy export', () => {
+  test('downloads PDF', async ({ page }) => { /* ... */ });
+});`},
 ]};

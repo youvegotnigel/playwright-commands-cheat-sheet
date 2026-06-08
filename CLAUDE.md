@@ -239,6 +239,7 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 - **Semicolons:** required
 - **Trailing commas:** ES5 style
 - **Line length:** ~100 chars (Prettier enforced)
+- **No em-dashes or en-dashes in command data.** Never use `—` (em-dash) or `–` (en-dash) in any `js/data/` item field (`name`, `desc`, `tip`, `code`, etc.). Use a period, comma, or colon to break a sentence, and a hyphen `-` for ranges (e.g. `200-299`). `data-integrity.spec.js` enforces this — a stray dash fails the suite.
 - **ESLint globals:** each block (app, test, supabase functions) has its own globals whitelist in `eslint.config.js` — add new globals there if needed
 
 ---

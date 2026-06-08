@@ -161,6 +161,29 @@ test.describe('Data integrity', () => {
     });
     expect(invalid).toEqual([]);
   });
+
+  test('no field contains an em-dash or en-dash (use periods, commas, or hyphens)', async ({
+    page,
+  }) => {
+    const offenders = await page.evaluate(() => {
+      const fields = ['name', 'level', 'desc', 'tip', 'docs', 'code'];
+      const bad = [];
+      categories.forEach(cat => {
+        cat.items.forEach(item => {
+          fields.forEach(field => {
+            const value = item[field];
+            if (typeof value !== 'string') return;
+            if (value.includes('—'))
+              bad.push(`"${item.name}" in "${cat.cat}" has an em-dash in "${field}"`);
+            if (value.includes('–'))
+              bad.push(`"${item.name}" in "${cat.cat}" has an en-dash in "${field}"`);
+          });
+        });
+      });
+      return bad;
+    });
+    expect(offenders).toEqual([]);
+  });
 });
 
 test.describe('test.info() entry', () => {

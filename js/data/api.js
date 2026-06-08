@@ -165,4 +165,39 @@ await page.route('**/api/items', handler);
 
 // Remove the mock and real requests will now go through
 await page.unroute('**/api/items', handler);`},
+
+{name:'context.route()',
+ level:'intermediate',
+ desc:'Intercepts network requests for every page in the browser context, not just a single page. Ideal for rules that should apply suite-wide: blocking analytics, injecting auth headers, or mocking third-party scripts.',
+ tip:'Set it in a fixture or beforeEach so the rule also covers pages opened later (popups, new tabs). page.route() affects one page; context.route() affects them all.',
+ docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-route',
+ code:`test('blocks analytics across the whole context', async ({ page, context }) => {
+  // Applies to this page AND any page opened later in the context
+  await context.route('**/analytics/**', route => route.abort());
+
+  // Inject a header on every API call from any page
+  await context.route('**/api/**', route => {
+    route.continue({
+      headers: { ...route.request().headers(), 'x-test': 'pw' },
+    });
+  });
+
+  await page.goto('/dashboard');
+});`},
+
+{name:'routeFromHAR()',
+ level:'advanced',
+ desc:'Replays network responses from a previously recorded HAR file, serving them as mocks. Record real traffic once, then run tests against the captured responses, with no manual route.fulfill() needed.',
+ tip:'Record with update: true (or the CLI: npx playwright open --save-har=api.har), commit the HAR, then replay with update: false in CI. Use the url option to stub only matching requests and let the rest hit the network.',
+ docs:'https://playwright.dev/docs/api/class-page#page-route-from-har',
+ code:`// Replay recorded responses (default mode)
+await page.routeFromHAR('fixtures/api.har', {
+  url: '**/api/**',     // only stub API calls
+  update: false,        // replay, don't re-record
+});
+
+// Re-record the HAR from live traffic (run once to refresh fixtures)
+await page.routeFromHAR('fixtures/api.har', { update: true });
+
+await page.goto('/dashboard');`},
 ]};

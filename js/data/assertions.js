@@ -221,7 +221,7 @@ await expect(page.locator('.chart')).toHaveScreenshot('chart.png', {
 
 {name:'toBeOK()',
  level:'intermediate',
- desc:'Asserts that an API response has a status code in the 2xx range (200–299). Use with APIRequestContext.',
+ desc:'Asserts that an API response has a status code in the 2xx range (200-299). Use with APIRequestContext.',
  tip:'The quickest sanity-check for API tests. Combine with response.json() to also validate the response body shape.',
  docs:'https://playwright.dev/docs/api/class-apiresponseassertions#api-response-assertions-to-be-ok',
  code:`const response = await request.get('/api/users');
