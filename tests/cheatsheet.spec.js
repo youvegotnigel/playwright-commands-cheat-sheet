@@ -11,6 +11,18 @@ test.describe('Page load', () => {
     await expect(page.locator('header')).toContainText('Playwright Commands Dashboard');
   });
 
+  test('shows the Playwright logo twice beside the header title', async ({ page }) => {
+    const logos = page.locator('header img.header-logo');
+    await expect(logos).toHaveCount(2);
+    await expect(logos.first()).toBeVisible();
+    await expect(logos.last()).toBeVisible();
+    // Each logo must actually load (non-zero rendered size), not just exist in the DOM
+    for (const box of await logos.all().then(ls => Promise.all(ls.map(l => l.boundingBox())))) {
+      expect(box?.width).toBeGreaterThan(0);
+      expect(box?.height).toBeGreaterThan(0);
+    }
+  });
+
   test('renders command tiles', async ({ page }) => {
     const tiles = page.locator('.tile');
     await expect(tiles).toHaveCount(await tiles.count()); // tiles exist
@@ -137,6 +149,17 @@ test.describe('View toggle', () => {
     await page.locator('#btnGrouped').click();
     await page.locator('#btnFlat').click();
     await expect(page.locator('.group-header')).toHaveCount(0);
+  });
+
+  test('group counts sum to the total command count in the meta bar', async ({ page }) => {
+    await page.locator('#btnGrouped').click();
+    await expect(page.locator('.group-header').first()).toBeVisible();
+
+    const counts = await page.locator('.group-count').allInnerTexts();
+    const sum = counts.reduce((acc, t) => acc + Number(t.replace(/[()]/g, '')), 0);
+
+    const total = Number(await page.locator('#cmd-count').innerText());
+    expect(sum).toBe(total);
   });
 });
 
