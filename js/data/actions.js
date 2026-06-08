@@ -174,4 +174,19 @@ await page.locator('#custom-input').dispatchEvent('change');
 await page.locator('#drop-zone').dispatchEvent('drop', {
   dataTransfer: await page.evaluateHandle(() => new DataTransfer())
 });`},
+
+{name:'mouse.move()',
+ level:'advanced',
+ desc:'Low-level pointer control: mouse.move(), mouse.down(), mouse.up(), and mouse.wheel() drive raw mouse input at absolute coordinates. Use when dragTo() cannot model the interaction: canvas drawing, custom drag-and-drop libraries, or scroll gestures.',
+ tip:'Coordinates are viewport pixels, so combine with boundingBox() to target an element reliably. Prefer dragTo() for ordinary drag-and-drop; drop to mouse.* only for fine-grained sequences.',
+ docs:'https://playwright.dev/docs/api/class-mouse#mouse-move',
+ code:`// Manual drag sequence (down -> move in steps -> up)
+const box = await page.locator('#canvas').boundingBox();
+await page.mouse.move(box.x + 10, box.y + 10);
+await page.mouse.down();
+await page.mouse.move(box.x + 120, box.y + 80, { steps: 10 });
+await page.mouse.up();
+
+// Scroll the page with the wheel (deltaX, deltaY)
+await page.mouse.wheel(0, 600);`},
 ]};
