@@ -105,6 +105,11 @@ input[type=text]:focus { outline: none; border-color: #64748b; }
 .cli           { background: linear-gradient(135deg, #f59e0b, #d97706); }
 .accessibility { background: linear-gradient(135deg, #10b981, #059669); }
 .config        { background: linear-gradient(135deg, #6366f1, #4338ca); }
+.network       { background: linear-gradient(135deg, #14b8a6, #0f766e); }
+.clock         { background: linear-gradient(135deg, #0ea5e9, #0369a1); }
+.fixture       { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.tracing       { background: linear-gradient(135deg, #64748b, #334155); }
+.component     { background: linear-gradient(135deg, #f43f5e, #be123c); }
 
 .tile-level {
   position: absolute; top: 7px; right: 9px;
