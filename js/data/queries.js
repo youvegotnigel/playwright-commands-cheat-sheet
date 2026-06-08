@@ -17,11 +17,17 @@ await page.locator('//button[text()="Submit"]').click();`},
 {name:'getByRole()',
  level:'beginner',
  desc:'Finds an element by its ARIA role (button, heading, textbox, etc.) and optional accessible name. The most recommended selector.',
- tip:"The #1 recommended way to select elements. It mirrors how assistive technologies see the page and is resilient to style changes.",
+ tip:"The #1 recommended way to select elements. It mirrors how assistive technologies see the page and is resilient to style changes. Playwright v1.60 added a description option to also match an element's accessible description (aria-describedby text), useful when several elements share the same name.",
  docs:'https://playwright.dev/docs/api/class-page#page-get-by-role',
  code:`await page.getByRole('button', { name: 'Submit' }).click();
 await page.getByRole('textbox', { name: 'Email' }).fill('test@mail.com');
-await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();`},
+await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+
+// Disambiguate same-named elements by accessible description (v1.60+)
+await page.getByRole('button', {
+  name: 'Delete',
+  description: 'Delete the current draft',
+}).click();`},
 
 {name:'getByText()',
  level:'beginner',

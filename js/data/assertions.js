@@ -166,13 +166,17 @@ await expect(page.locator('#submit')).toContainClass('btn btn-primary');`},
 {name:'toHaveCSS()',
  level:'intermediate',
  desc:'Asserts that an element has a specific computed CSS property value. Checks the rendered style, not just the attribute.',
- tip:'Reads computed styles, so it reflects cascaded values including those applied by external stylesheets and animations.',
+ tip:"Reads computed styles, so it reflects cascaded values including those applied by external stylesheets and animations. Playwright v1.60 added a pseudo option to assert styles of ::before and ::after pseudo-elements: { pseudo: '::before' } / { pseudo: '::after' }.",
  docs:'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-css',
  code:`await expect(page.locator('.alert')).toHaveCSS('background-color', 'rgb(255, 0, 0)');
 await expect(page.locator('.modal')).toHaveCSS('display', 'flex');
 
 // Use regex for flexible matching
-await expect(page.locator('.card')).toHaveCSS('border-radius', /px$/);`},
+await expect(page.locator('.card')).toHaveCSS('border-radius', /px$/);
+
+// Assert a pseudo-element's computed style (v1.60+)
+await expect(page.locator('.required-field'))
+  .toHaveCSS('content', '"*"', { pseudo: '::after' });`},
 
 {name:'toBeEditable()',
  level:'intermediate',

@@ -138,7 +138,7 @@ const results = await new AxeBuilder({ page })
  desc:'End-to-end axe scan with page setup, navigation, network-idle wait, violation assertion, and detailed console reporting.',
  tip:'Always wait for networkidle before scanning dynamic pages, as axe runs synchronously on the DOM and elements must be fully rendered.',
  docs:'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
- code:`test('Sample Accessibility Test', tag: ['@unstable'] , async ({ page }) => {
+ code:`test('Sample Accessibility Test', { tag: ['@unstable'] }, async ({ page }) => {
 
   // 1. Page set up (navigates to app and logs in)
   const { topWidget } = await setUpERequestTest(page);

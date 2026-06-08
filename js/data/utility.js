@@ -131,6 +131,18 @@ page.on('console', msg => {
 await page.goto('/dashboard');
 expect(errors).toHaveLength(0);`},
 
+{name:'consoleMessages()',
+ level:'intermediate',
+ desc:'Returns an array of the recent console messages from the page synchronously, without requiring a pre-registered on(console) listener. Added in Playwright v1.56.',
+ tip:"Use to assert no console errors happened during a page load without wiring up a listener beforehand. By default it returns messages since the last navigation, pass { filter: 'all' } for every stored message.",
+ docs:'https://playwright.dev/docs/api/class-page#page-console-messages',
+ code:`await page.goto('/dashboard');
+
+// Check after the fact, no listener needed
+const messages = page.consoleMessages();
+const errors = messages.filter(m => m.type() === 'error');
+expect(errors).toHaveLength(0);`},
+
 {name:'on(pageerror)',
  level:'intermediate',
  desc:"Listens for uncaught JavaScript exceptions thrown in the browser page. Fires whenever the page has an unhandled error.",
@@ -143,6 +155,18 @@ page.on('pageerror', err => errors.push(err.message));
 await page.goto('/dashboard');
 await page.getByRole('button', { name: 'Load Data' }).click();
 
+expect(errors, 'No uncaught JS errors expected').toHaveLength(0);`},
+
+{name:'pageErrors()',
+ level:'intermediate',
+ desc:'Returns an array of recent uncaught JavaScript errors from the page synchronously, without requiring a pre-registered on(pageerror) listener. Added in Playwright v1.56.',
+ tip:"Use to fail a test if any uncaught error occurred during a flow, without the boilerplate of setting up a listener first. By default it returns errors since the last navigation, pass { filter: 'all' } for every stored error.",
+ docs:'https://playwright.dev/docs/api/class-page#page-page-errors',
+ code:`await page.goto('/dashboard');
+await page.getByRole('button', { name: 'Load Data' }).click();
+
+// Check after the fact, no listener needed
+const errors = page.pageErrors();
 expect(errors, 'No uncaught JS errors expected').toHaveLength(0);`},
 
 {name:'on(dialog)',
