@@ -82,6 +82,7 @@ input[type=text]:focus { outline: none; border-color: #64748b; }
   letter-spacing: 0.1em; margin-bottom: 10px;
   padding-bottom: 8px; border-bottom: 1px solid #1e293b;
 }
+.group-count { font-weight: 600; opacity: 0.7; }
 
 .tile {
   border-radius: 12px; padding: 12px 10px; min-height: 80px;
