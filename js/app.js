@@ -147,8 +147,11 @@ function openModal(item) {
   document.getElementById('modal').style.display = 'flex';
   document.getElementById('m-title').innerHTML = item.name;
   document.getElementById('m-desc').innerText  = item.desc;
+  // Shell highlighter for CLI snippets: the CLI category, or any code that
+  // starts with an npx command or a shell '#' comment (e.g. moved trace commands).
+  const isShell = item.cls === 'cli' || /^\s*(npx|#)/.test(item.code);
   document.getElementById('m-code').innerHTML  =
-    item.cls === 'cli' ? highlightShell(item.code) : highlight(item.code);
+    isShell ? highlightShell(item.code) : highlight(item.code);
   document.getElementById('btn-docs').href     = item.docs;
 
   // Difficulty badge
