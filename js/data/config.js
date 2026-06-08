@@ -193,4 +193,28 @@ export default defineConfig({
 // In tests
 await page.getByTestId('submit-btn').click();
 // Finds: <button data-cy="submit-btn">`},
+
+{name:'projects (dependencies)',
+ level:'advanced',
+ desc:'A project can declare dependencies on other projects that must run first, plus a teardown project that runs after it finishes. This is the modern, recommended way to handle auth: a "setup" project logs in and saves storageState before the test projects run.',
+ tip:'Preferred over globalSetup for auth. The setup step shows up in the report and trace, can use fixtures, and reruns on retry. Point dependent projects at the saved storageState via use.',
+ docs:'https://playwright.dev/docs/test-projects#dependencies',
+ code:`// playwright.config.ts
+export default defineConfig({
+  projects: [
+    // 1. Runs first: logs in and saves auth state to a file
+    { name: 'setup', testMatch: /global\\.setup\\.ts/ },
+
+    // 2. Depends on 'setup'; starts already authenticated
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], storageState: 'auth.json' },
+      dependencies: ['setup'],
+      teardown: 'cleanup',
+    },
+
+    // 3. Runs after everything that names it as teardown
+    { name: 'cleanup', testMatch: /global\\.teardown\\.ts/ },
+  ],
+});`},
 ]};
