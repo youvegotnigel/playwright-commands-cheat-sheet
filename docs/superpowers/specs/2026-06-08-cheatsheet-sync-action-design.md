@@ -19,8 +19,10 @@ part (finding drift, drafting the edits) while keeping a human merge gate.
 - The site is vanilla ES modules with **no build step**. The action only edits
   data files, `package.json`, and runs the existing npm scripts; it introduces
   no new runtime dependencies into the app.
-- **Never auto-merge.** The action opens a PR; a human reviews and merges. The
-  agent has no authority to push to `master`/`develop` directly.
+- **Never auto-merge.** The action opens a PR; the **maintainer (Nigel)** reviews
+  and merges it manually. The agent has no authority to push to `master` /
+  `develop`, approve its own PR, enable auto-merge, or bypass branch protection.
+  Its output is always a PR awaiting human approval.
 - **Every PR must be pre-validated.** The agent runs `npm run lint` and
   `npm test` (the full Playwright suite, including `data-integrity.spec.js` and
   its em-dash/en-dash guard) before opening a non-draft PR.
@@ -46,10 +48,21 @@ part (finding drift, drafting the edits) while keeping a human merge gate.
   - update `desc` / `tip` / `code` / `docs` for drift,
   - mark deprecated methods (note in `tip`, keep the entry),
   - repair broken or moved `docs` URLs,
-  - add a **few** genuinely high-value new commands from recent releases.
+  - add a **few** genuinely high-value new commands from recent releases,
+    following the "Adding a New Command" guidance in `README.md` / `AGENTS.md`,
+  - update documentation in the same PR when the data changes require it:
+    hardcoded Playwright version references (the `README.md` version badge and
+    the `CLAUDE.md` version line) on a bump, plus any category lists or examples
+    in `README.md` / `AGENTS.md` / `CLAUDE.md` affected by the change,
+  - add or update **targeted** tests in `tests/` for notable new commands or
+    changed features, following the existing per-entry pattern (the
+    `test.info() entry` block in `data-integrity.spec.js`). Plain new entries
+    need no extra test because the generic schema/dash checks already cover them.
 
   The agent must **not** mass-add every new API, restructure files, rename
-  categories, or change colors/`cls` values.
+  categories, change colors/`cls` values, rewrite docs beyond what the data
+  change requires, restructure the test suite, or weaken a failing assertion to
+  make it pass.
 - **Version target (the judgment call, confirmed by user):** the agent checks
   the latest stable Playwright. If it is newer than the `@playwright/test`
   version pinned in `package.json`, the **same PR bumps that devDependency** and
@@ -86,7 +99,7 @@ The agent's task brief, versioned and reviewable, kept out of the YAML. It
 describes only the *task and guardrails*, deferring conventions to
 `CLAUDE.md` / `AGENTS.md`:
 
-1. Read `package.json`, all `js/data/*.js`, `CLAUDE.md`, `AGENTS.md`.
+1. Read `package.json`, all `js/data/*.js`, `CLAUDE.md`, `AGENTS.md`, `README.md`.
 2. Determine the latest stable Playwright version (via Context7 / npm).
 3. For each documented command, use Context7 to verify it against the current
    docs: deprecations, signature changes, moved/broken `docs` URLs.
@@ -121,9 +134,9 @@ cron (0 6 1 * *) | workflow_dispatch{dry_run}
               prompt:  .github/prompts/cheatsheet-sync.md
               mcp:     Context7 → /microsoft/playwright
               tools:   Read, Edit/Write, Bash, gh
-              ├─ read data + package.json + CLAUDE.md + AGENTS.md
+              ├─ read data + package.json + CLAUDE.md + AGENTS.md + README.md
               ├─ Context7: current API for target version
-              ├─ edit entries (+ bump package.json if newer)
+              ├─ edit entries (+ bump package.json + sync version in docs if newer)
               ├─ npm run lint && npm test        ← hard gate
               └─ green → branch+commit+push+`gh pr create`
                  fail  → draft PR w/ explanation
@@ -133,8 +146,13 @@ cron (0 6 1 * *) | workflow_dispatch{dry_run}
 
 ## Error handling & edge cases
 
-- **Tests fail and the agent cannot fix them:** open a **draft** PR documenting
-  the failing output; never a green-looking PR. Never merge.
+- **Tests fail and the agent cannot legitimately fix them:** the PR is **flagged,
+  not hidden** — opened as a **draft** with a `[CI FAILING]` title prefix, a
+  `ci-failing` label (if it exists), and the full failing `npm run lint` /
+  `npm test` output in the body under a "Failing checks" heading. Never a
+  green-looking non-draft PR, never silence a failure by weakening a test, never
+  merge. The agent's own added/updated tests are part of this gate. A human
+  decides what to do with a flagged PR.
 - **No drift found:** exit 0, no branch, no PR — a clean no-op run.
 - **Duplicate PRs:** dated branch name (`bot/cheatsheet-sync-YYYY-MM-DD`); the
   agent checks for an existing open sync PR and updates rather than stacking
