@@ -87,17 +87,6 @@ npx playwright test --project=firefox --project=webkit
  code:`npx playwright test --headed
 # Opens a real browser window during the run`},
 
-{name:'--debug',
- level:'beginner',
- desc:'Launches the Playwright Inspector alongside the browser. Lets you step through test actions one at a time.',
- tip:'Combine with -g to debug a single test. Use the Inspector to hover over locators and inspect element handles.',
- docs:'https://playwright.dev/docs/debug#playwright-inspector',
- code:`npx playwright test --debug
-# Opens Playwright Inspector for step-by-step debugging
-
-npx playwright test -g "checkout" --debug
-# Debug a specific test`},
-
 {name:'--ui',
  level:'beginner',
  desc:'Opens the Playwright UI mode, an interactive visual interface to run, watch, and time-travel debug your tests.',
@@ -249,27 +238,6 @@ npx playwright show-report my-report/
 npx playwright merge-reports --reporter=junit ./blob-reports > results.xml
 # Merge into a JUnit XML report for CI integration`},
 
-{name:'show-trace',
- level:'intermediate',
- desc:'Opens the Playwright Trace Viewer for a specific trace.zip file. Lets you replay a test run step by step.',
- tip:'Enable traces in your config with trace: "on-first-retry" to capture them automatically for failing tests.',
- docs:'https://playwright.dev/docs/trace-viewer',
- code:`npx playwright show-trace trace.zip
-# Open a trace file in the Trace Viewer
-
-npx playwright show-trace test-results/my-test/trace.zip`},
-
-{name:'codegen',
- level:'beginner',
- desc:'Opens a browser and records your interactions, generating a Playwright test script in real time.',
- tip:'Great for bootstrapping a new test quickly. Always review and clean up the generated code. It may be brittle.',
- docs:'https://playwright.dev/docs/codegen-intro',
- code:`npx playwright codegen https://example.com
-# Record actions on a URL and generate a test
-
-npx playwright codegen --save-storage=auth.json https://example.com
-# Record and save authenticated session state`},
-
 {name:'install',
  level:'beginner',
  desc:'Downloads and installs the browser binaries (Chromium, Firefox, WebKit) that Playwright needs to run tests.',
@@ -310,20 +278,6 @@ npx playwright install --with-deps chromium
 
 npx playwright test --help
 # List all flags for the test runner`},
-
-{name:'--trace',
- level:'intermediate',
- desc:'Controls trace recording. Options: on, off, on-first-retry, on-all-retries, retain-on-failure.',
- tip:'Use retain-on-failure in CI so traces are only kept when a test fails, saving disk space without losing debug info.',
- docs:'https://playwright.dev/docs/trace-viewer-intro',
- code:`npx playwright test --trace on
-# Record a trace for every test
-
-npx playwright test --trace on-first-retry
-# Record trace only on the first retry of a failing test
-
-npx playwright test --trace retain-on-failure
-# Keep traces only for failed tests (recommended for CI)`},
 
 {name:'--update-snapshots',
  level:'intermediate',
