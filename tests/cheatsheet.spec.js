@@ -11,6 +11,18 @@ test.describe('Page load', () => {
     await expect(page.locator('header')).toContainText('Playwright Commands Dashboard');
   });
 
+  test('shows the Playwright logo twice beside the header title', async ({ page }) => {
+    const logos = page.locator('header img.header-logo');
+    await expect(logos).toHaveCount(2);
+    await expect(logos.first()).toBeVisible();
+    await expect(logos.last()).toBeVisible();
+    // Each logo must actually load (non-zero rendered size), not just exist in the DOM
+    for (const box of await logos.all().then(ls => Promise.all(ls.map(l => l.boundingBox())))) {
+      expect(box?.width).toBeGreaterThan(0);
+      expect(box?.height).toBeGreaterThan(0);
+    }
+  });
+
   test('renders command tiles', async ({ page }) => {
     const tiles = page.locator('.tile');
     await expect(tiles).toHaveCount(await tiles.count()); // tiles exist
