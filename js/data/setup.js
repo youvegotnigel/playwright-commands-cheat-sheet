@@ -224,34 +224,6 @@ test.afterEach(async ({ page }, testInfo) => {
   }
 });`},
 
-{name:'test.extend()',
- level:'advanced',
- desc:'Creates a new test object with custom fixtures. Fixtures are values injected into tests and hooks via destructuring, automatically set up and torn down.',
- tip:'The recommended way to implement the Page Object Model in Playwright. Define page objects as fixtures so they are instantiated once per test and shared cleanly.',
- docs:'https://playwright.dev/docs/test-fixtures#creating-a-fixture',
- code:`// fixtures.ts
-import { test as base } from '@playwright/test';
-import { LoginPage } from './pages/LoginPage';
-
-type MyFixtures = { loginPage: LoginPage };
-
-export const test = base.extend<MyFixtures>({
-  loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page));
-  },
-});
-
-export { expect } from '@playwright/test';
-
-// my.spec.ts: import from fixtures, not @playwright/test
-import { test, expect } from './fixtures';
-
-test('user can log in', async ({ loginPage }) => {
-  await loginPage.goto();
-  await loginPage.login('user@test.com', 'secret');
-  await expect(loginPage.welcomeMessage).toBeVisible();
-});`},
-
 {name:'test() tags',
  level:'intermediate',
  desc:'Attaches one or more tags to a test or describe block via the { tag } option. Tags let you slice the suite at runtime with --grep / --grep-invert. Added in Playwright 1.42.',
