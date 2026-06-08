@@ -241,3 +241,57 @@ test.describe('test.info() entry', () => {
     expect(tip).toContain('test.info()');
   });
 });
+
+test.describe('consoleMessages() entry', () => {
+  test('consoleMessages() exists in the Utility category', async ({ page }) => {
+    const found = await page.evaluate(() => {
+      const utility = categories.find(c => c.cat === 'Utility');
+      return utility ? utility.items.some(i => i.name === 'consoleMessages()') : false;
+    });
+    expect(found).toBe(true);
+  });
+
+  test('consoleMessages() has level intermediate', async ({ page }) => {
+    const level = await page.evaluate(() => {
+      const utility = categories.find(c => c.cat === 'Utility');
+      return utility?.items.find(i => i.name === 'consoleMessages()')?.level;
+    });
+    expect(level).toBe('intermediate');
+  });
+
+  test('consoleMessages() code covers consoleMessages() and type()', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const utility = categories.find(c => c.cat === 'Utility');
+      return utility?.items.find(i => i.name === 'consoleMessages()')?.code ?? '';
+    });
+    expect(code).toContain('consoleMessages()');
+    expect(code).toContain('type()');
+  });
+});
+
+test.describe('pageErrors() entry', () => {
+  test('pageErrors() exists in the Utility category', async ({ page }) => {
+    const found = await page.evaluate(() => {
+      const utility = categories.find(c => c.cat === 'Utility');
+      return utility ? utility.items.some(i => i.name === 'pageErrors()') : false;
+    });
+    expect(found).toBe(true);
+  });
+
+  test('pageErrors() has level intermediate', async ({ page }) => {
+    const level = await page.evaluate(() => {
+      const utility = categories.find(c => c.cat === 'Utility');
+      return utility?.items.find(i => i.name === 'pageErrors()')?.level;
+    });
+    expect(level).toBe('intermediate');
+  });
+
+  test('pageErrors() code covers pageErrors() and toHaveLength', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const utility = categories.find(c => c.cat === 'Utility');
+      return utility?.items.find(i => i.name === 'pageErrors()')?.code ?? '';
+    });
+    expect(code).toContain('pageErrors()');
+    expect(code).toContain('toHaveLength');
+  });
+});
