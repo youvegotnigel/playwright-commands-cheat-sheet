@@ -50,16 +50,6 @@ await page.screenshot({ path: 'page.png', fullPage: true });
 // Specific element only
 await page.locator('.chart').screenshot({ path: 'chart.png' });`},
 
-{name:'pause()',
- level:'beginner',
- desc:'Pauses test execution and opens the Playwright Inspector for step-by-step debugging.',
- tip:'Only use during development. Remove before committing. Run tests with PWDEBUG=1 to start the Inspector automatically.',
- docs:'https://playwright.dev/docs/api/class-page#page-pause',
- code:`// Opens the Playwright Inspector UI
-await page.pause();
-
-// Resume by clicking "Resume" in the Inspector`},
-
 {name:'waitForSelector()',
  level:'intermediate',
  desc:'Waits for an element matching a CSS selector to appear in the DOM or reach a specific state.',
@@ -741,20 +731,4 @@ await page.addLocatorHandler(
 // From this point any action that triggers the banner is handled automatically
 await page.goto('/products');
 await page.locator('.product-card').first().click();`},
-
-{name:'page.clock',
- level:'advanced',
- desc:"Playwright's built-in clock API for controlling Date, setTimeout, setInterval, and requestAnimationFrame in the browser.",
- tip:"Replaces addInitScript Date mocking. Use setFixedTime() for a static date, or install() + runFor() to simulate the passage of time and trigger timers.",
- docs:'https://playwright.dev/docs/clock',
- code:`// Set a fixed date for the entire test
-await page.clock.setFixedTime(new Date('2025-01-01T12:00:00'));
-await page.goto('/dashboard');
-await expect(page.locator('.date-display')).toHaveText('January 1, 2025');
-
-// Install the clock and fast-forward timers by 5 seconds
-await page.clock.install({ time: new Date('2025-06-01') });
-await page.goto('/session-timer');
-await page.clock.runFor(5000); // advances timers by 5 s
-await expect(page.locator('#countdown')).toHaveText('4:55');`},
 ]};
