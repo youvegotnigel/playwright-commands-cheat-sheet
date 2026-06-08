@@ -436,6 +436,34 @@ page.on('worker', async worker => {
 
 await page.goto('/app-with-workers');`},
 
+{name:"context.on('page')",
+ level:'intermediate',
+ desc:"Fires when a new page (tab) opens anywhere in the browser context, including target='_blank' links. The context level counterpart to page.on('popup'). Provides the new Page object.",
+ tip:"Listen here when a popup opens at the browser level rather than from one page, or to collect several tabs opened at once. If page.on('popup') never fires, switch to this.",
+ docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-event-page',
+ code:`// Catch every new tab opened in this context
+const newTabs = [];
+context.on('page', async newTab => {
+  await newTab.waitForLoadState();
+  newTabs.push(newTab);
+  console.log('New tab:', newTab.url());
+});
+
+await page.getByRole('link', { name: 'Terms' }).click();`},
+
+{name:'context.waitForEvent()',
+ level:'intermediate',
+ desc:"Waits for a browser context event to fire and returns its value. The context level version of page.waitForEvent(). Most common event: 'page' for a new tab.",
+ tip:"Use 'page' when a target='_blank' link opens a new tab at the context level. Use page.waitForEvent('popup') when the window is opened by a specific page. Always start the wait before the action.",
+ docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-wait-for-event',
+ code:`// A target='_blank' link opens a new tab
+const [newTab] = await Promise.all([
+  context.waitForEvent('page'),
+  page.getByRole('link', { name: 'Open docs' }).click(),
+]);
+await newTab.waitForLoadState('domcontentloaded');
+await expect(newTab).toHaveURL(/docs/);`},
+
 {name:'addInitScript()',
  level:'advanced',
  desc:'Injects a script into every new page and frame before any page scripts run. Use to mock globals or set test flags.',

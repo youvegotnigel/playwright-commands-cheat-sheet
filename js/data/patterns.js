@@ -209,4 +209,26 @@ await Promise.all(newPages.map(p => p.waitForLoadState()));
 
 // Tidy up when finished
 await popup.close();`},
+
+{name:'Page vs context events',
+ level:'intermediate',
+ desc:'waitForEvent only accepts events that the object itself emits. A Page emits page level events, a BrowserContext emits context level events. Pass the right name to the right object.',
+ tip:"A new window opened by a page is page.waitForEvent('popup'). A new tab at the browser level (target=_blank) is context.waitForEvent('page'). There is no 'page' event on a Page, and no 'popup' event on a context.",
+ docs:'https://playwright.dev/docs/events',
+ code:`// PAGE events: one tab. Listen on page.
+//   popup, download, filechooser, dialog, console,
+//   pageerror, request, response, load, worker, ...
+const [popup] = await Promise.all([
+  page.waitForEvent('popup'),       // new window from this page
+  page.click('text=Open report'),
+]);
+
+// CONTEXT events: whole session, all tabs. Listen on context.
+//   page, weberror, request, response, console, dialog, ...
+const [newTab] = await Promise.all([
+  context.waitForEvent('page'),     // new tab in the context
+  page.click('text=Terms'),
+]);
+
+// Rule of thumb: if 'popup' never fires, try 'page'.`},
 ]};
