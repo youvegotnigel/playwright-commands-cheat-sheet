@@ -31,7 +31,18 @@ If Context7 is unavailable or rate-limited, stop: log the failure and exit
    `README.md`.
 2. Determine the **latest stable** Playwright version (via Context7 / npm).
    Note the version currently pinned as `@playwright/test` in `package.json`.
-3. For each documented command, verify against the current docs:
+   **If the pinned version already equals the latest stable, there is almost
+   certainly no drift: do a quick sanity check and exit early with no PR rather
+   than re-verifying every command.**
+3. **Work changelog-first to stay cheap (this controls the cost of the run).**
+   Do NOT fetch full docs for all ~100 commands. Instead, query Context7 once for
+   the **release notes / changelog between the pinned version and latest**, build
+   a short list of APIs that were deprecated, changed, or added, and then only
+   deep-verify:
+   - the documented commands whose API appears in that changelog delta, and
+   - your shortlist of candidate new commands (step 4).
+   Leave unchanged commands alone without re-querying their docs. For each command
+   you do verify against the current docs:
    - Is it **deprecated** or removed? If deprecated, keep the entry but note it
      in `tip` and point to the replacement. If fully removed, replace it with the
      current equivalent rather than deleting outright.
@@ -87,11 +98,16 @@ If Context7 is unavailable or rate-limited, stop: log the failure and exit
 ## Validate, then open the PR
 
 Run the project's own gates and only proceed on green. This includes any tests
-you added or updated in step 7 — they are part of the gate, not optional:
+you added or updated in step 7 — they are part of the gate, not optional.
+
+Run the **chromium project only** — it exercises every test (including
+`data-integrity.spec.js` and its dash guard) once. The two mobile projects rerun
+the same data checks and add cost/time without catching data issues, so skip them
+here; the full 3-project suite still runs in CI on the human side if a PAT is set.
 
 ```bash
 npm run lint
-npm test
+npm run test:chromium
 ```
 
 Behavior depends on the `DRY_RUN` environment variable and on whether anything
@@ -116,8 +132,8 @@ changed:
   them:** the PR must be **flagged, not hidden**. Open it as a **draft**
   (`gh pr create --draft`), prefix the title with `[CI FAILING]`, add the
   `ci-failing` label if available (`gh pr edit --add-label ci-failing`, ignore if
-  the label does not exist), and paste the full failing `npm run lint` / `npm test`
-  output into the PR body under a "Failing checks" heading. Never open a non-draft
+  the label does not exist), and paste the full failing `npm run lint` /
+  `npm run test:chromium` output into the PR body under a "Failing checks" heading. Never open a non-draft
   PR when lint or tests are red, never silence a failure by weakening a test, and
   never merge. A human decides what to do with a flagged PR.
 

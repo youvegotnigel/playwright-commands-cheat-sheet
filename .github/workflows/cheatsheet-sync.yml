@@ -61,10 +61,11 @@ jobs:
           prompt: |
             Follow the instructions in .github/prompts/cheatsheet-sync.md exactly.
             The DRY_RUN environment variable controls whether you open a PR.
-          # Sonnet 4.6 is the cost-effective choice for a monthly doc sync.
-          # Switch --model to claude-opus-4-8 for maximum quality if desired.
+          # Haiku 4.5 keeps a monthly run well under $0.50. The human PR review +
+          # full test gate + Context7 ground truth cover the lower model tier.
+          # Bump --model to claude-sonnet-4-6 (or claude-opus-4-8) for more quality.
           claude_args: |
-            --model claude-sonnet-4-6
-            --max-turns 60
+            --model claude-haiku-4-5
+            --max-turns 40
             --mcp-config .github/cheatsheet-sync.mcp.json
             --allowedTools Read,Edit,Write,Bash,mcp__context7
