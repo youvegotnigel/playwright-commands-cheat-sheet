@@ -102,7 +102,10 @@ function renderGrouped(items, container) {
 
     const header = document.createElement('div');
     header.className = 'group-header';
-    header.innerHTML = `<span style="color:${sec.color}">${sec.cat}</span>`;
+    const count = groups[sec.cat].length;
+    header.innerHTML =
+      `<span style="color:${sec.color}">${sec.cat}` +
+      ` <span class="group-count">(${count})</span></span>`;
     section.appendChild(header);
 
     const grid = document.createElement('div');
