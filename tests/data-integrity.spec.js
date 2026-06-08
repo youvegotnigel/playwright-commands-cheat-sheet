@@ -295,3 +295,160 @@ test.describe('pageErrors() entry', () => {
     expect(code).toContain('toHaveLength');
   });
 });
+
+test.describe('Reorganized categories', () => {
+  // Helper: return the list of category names that contain a command.
+  const homesOf = (page, name) =>
+    page.evaluate(
+      (cmd) =>
+        categories
+          .filter((c) => c.items.some((i) => i.name === cmd))
+          .map((c) => c.cat),
+      name
+    );
+
+  const namesIn = (page, cat) =>
+    page.evaluate(
+      (name) => categories.find((c) => c.cat === name)?.items.map((i) => i.name) ?? [],
+      cat
+    );
+
+  const newCategories = [
+    'Network & Mocking',
+    'Clock & Time',
+    'Fixtures',
+    'Tracing & Debugging',
+    'Component Testing',
+  ];
+
+  for (const cat of newCategories) {
+    test(`category "${cat}" exists with at least one item`, async ({ page }) => {
+      const count = await page.evaluate(
+        (name) => categories.find((c) => c.cat === name)?.items.length ?? 0,
+        cat
+      );
+      expect(count).toBeGreaterThan(0);
+    });
+  }
+
+  /* ── Moved tiles: now in the new home, and removed from the old one ── */
+  // Each entry asserts the command resolves to exactly one category (its new
+  // home), which simultaneously proves it was removed from where it used to live.
+  const moves = [
+    // From API -> Network & Mocking
+    { name: 'route()', to: 'Network & Mocking' },
+    { name: 'route.fulfill()', to: 'Network & Mocking' },
+    { name: 'route.abort()', to: 'Network & Mocking' },
+    { name: 'route.continue()', to: 'Network & Mocking' },
+    { name: 'route.fetch()', to: 'Network & Mocking' },
+    { name: 'waitForResponse()', to: 'Network & Mocking' },
+    { name: 'waitForRequest()', to: 'Network & Mocking' },
+    { name: 'page.unroute()', to: 'Network & Mocking' },
+    { name: 'context.route()', to: 'Network & Mocking' },
+    { name: 'routeFromHAR()', to: 'Network & Mocking' },
+    // From Utility -> Tracing & Debugging
+    { name: 'pause()', to: 'Tracing & Debugging' },
+    // From Config -> Tracing & Debugging
+    { name: 'trace', to: 'Tracing & Debugging' },
+    // From CLI -> Tracing & Debugging
+    { name: '--debug', to: 'Tracing & Debugging' },
+    { name: 'show-trace', to: 'Tracing & Debugging' },
+    { name: 'codegen', to: 'Tracing & Debugging' },
+    { name: '--trace', to: 'Tracing & Debugging' },
+    // From Setup -> Fixtures
+    { name: 'test.extend()', to: 'Fixtures' },
+  ];
+
+  for (const { name, to } of moves) {
+    test(`"${name}" lives only in "${to}"`, async ({ page }) => {
+      expect(await homesOf(page, name)).toEqual([to]);
+    });
+  }
+
+  test('the API category retains only request.* commands', async ({ page }) => {
+    const names = await namesIn(page, 'API');
+    expect(names).toEqual([
+      'request.get()',
+      'request.post()',
+      'request.put()',
+      'request.patch()',
+      'request.delete()',
+    ]);
+  });
+
+  test('"page.clock" was split into methods and no longer exists as an entry', async ({
+    page,
+  }) => {
+    expect(await homesOf(page, 'page.clock')).toEqual([]);
+  });
+
+  /* ── New tiles: every newly-added command is present in its category ── */
+  const expectedCommands = {
+    'Network & Mocking': [
+      'Block resources by type', // new
+      'requests()', // new (v1.56)
+      'context.setOffline()', // new
+      'page.routeWebSocket()', // new (v1.48)
+      'WebSocketRoute.connectToServer()', // new
+    ],
+    'Clock & Time': [
+      'clock.install()',
+      'clock.setFixedTime()',
+      'clock.setSystemTime()',
+      'clock.runFor()',
+      'clock.fastForward()',
+      'clock.pauseAt()',
+      'clock.resume()',
+    ],
+    Fixtures: [
+      'test.extend()',
+      'Fixture setup & teardown',
+      'Worker-scoped fixture',
+      'Auto fixture',
+      'Override a built-in fixture',
+      'Option fixtures',
+    ],
+    'Tracing & Debugging': [
+      'context.tracing.start()', // new
+      'tracing.startChunk()', // new
+    ],
+    'Component Testing': [
+      'Setup (experimental-ct)',
+      'mount()',
+      'Passing props',
+      'Component events',
+      'component.update()',
+      'component.unmount()',
+      'Asserting on a component',
+    ],
+  };
+
+  for (const [cat, commands] of Object.entries(expectedCommands)) {
+    test(`"${cat}" contains its expected commands`, async ({ page }) => {
+      const names = await namesIn(page, cat);
+      expect(names).toEqual(expect.arrayContaining(commands));
+    });
+  }
+
+  test('Network & Mocking requests() example uses the v1.56 method', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const net = categories.find((c) => c.cat === 'Network & Mocking');
+      return net?.items.find((i) => i.name === 'requests()')?.code ?? '';
+    });
+    expect(code).toContain('page.requests()');
+  });
+
+  test('Network & Mocking WebSocket examples use the real API', async ({ page }) => {
+    const { wsCode, serverCode } = await page.evaluate(() => {
+      const items = categories.find((c) => c.cat === 'Network & Mocking')?.items ?? [];
+      return {
+        wsCode: items.find((i) => i.name === 'page.routeWebSocket()')?.code ?? '',
+        serverCode:
+          items.find((i) => i.name === 'WebSocketRoute.connectToServer()')?.code ?? '',
+      };
+    });
+    expect(wsCode).toContain('routeWebSocket');
+    expect(wsCode).toContain('ws.send(');
+    expect(serverCode).toContain('connectToServer()');
+  });
+});

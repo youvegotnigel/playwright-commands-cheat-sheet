@@ -138,6 +138,40 @@ test.describe('Filters', () => {
   });
 });
 
+/* ── NEW CATEGORY FILTERS / TILES ──────────────────────────────── */
+test.describe('New category filters', () => {
+  // label = filter button text, cls = tile class, sample = a command tile in it
+  const cats = [
+    { label: 'Network & Mocking', cls: 'network', sample: 'page.routeWebSocket()' },
+    { label: 'Clock & Time', cls: 'clock', sample: 'clock.install()' },
+    { label: 'Fixtures', cls: 'fixture', sample: 'test.extend()' },
+    { label: 'Tracing & Debugging', cls: 'tracing', sample: 'codegen' },
+    { label: 'Component Testing', cls: 'component', sample: 'mount()' },
+  ];
+
+  for (const { label, cls, sample } of cats) {
+    test(`"${label}" filter renders only its tiles, including ${sample}`, async ({
+      page,
+    }) => {
+      const allCount = await page.locator('.tile').count();
+
+      const btn = page.locator('.filter-btn', { hasText: label });
+      await btn.click();
+      await expect(btn).toHaveClass(/active/);
+
+      const total = await page.locator('.tile').count();
+      const inCategory = await page.locator(`.tile.${cls}`).count();
+      expect(total).toBeGreaterThan(0);
+      expect(total).toBeLessThan(allCount); // a real subset of all tiles
+      expect(inCategory).toBe(total); // every visible tile belongs to the category
+
+      await expect(
+        page.locator('.tile', { hasText: sample }).first()
+      ).toBeVisible();
+    });
+  }
+});
+
 /* ── VIEW TOGGLE ───────────────────────────────────────────────── */
 test.describe('View toggle', () => {
   test('Grouped view renders group headers', async ({ page }) => {

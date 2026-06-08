@@ -9,8 +9,13 @@ import actions       from './actions.js';
 import queries       from './queries.js';
 import assertions    from './assertions.js';
 import utility       from './utility.js';
+import network       from './network.js';
 import api           from './api.js';
 import accessibility from './accessibility.js';
+import fixtures      from './fixtures.js';
+import clock         from './clock.js';
+import tracing       from './tracing.js';
+import component     from './component.js';
 import patterns      from './patterns.js';
 import cli           from './cli.js';
 
@@ -22,8 +27,13 @@ export const categories = [
   queries,
   assertions,
   utility,
+  network,
   api,
   accessibility,
+  fixtures,
+  clock,
+  tracing,
+  component,
   patterns,
   cli,
 ];
