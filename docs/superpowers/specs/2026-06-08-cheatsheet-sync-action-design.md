@@ -24,16 +24,23 @@ part (finding drift, drafting the edits) while keeping a human merge gate.
   `develop`, approve its own PR, enable auto-merge, or bypass branch protection.
   Its output is always a PR awaiting human approval.
 - **Every PR must be pre-validated.** The agent runs `npm run lint` and
-  `npm test` (the full Playwright suite, including `data-integrity.spec.js` and
-  its em-dash/en-dash guard) before opening a non-draft PR.
+  `npm run test:chromium` (the full test suite on one project, including
+  `data-integrity.spec.js` and its em-dash/en-dash guard) before opening a
+  non-draft PR. Chromium-only keeps cost down; the two mobile projects rerun the
+  same data checks and run in human-side CI if a PAT is configured.
 - **The project's own rules govern the edits.** Claude Code auto-loads
   `CLAUDE.md` and `AGENTS.md`; the data schema, "all fields required," the
   Context7 accuracy rule, and the **no em-dash / en-dash rule** are therefore
   already in the agent's context. The task prompt must not contradict them.
 - **Least-privilege CI.** The workflow requests only `contents: write` and
   `pull-requests: write`.
-- **Bounded cost.** Pinned model + a `--max-turns` cap; ~12 scheduled runs/year;
-  a run that finds no drift opens no PR.
+- **Bounded cost (target: under ~$0.50 per run).** Achieved by stacking four
+  levers: model pinned to **Haiku 4.5** (~1/3 the cost of Sonnet, ~1/5 of Opus);
+  a **changelog-first** Context7 strategy that only deep-verifies APIs in the
+  version delta instead of fetching docs for all ~100 commands; running the
+  **chromium project only** for validation (skips the two mobile reruns of the
+  same data checks); and a `--max-turns 40` ceiling. ~12 scheduled runs/year, and
+  a run that finds no drift (or no version change) exits early with no PR.
 
 ## Decisions (settled during brainstorming)
 
@@ -107,7 +114,7 @@ describes only the *task and guardrails*, deferring conventions to
 5. Apply edits following the project rules (schema, no em-dashes, accuracy).
 6. If the latest version is newer than the pin, bump `@playwright/test` in
    `package.json`.
-7. Run `npm run lint` && `npm test`.
+7. Run `npm run lint` && `npm run test:chromium`.
    - On green: create a dated branch, commit (bot identity, conventional
      message), push, and `gh pr create` with a summary of every change and a
      "Suggested follow-ups" section.
@@ -135,9 +142,9 @@ cron (0 6 1 * *) | workflow_dispatch{dry_run}
               mcp:     Context7 → /microsoft/playwright
               tools:   Read, Edit/Write, Bash, gh
               ├─ read data + package.json + CLAUDE.md + AGENTS.md + README.md
-              ├─ Context7: current API for target version
+              ├─ Context7: changelog delta, then verify only changed APIs
               ├─ edit entries (+ bump package.json + sync version in docs if newer)
-              ├─ npm run lint && npm test        ← hard gate
+              ├─ npm run lint && npm run test:chromium   ← hard gate (1 project)
               └─ green → branch+commit+push+`gh pr create`
                  fail  → draft PR w/ explanation
                  dry_run → job summary only, no PR
@@ -149,7 +156,7 @@ cron (0 6 1 * *) | workflow_dispatch{dry_run}
 - **Tests fail and the agent cannot legitimately fix them:** the PR is **flagged,
   not hidden** — opened as a **draft** with a `[CI FAILING]` title prefix, a
   `ci-failing` label (if it exists), and the full failing `npm run lint` /
-  `npm test` output in the body under a "Failing checks" heading. Never a
+  `npm run test:chromium` output in the body under a "Failing checks" heading. Never a
   green-looking non-draft PR, never silence a failure by weakening a test, never
   merge. The agent's own added/updated tests are part of this gate. A human
   decides what to do with a flagged PR.
