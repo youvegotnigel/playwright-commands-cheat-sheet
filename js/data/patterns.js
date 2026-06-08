@@ -151,4 +151,62 @@ export default async function globalSetup() {
 
 // playwright.config.ts
 // use: { storageState: 'auth.json' }`},
+
+{name:'New window or popup',
+ level:'intermediate',
+ desc:'Clicking a link or button can open a second window or tab. Use Promise.all to start listening before the click fires, so you never miss the popup event.',
+ tip:'If "popup" never fires, the page opened at the browser context level (e.g. a target=_blank link). Listen with context.waitForEvent("page") instead.',
+ docs:'https://playwright.dev/docs/pages#handling-new-pages',
+ code:`// Race risk: if you click first, the popup can open
+// before you start waiting. Promise.all starts the
+// listener and the click together, so you never miss it.
+const [popup] = await Promise.all([
+  page.waitForEvent('popup'),       // start watching first
+  page.click('text=Open report'),   // then trigger it
+]);
+
+await popup.waitForLoadState();              // let it finish loading
+await expect(popup).toHaveTitle(/Report/);   // now assert on it
+
+// A new tab opened at the context level instead
+const [newTab] = await Promise.all([
+  context.waitForEvent('page'),
+  page.click('text=Terms'),
+]);
+await newTab.waitForLoadState('domcontentloaded');`},
+
+{name:'Popup via Page Object',
+ level:'intermediate',
+ desc:'Hide the popup timing logic inside a page object method that returns the new page object, so the test stays clean and reads like plain English.',
+ tip:'The test never sees waitForEvent or Promise.all, just a method call that hands back a ready-to-use page object for the new window.',
+ docs:'https://playwright.dev/docs/pom',
+ code:`// pages/DashboardPage.ts
+async openReportInNewWindow(): Promise<ReportPage> {
+  const [popup] = await Promise.all([
+    this.page.waitForEvent('popup'),
+    this.openReportLink.click(),
+  ]);
+  await popup.waitForLoadState();
+  return new ReportPage(popup); // hand back a page object
+}
+
+// The test reads cleanly, no timing noise
+const reportPage = await dashboardPage.openReportInNewWindow();
+await reportPage.expectLoaded();`},
+
+{name:'Many popups at once',
+ level:'advanced',
+ desc:'Promise.all on one event catches only one window. If a single action opens several, collect each new page with a context event handler, then wait for the count you expect.',
+ tip:'Close popups once you are done with them. Leftover windows pile up in long suites and slow the run.',
+ docs:'https://playwright.dev/docs/pages#handling-new-pages',
+ code:`const newPages = [];
+context.on('page', p => newPages.push(p)); // catch each new tab
+
+await page.click('text=Open all');
+
+await expect.poll(() => newPages.length).toBe(3); // wait for all 3
+await Promise.all(newPages.map(p => p.waitForLoadState()));
+
+// Tidy up when finished
+await popup.close();`},
 ]};
