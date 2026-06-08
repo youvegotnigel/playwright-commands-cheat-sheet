@@ -137,22 +137,6 @@ export default async function() {
   await seedDatabase();
 }`},
 
-{name:'trace',
- level:'intermediate',
- desc:'Controls when traces are recorded. A trace is a full recording of browser actions, network, and console output, viewable in the Trace Viewer.',
- tip:'Use retain-on-failure in CI, traces are only kept for failing tests, saving disk space while ensuring you always have debug data.',
- docs:'https://playwright.dev/docs/trace-viewer-intro',
- code:`// playwright.config.ts
-export default defineConfig({
-  use: {
-    // 'off' | 'on' | 'on-first-retry' | 'on-all-retries' | 'retain-on-failure'
-    trace: 'retain-on-failure',
-  },
-});
-
-// View a trace:
-// npx playwright show-trace test-results/trace.zip`},
-
 {name:'screenshot / video',
  level:'intermediate',
  desc:"Controls when screenshots and videos are captured. Set to only-on-failure to automatically capture evidence when a test fails.",
