@@ -122,7 +122,7 @@ test.describe('highlightShell() — CLI snippets', () => {
   test('CLI commands render with the shell highlighter in the modal', async ({
     page,
   }) => {
-    await page.locator('.filter-btn', { hasText: 'CLI' }).click();
+    await page.locator('.filter-btn', { hasText: 'Tracing' }).click();
     await page.locator('.tile', { hasText: 'codegen' }).first().click();
     // shell '#' comment lines ARE dimmed
     await expect(page.locator('#m-code .tok-comment').first()).toContainText(
