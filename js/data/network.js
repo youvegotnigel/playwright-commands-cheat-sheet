@@ -1,5 +1,5 @@
 /** @type {import('./index.js').Category} */
-export default {cat:'Network & Mocking', cls:'network', color:'#14b8a6', items:[
+export default {cat:'Network & Mocking', cls:'network', color:'#0d9488', items:[
 {name:'route()',
  level:'intermediate',
  desc:'Intercepts network requests matching a URL pattern and lets you fulfill, abort, or modify them.',

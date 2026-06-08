@@ -1,5 +1,5 @@
 /** @type {import('./index.js').Category} */
-export default {cat:'Component Testing', cls:'component', color:'#f43f5e', items:[
+export default {cat:'Component Testing', cls:'component', color:'#d946ef', items:[
 {name:'Setup (experimental-ct)',
  level:'advanced',
  desc:'Playwright can mount and test individual UI components in a real browser. Add the experimental component-testing package for your framework and a ct config.',

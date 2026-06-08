@@ -1,5 +1,5 @@
 /** @type {import('./index.js').Category} */
-export default {cat:'Clock & Time', cls:'clock', color:'#0ea5e9', items:[
+export default {cat:'Clock & Time', cls:'clock', color:'#38bdf8', items:[
 {name:'clock.install()',
  level:'intermediate',
  desc:'Installs Playwright fake timers for Date, setTimeout, setInterval, and requestAnimationFrame, giving the test manual control over the flow of time.',
