@@ -196,13 +196,13 @@ await page.getByTestId('submit-btn').click();
 
 {name:'project dependencies',
  level:'advanced',
- desc:"Declares a 'setup' project that must finish before other projects run. The modern recommended approach for auth state — it replaces the older globalSetup pattern and shows up as a proper step in the HTML report.",
+ desc:"Declares a 'setup' project that must finish before other projects run. The modern recommended approach for auth state, replacing the older globalSetup pattern, and shows up as a proper step in the HTML report.",
  tip:"The setup project runs once per worker group and saves storageState to a file; dependent projects load it automatically. Pair with teardown: 'cleanup' to run a project-scoped cleanup after all tests finish.",
  docs:'https://playwright.dev/docs/auth#basic-shared-account-in-all-tests',
  code:`// playwright.config.ts
 export default defineConfig({
   projects: [
-    // 1. Runs once — logs in and saves cookies + localStorage
+    // 1. Runs once - logs in and saves cookies + localStorage
     { name: 'setup', testMatch: '**/auth.setup.ts' },
 
     // 2. Real test projects wait for 'setup' and load its saved state

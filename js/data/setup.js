@@ -158,7 +158,7 @@ test('safari only', async ({ page, browserName }) => {
 });
 
 // Skip an entire describe block
-test.describe.skip('Payment module — not ready', () => {
+test.describe.skip('Payment module - not ready', () => {
   test('checkout', async ({ page }) => { /* ... */ });
 });`},
 
@@ -173,7 +173,7 @@ test.describe.skip('Payment module — not ready', () => {
 });
 
 // Mark an entire describe block as broken
-test.describe.fixme('Payment module — awaiting new API', () => {
+test.describe.fixme('Payment module - awaiting new API', () => {
   test('checkout', async ({ page }) => { /* ... */ });
 });`},
 

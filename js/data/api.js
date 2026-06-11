@@ -192,7 +192,7 @@ await page.unroute('**/api/items', handler);`},
 
 {name:'page.routeFromHAR()',
  level:'advanced',
- desc:'Replays network responses from a recorded HAR (HTTP Archive) file. Record real traffic once, replay it as mocks forever — no manual route.fulfill() needed.',
+ desc:'Replays network responses from a recorded HAR (HTTP Archive) file. Record real traffic once, replay it as mocks forever, no manual route.fulfill() needed.',
  tip:"Record with { update: true } to refresh against the real server. Use { update: false } (default) for the frozen snapshot. Scope it to specific URLs with the url option to let other requests through.",
  docs:'https://playwright.dev/docs/mock#record-and-replay-requests',
  code:`// First run: record live traffic into a HAR file
@@ -204,7 +204,7 @@ await page.routeFromHAR('tests/fixtures/api.har', { update: false });
 await page.goto('/users');
 await expect(page.locator('tbody tr')).toHaveCount(5);
 
-// Scope to specific URLs — let other requests go through normally
+// Scope to specific URLs - let other requests go through normally
 await page.routeFromHAR('tests/fixtures/api.har', {
   url: '**/api/**',
   update: false,
