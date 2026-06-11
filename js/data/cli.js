@@ -142,7 +142,7 @@ npx playwright test --fully-parallel --workers=4
 {name:'--repeat-each',
  level:'intermediate',
  desc:'Runs every test a specified number of times in a single run. Useful for detecting flaky tests that fail intermittently.',
- tip:'Use --workers=1 during flakiness runs — parallel workers can mask race conditions between iterations. Once the test is stable, scale workers back up.',
+ tip:'Use --workers=1 during flakiness runs. Parallel workers can mask race conditions between iterations. Once the test is stable, scale workers back up.',
  docs:'https://playwright.dev/docs/test-cli#reference',
  code:`npx playwright test --repeat-each=10
 # Run every test 10 times
