@@ -142,13 +142,25 @@ npx playwright test --fully-parallel --workers=4
 {name:'--repeat-each',
  level:'intermediate',
  desc:'Runs every test a specified number of times in a single run. Useful for detecting flaky tests that fail intermittently.',
- tip:'Combine with --reporter=html to easily spot which iterations failed. Start with 10 runs to surface common flakiness.',
+ tip:'Use --workers=1 during flakiness runs — parallel workers can mask race conditions between iterations. Once the test is stable, scale workers back up.',
  docs:'https://playwright.dev/docs/test-cli#reference',
  code:`npx playwright test --repeat-each=10
 # Run every test 10 times
 
-npx playwright test -g "checkout" --repeat-each=5
-# Repeat a specific test 5 times to check for flakiness`},
+# Isolate a specific test and repeat it
+npx playwright test -g "checkout flow" --repeat-each=10
+
+# Safer flaky detection: single worker prevents race conditions between runs
+npx playwright test --repeat-each=10 --workers=1 path/to/your.spec.ts
+
+# Watch the test run to spot visual flakiness
+npx playwright test --repeat-each=10 --headed path/to/your.spec.ts
+
+# Generate an HTML report to see which iterations failed
+npx playwright test --repeat-each=10 --workers=1 --reporter=html
+
+# Target one browser only
+npx playwright test --repeat-each=10 --project=chromium path/to/your.spec.ts`},
 
 {name:'--max-failures',
  level:'intermediate',
