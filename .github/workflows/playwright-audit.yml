@@ -1,0 +1,42 @@
+name: Playwright Cheat Sheet Audit
+
+# Runs every Monday at 09:00 UTC, or on demand.
+# Creates a GitHub issue listing missing commands, deprecated items,
+# and pattern updates — powered by Claude + Context7.
+on:
+  schedule:
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  audit:
+    name: Audit cheat sheet against latest Playwright docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install audit script dependencies
+        run: npm install --no-save @anthropic-ai/sdk @modelcontextprotocol/sdk
+
+      - name: Run Playwright audit
+        run: node scripts/audit-playwright-commands.mjs
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}

@@ -30,6 +30,27 @@ test('user can log in', async ({ page }) => {
   });
 });`},
 
+{name:'test.describe.configure()',
+ level:'intermediate',
+ desc:"Sets the execution mode for tests within a describe block: 'serial' (run one at a time, stop on first failure), 'parallel' (run concurrently), or 'default' (inherit from config).",
+ tip:"Use 'serial' when tests share state and must run in a fixed order. Use 'parallel' to speed up an isolated group inside a file that otherwise runs serially.",
+ docs:'https://playwright.dev/docs/api/class-test#test-describe-configure',
+ code:`// Run all tests in this block serially, stop on first failure
+test.describe('checkout flow', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  test('step 1: add to cart',    async ({ page }) => { /* ... */ });
+  test('step 2: fill shipping',  async ({ page }) => { /* ... */ });
+  test('step 3: confirm payment', async ({ page }) => { /* ... */ });
+});
+
+// Run tests in this block in parallel (even if the file is serial)
+test.describe('independent widgets', () => {
+  test.describe.configure({ mode: 'parallel' });
+  test('widget A', async ({ page }) => { /* ... */ });
+  test('widget B', async ({ page }) => { /* ... */ });
+});`},
+
 {name:'test.use()',
  level:'intermediate',
  desc:'Overrides browser context options (viewport, locale, permissions, etc.) for all tests in the current file or describe block. The per-test counterpart to the global use: {} in playwright.config.ts.',
@@ -125,7 +146,7 @@ test.describe.only('Login', () => {
 {name:'test.skip()',
  level:'beginner',
  desc:'Skips a test unconditionally or based on a condition. Skipped tests appear in the report but are not executed.',
- tip:'Use conditionally to skip tests that only apply to certain browsers or environments. Works on describe blocks too.',
+ tip:'Use conditionally to skip tests that only apply to certain browsers or environments. Call test.describe.skip() to skip an entire group.',
  docs:'https://playwright.dev/docs/api/class-test#test-skip',
  code:`// Unconditional skip
 test.skip('not ready yet', async ({ page }) => { /* ... */ });
@@ -134,17 +155,51 @@ test.skip('not ready yet', async ({ page }) => { /* ... */ });
 test('safari only', async ({ page, browserName }) => {
   test.skip(browserName !== 'webkit', 'Only runs on Safari');
   await page.goto('/');
+});
+
+// Skip an entire describe block
+test.describe.skip('Payment module — not ready', () => {
+  test('checkout', async ({ page }) => { /* ... */ });
 });`},
 
 {name:'test.fixme()',
  level:'intermediate',
  desc:'Marks a test as broken and expected to fail. Playwright skips it and shows it in the report as a known issue.',
- tip:'Use instead of test.skip() when the test is intentionally failing due to a known bug. Makes it clear the failure is tracked.',
+ tip:'Use instead of test.skip() when the test is intentionally failing due to a known bug. Call test.describe.fixme() to mark an entire group.',
  docs:'https://playwright.dev/docs/api/class-test#test-fixme',
  code:`test.fixme('checkout flow is broken, see JIRA-1234', async ({ page }) => {
   await page.goto('/checkout');
   // This test is known to fail and is skipped until fixed
+});
+
+// Mark an entire describe block as broken
+test.describe.fixme('Payment module — awaiting new API', () => {
+  test('checkout', async ({ page }) => { /* ... */ });
 });`},
+
+{name:'test tags',
+ level:'intermediate',
+ desc:'Attaches one or more @-prefixed tag strings to a test or describe block. Tags are used to filter runs with --grep on the CLI.',
+ tip:'Tags are ideal for marking subsets like @smoke, @regression, @slow, or @vrt. Apply to a describe block to tag all tests inside it at once.',
+ docs:'https://playwright.dev/docs/test-annotations#tag-tests',
+ code:`// Tag an individual test
+test('login', { tag: '@smoke' }, async ({ page }) => {
+  // ...
+});
+
+// Multiple tags on one test
+test('full checkout flow', { tag: ['@slow', '@regression'] }, async ({ page }) => {
+  // ...
+});
+
+// Tag an entire describe block
+test.describe('Reports', { tag: '@slow' }, () => {
+  test('report header', async ({ page }) => { /* ... */ });
+  test('full report',   async ({ page }) => { /* ... */ });
+});
+
+// Run only @smoke tests:  npx playwright test --grep @smoke
+// Exclude @slow tests:    npx playwright test --grep-invert @slow`},
 
 {name:'test.abort()',
  level:'intermediate',

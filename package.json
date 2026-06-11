@@ -13,10 +13,13 @@
     "lint": "eslint js/",
     "lint:fix": "eslint js/ --fix",
     "format": "prettier --write js/ tests/",
-    "format:check": "prettier --check js/ tests/"
+    "format:check": "prettier --check js/ tests/",
+    "audit": "node scripts/audit-playwright-commands.mjs"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.55.0",
     "@eslint/js": "^9.0.0",
+    "@modelcontextprotocol/sdk": "^1.10.0",
     "@playwright/test": "^1.60.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",

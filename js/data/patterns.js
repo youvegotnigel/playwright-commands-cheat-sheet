@@ -133,7 +133,7 @@ test('user can log in', async ({ page }) => {
 {name:'storageState auth',
  level:'intermediate',
  desc:'Saves authenticated browser state (cookies, localStorage) to a file and reuses it across tests, eliminating repeated UI logins.',
- tip:'Run the login once in a global setup file and save the state. Set storageState in playwright.config.ts so every test starts already logged in.',
+ tip:'The modern recommended approach is project dependencies (see Config category): a dedicated setup project saves the state and dependent projects load it automatically. The globalSetup approach shown here still works for simpler setups.',
  docs:'https://playwright.dev/docs/auth#basic-shared-account-in-all-tests',
  code:`// global-setup.ts, runs once before all tests
 import { chromium } from '@playwright/test';

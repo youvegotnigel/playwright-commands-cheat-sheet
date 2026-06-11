@@ -65,6 +65,30 @@ expect(res.status()).toBe(204);`},
   });
 });`},
 
+{name:'context.route()',
+ level:'intermediate',
+ desc:'Intercepts network requests across ALL pages in the browser context, not just the current page. Perfect for blocking third-party scripts or injecting auth headers globally.',
+ tip:'Prefer context.route() over page.route() when the same mock or block must apply to every page in the test, including popups and new tabs opened mid-test.',
+ docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-route',
+ code:`test('no analytics noise', async ({ page, context }) => {
+  // Block analytics on every page opened in this test
+  await context.route('**/analytics/**', route => route.abort());
+  await context.route('**/gtag/**',      route => route.abort());
+
+  await page.goto('/dashboard');
+  // Any popup or new tab also has analytics blocked
+});
+
+// Inject an auth header on every API call across all pages
+await context.route('**/api/**', async route => {
+  await route.continue({
+    headers: {
+      ...route.request().headers(),
+      Authorization: 'Bearer test-token',
+    },
+  });
+});`},
+
 {name:'route.fulfill()',
  level:'intermediate',
  desc:'Responds to an intercepted request with a fully custom status code, headers, and body, without hitting the real server.',
@@ -165,4 +189,24 @@ await page.route('**/api/items', handler);
 
 // Remove the mock and real requests will now go through
 await page.unroute('**/api/items', handler);`},
+
+{name:'page.routeFromHAR()',
+ level:'advanced',
+ desc:'Replays network responses from a recorded HAR (HTTP Archive) file. Record real traffic once, replay it as mocks forever — no manual route.fulfill() needed.',
+ tip:"Record with { update: true } to refresh against the real server. Use { update: false } (default) for the frozen snapshot. Scope it to specific URLs with the url option to let other requests through.",
+ docs:'https://playwright.dev/docs/mock#record-and-replay-requests',
+ code:`// First run: record live traffic into a HAR file
+await page.routeFromHAR('tests/fixtures/api.har', { update: true });
+await page.goto('/users');
+
+// Subsequent runs: replay from the frozen HAR (no real network calls)
+await page.routeFromHAR('tests/fixtures/api.har', { update: false });
+await page.goto('/users');
+await expect(page.locator('tbody tr')).toHaveCount(5);
+
+// Scope to specific URLs — let other requests go through normally
+await page.routeFromHAR('tests/fixtures/api.har', {
+  url: '**/api/**',
+  update: false,
+});`},
 ]};

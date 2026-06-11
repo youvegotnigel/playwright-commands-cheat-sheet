@@ -174,4 +174,22 @@ await page.locator('#custom-input').dispatchEvent('change');
 await page.locator('#drop-zone').dispatchEvent('drop', {
   dataTransfer: await page.evaluateHandle(() => new DataTransfer())
 });`},
+
+{name:'page.mouse',
+ level:'advanced',
+ desc:'Low-level mouse API for precise pointer control: move, down, up, click, dblclick, and wheel. Use when high-level methods like click() or dragTo() cannot express the interaction.',
+ tip:'Use for canvas drawing, drag-and-drop libraries that need fine-grained mousedown/move/mouseup sequences, and scroll-wheel interactions. Pass { steps } to mouse.move() for smooth movement.',
+ docs:'https://playwright.dev/docs/api/class-mouse',
+ code:`// Draw on a canvas by pressing and dragging
+await page.mouse.move(100, 100);
+await page.mouse.down();
+await page.mouse.move(200, 200, { steps: 10 }); // smooth drag in 10 steps
+await page.mouse.up();
+
+// Scroll with the mouse wheel (deltaX, deltaY in pixels)
+await page.mouse.wheel(0, 300); // scroll down 300 px
+
+// Click or double-click at exact coordinates
+await page.mouse.click(640, 360);
+await page.mouse.dblclick(640, 360);`},
 ]};
