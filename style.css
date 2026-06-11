@@ -62,7 +62,7 @@ input[type=text]:focus { outline: none; border-color: #64748b; }
   display: flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: 999px; border: none;
   background: rgba(255,255,255,0.06); color: #cbd5e1;
-  cursor: pointer; font-size: 13px; font-weight: 500;
+  cursor: pointer; font-size: 15px; font-weight: 700;
   transition: all 0.15s; white-space: nowrap;
 }
 .filter-btn:hover  { background: rgba(255,255,255,0.12); }
