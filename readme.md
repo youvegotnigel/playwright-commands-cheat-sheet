@@ -1,7 +1,7 @@
 # 🎭 VitalHub Playwright Commands Cheat Sheet
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20Dashboard-0a7cff?style=for-the-badge)](https://youvegotnigel.github.io/playwright-commands-cheat-sheet/)
-[![Playwright Version](https://img.shields.io/badge/Playwright-1.60.0-2EAD33?style=for-the-badge&logo=playwright)](https://playwright.dev/)
+[![Playwright Version](https://img.shields.io/badge/Playwright-1.61.0-2EAD33?style=for-the-badge&logo=playwright)](https://playwright.dev/)
 
 An interactive browser-based reference for Playwright users who want to quickly browse commands, examples, and official docs links in one place.
 
