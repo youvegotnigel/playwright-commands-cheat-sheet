@@ -336,6 +336,20 @@ await expect.poll(async () => {
   return (await res.json()).status;
 }, { timeout: 10000 }).toBe('completed');`},
 
+{name:'expect.soft.poll()',
+ level:'advanced',
+ desc:'A soft variant of expect.poll(). Polls a function until the assertion passes, but records a failure instead of stopping the test if it times out. Added in Playwright v1.61.',
+ tip:'Use to verify several eventually-consistent values in one test and see every failure at once. Like expect.soft(), the test keeps running and all soft failures are reported together at the end.',
+ docs:'https://playwright.dev/docs/test-assertions#expectpoll',
+ code:`// Poll several async values; record failures without bailing out
+await expect.soft.poll(async () => {
+  const res = await request.get('/api/jobs/123');
+  return (await res.json()).status;
+}, { timeout: 10000 }).toBe('completed');
+
+await expect.soft.poll(() => queue.length).toBe(0);
+// Test continues; all soft failures surface together at the end`},
+
 {name:'expect().toPass()',
  level:'advanced',
  desc:'Retries an async callback containing assertions until all assertions inside pass or the timeout expires.',
