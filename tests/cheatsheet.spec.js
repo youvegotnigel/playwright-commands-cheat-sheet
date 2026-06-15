@@ -423,9 +423,10 @@ test.describe('New assertion tiles', () => {
     'toMatchObject()',
     'toBeGreaterThan()',
     'expect().toPass()',
+    'expect.configure()',
   ];
 
-  test('all 9 new assertion commands are rendered as tiles', async ({ page }) => {
+  test('all 10 new assertion commands are rendered as tiles', async ({ page }) => {
     await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
     for (const name of newAssertions) {
       await expect(
