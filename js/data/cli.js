@@ -278,7 +278,7 @@ npx playwright install --with-deps chromium
  tip:'Check this when debugging unexpected behaviour. The Playwright version and the browser binaries must be in sync.',
  docs:'https://playwright.dev/docs/test-cli',
  code:`npx playwright --version
-# Prints the installed version, e.g. Version 1.60.0`},
+# Prints the installed version, e.g. Version 1.61.0`},
 
 {name:'--help',
  level:'beginner',
@@ -327,10 +327,13 @@ npx playwright test --grep "login|checkout"
 {name:'--grep-invert',
  level:'intermediate',
  desc:'Runs only tests whose title does not match the given regex pattern. The inverse of --grep.',
- tip:'Useful for excluding slow or tagged tests from a run. Combine with --grep to apply both include and exclude filters at once.',
+ tip:'Playwright v1.61 added -G as a shorthand for --grep-invert (mirroring -g for --grep). Useful for excluding slow or tagged tests. Combine with --grep to apply both include and exclude filters at once.',
  docs:'https://playwright.dev/docs/test-cli#reference',
  code:`npx playwright test --grep-invert "slow"
 # Run all tests except those matching "slow"
+
+npx playwright test -G "slow"
+# Short form (-G), added in v1.61
 
 npx playwright test --grep "checkout" --grep-invert "admin"
 # Run checkout tests but exclude any tagged "admin"`},

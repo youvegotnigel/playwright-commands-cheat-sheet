@@ -140,15 +140,17 @@ export default async function() {
 {name:'screenshot / video',
  level:'intermediate',
  desc:"Controls when screenshots and videos are captured. Set to only-on-failure to automatically capture evidence when a test fails.",
- tip:'Both default to off. Enable in CI so you always have visual evidence for failures without slowing down passing tests.',
+ tip:'Both default to off. Enable in CI so you always have visual evidence for failures without slowing down passing tests. Playwright v1.61 added retry-aware video modes: retain-on-failure-and-retries, retain-on-first-failure, and on-all-retries.',
  docs:'https://playwright.dev/docs/test-configuration#automatic-screenshots',
  code:`// playwright.config.ts
 export default defineConfig({
   use: {
     // 'off' | 'on' | 'only-on-failure'
     screenshot: 'only-on-failure',
-    // 'off' | 'on' | 'retain-on-failure'
-    video: 'retain-on-failure',
+    // 'off' | 'on' | 'retain-on-failure' | 'on-first-retry'
+    // v1.61 added: 'retain-on-failure-and-retries'
+    //              'retain-on-first-failure' | 'on-all-retries'
+    video: 'retain-on-failure-and-retries',
   },
 });`},
 

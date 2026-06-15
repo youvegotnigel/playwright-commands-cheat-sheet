@@ -231,4 +231,26 @@ const [newTab] = await Promise.all([
 ]);
 
 // Rule of thumb: if 'popup' never fires, try 'page'.`},
+
+{name:'WebAuthn passkeys',
+ level:'advanced',
+ desc:'Tests passkey and WebAuthn flows without physical hardware. context.credentials seeds a virtual authenticator so navigator.credentials ceremonies resolve against a credential you control. Added in Playwright v1.61.',
+ tip:"Seed a credential your backend already provisioned for the test user, then install() the authenticator before the page loads. The page's navigator.credentials.get() is answered with the seeded passkey, no real device or fingerprint prompt needed.",
+ docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-credentials',
+ code:`const context = await browser.newContext();
+
+// Seed a passkey for a test user, then install the authenticator
+await context.credentials.create('example.com', {
+  id: credentialId,
+  userHandle,
+  privateKey,
+  publicKey,
+});
+await context.credentials.install();
+
+const page = await context.newPage();
+await page.goto('https://example.com/login');
+// navigator.credentials.get() now resolves with the seeded passkey
+await page.getByRole('button', { name: 'Sign in with passkey' }).click();
+await expect(page.getByText('Welcome back')).toBeVisible();`},
 ]};

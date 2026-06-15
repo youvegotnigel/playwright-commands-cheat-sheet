@@ -104,6 +104,21 @@ await page.evaluate(() => {
   document.querySelector('#cookie-banner').style.display = 'none';
 });`},
 
+{name:'page.localStorage / page.sessionStorage',
+ level:'intermediate',
+ desc:"Reads and writes the page's Web Storage for the current origin directly from the test, without an evaluate() round trip. Added in Playwright v1.61.",
+ tip:'First-class replacement for page.evaluate(() => localStorage.getItem(...)). Methods are async: setItem(), getItem(), removeItem(), clear(), and items() to read every entry at once. Both objects share the same API.',
+ docs:'https://playwright.dev/docs/api/class-page#page-local-storage',
+ code:`// Seed a value before the app reads it
+await page.localStorage.setItem('token', 'abc');
+
+// Read it back later in the test
+const token = await page.localStorage.getItem('token');
+expect(token).toBe('abc');
+
+// Snapshot every key/value pair at once
+const items = await page.sessionStorage.items();`},
+
 {name:'on(console)',
  level:'intermediate',
  desc:"Listens for console messages emitted by the browser page. Useful for debugging and verifying logs in tests.",
