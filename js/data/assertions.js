@@ -355,4 +355,17 @@ await expect(async () => {
   const body = await res.json();
   expect(body.ready).toBe(true);
 }).toPass({ timeout: 10000, intervals: [1000, 2000, 5000] });`},
+
+{name:'expect.configure()',
+ level:'advanced',
+ desc:'Creates a pre-configured expect instance with its own defaults such as timeout and soft, so you avoid repeating those options on every assertion.',
+ tip:'Configure once, then reuse the returned function everywhere. Great for a longer timeout on a slow page, or a soft expect that records failures without stopping the test.',
+ docs:'https://playwright.dev/docs/test-assertions#expectconfigure',
+ code:`// Reuse a longer timeout without repeating it on every assertion
+const slowExpect = expect.configure({ timeout: 10_000 });
+await slowExpect(page.getByText('Submit')).toBeVisible();
+
+// Reuse soft assertions without .soft on every call
+const softExpect = expect.configure({ soft: true });
+await softExpect(page.getByText('Submit')).toBeVisible();`},
 ]};
