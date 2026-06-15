@@ -296,6 +296,42 @@ test.describe('pageErrors() entry', () => {
   });
 });
 
+test.describe('expect.configure() entry', () => {
+  test('expect.configure() exists in the Assertions category', async ({ page }) => {
+    const found = await page.evaluate(() => {
+      const assertions = categories.find(c => c.cat === 'Assertions');
+      return assertions ? assertions.items.some(i => i.name === 'expect.configure()') : false;
+    });
+    expect(found).toBe(true);
+  });
+
+  test('expect.configure() has level advanced', async ({ page }) => {
+    const level = await page.evaluate(() => {
+      const assertions = categories.find(c => c.cat === 'Assertions');
+      return assertions?.items.find(i => i.name === 'expect.configure()')?.level;
+    });
+    expect(level).toBe('advanced');
+  });
+
+  test('expect.configure() docs URL points to the expectconfigure section', async ({ page }) => {
+    const docs = await page.evaluate(() => {
+      const assertions = categories.find(c => c.cat === 'Assertions');
+      return assertions?.items.find(i => i.name === 'expect.configure()')?.docs ?? '';
+    });
+    expect(docs).toBe('https://playwright.dev/docs/test-assertions#expectconfigure');
+  });
+
+  test('expect.configure() code covers timeout and soft defaults', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const assertions = categories.find(c => c.cat === 'Assertions');
+      return assertions?.items.find(i => i.name === 'expect.configure()')?.code ?? '';
+    });
+    expect(code).toContain('expect.configure(');
+    expect(code).toContain('timeout');
+    expect(code).toContain('soft');
+  });
+});
+
 test.describe('Reorganized categories', () => {
   // Helper: return the list of category names that contain a command.
   const homesOf = (page, name) =>
