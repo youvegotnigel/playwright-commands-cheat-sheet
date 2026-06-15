@@ -20,7 +20,7 @@ A static, single-page interactive web dashboard providing a quick reference for 
 | Frontend | Vanilla JavaScript (ES2022+ modules), HTML5, CSS3 |
 | Syntax highlighting | Custom dependency-free highlighter (`js/highlight.js`) |
 | Analytics backend | Supabase (PostgreSQL + Edge Functions on Deno) |
-| Testing | `@playwright/test` v1.60.0 |
+| Testing | `@playwright/test` v1.61.0 |
 | Linting | ESLint 9 flat config |
 | Formatting | Prettier 3 |
 | Dev server | `npx serve` on port 3000 |
