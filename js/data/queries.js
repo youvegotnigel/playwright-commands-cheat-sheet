@@ -168,4 +168,30 @@ const row = page.getByRole('row')
   .filter({ hasText: 'John' })
   .describe('Johns table row');
 await row.getByRole('button', { name: 'Delete' }).click();`},
+
+{name:'locator.locator()',
+ level:'intermediate',
+ desc:'Chains from an existing locator to find elements inside it. Scopes the search to the descendants of the current locator, keeping selectors short and resilient.',
+ tip:"Chain locators to narrow down within a container instead of writing one long selector. Use ':scope > ' for direct children only, and 'xpath=..' to step up to the parent (Playwright has no parent() method).",
+ docs:'https://playwright.dev/docs/api/class-locator#locator-locator',
+ code:`// Find an input inside a specific form
+await page.locator('form#signup').locator('input[name=email]').fill('a@b.com');
+
+// Direct children only, via :scope
+const topLevel = page.locator('ul.menu').locator(':scope > li');
+
+// Step up to the parent element (there is no parent() method)
+const row = page.getByText('Total').locator('xpath=..');`},
+
+{name:'locator.getByRole()',
+ level:'intermediate',
+ desc:'Runs a getByRole query (or any getBy* method) scoped to the descendants of an existing locator instead of the whole page.',
+ tip:'Every getBy* method (getByRole, getByText, getByLabel, and so on) also exists on a locator. Scope them to a container to target the right element when the same role appears many times on the page.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-get-by-role',
+ code:`// Click the "Delete" button inside one specific card
+const card = page.getByRole('listitem').filter({ hasText: 'Invoice #42' });
+await card.getByRole('button', { name: 'Delete' }).click();
+
+// Scope a link search to the navigation only
+const links = await page.locator('nav').getByRole('link').allTextContents();`},
 ]};

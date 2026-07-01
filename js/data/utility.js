@@ -642,6 +642,35 @@ expect(tags).toContain('Playwright');
 // allInnerTexts() returns only visible rendered text
 const labels = await page.locator('li').allInnerTexts();`},
 
+{name:'locator.evaluate()',
+ level:'advanced',
+ desc:'Runs a JavaScript function in the browser with the matched element passed as the first argument, then returns the result to the test.',
+ tip:'Use to read DOM properties or call element methods that Playwright does not expose directly. The function runs in the page, so pass any test-side values as the second argument.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-evaluate',
+ code:`// Read a DOM property straight off the element
+const width = await page.locator('#box').evaluate(el => el.offsetWidth);
+
+// Pass an argument from the test into the browser context
+await page.locator('#box').evaluate((el, color) => {
+  el.style.background = color;
+}, 'red');`},
+
+{name:'locator.evaluateAll()',
+ level:'advanced',
+ desc:'Runs a JavaScript function once with an array of ALL matched elements passed in, then returns the result to the test.',
+ tip:'Use to compute a value across every matching element in a single browser round-trip. Unlike locator.all(), the callback receives raw DOM elements, not locators.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-evaluate-all',
+ code:`// Collect the text of every list item in one call
+const texts = await page.locator('li').evaluateAll(
+  els => els.map(el => el.textContent.trim())
+);
+
+// Assert every nav link points to an https URL
+const allHttps = await page.locator('nav a').evaluateAll(
+  els => els.every(el => el.href.startsWith('https://'))
+);
+expect(allHttps).toBe(true);`},
+
 {name:'waitForFunction()',
  level:'advanced',
  desc:'Waits until a JavaScript expression evaluated in the browser returns a truthy value.',
