@@ -80,4 +80,38 @@ await expect(page.getByTestId('current-time')).toHaveText('10:00:00 AM');
 
 // Let the clock tick again
 await page.clock.resume();`},
+
+{name:'Clock + timezoneId',
+ level:'advanced',
+ desc:'Combines the clock with timezone emulation. The clock pins WHEN now is (the absolute instant), while timezoneId on the context sets WHERE the browser is, controlling how that instant renders as wall-clock time.',
+ tip:'Clock methods take no timezone argument. Prefer an ISO string with a trailing Z over new Date(y, m, d), which is parsed in the test runner host timezone and freezes a different instant on each machine. Freezing at noon keeps offsets from rolling the date past midnight.',
+ docs:'https://playwright.dev/docs/emulation#locale--timezone',
+ code:`// Pin the browser to New York local time
+test.use({ timezoneId: 'America/New_York' });
+
+test('shows 9am Eastern', async ({ page }) => {
+  // Freeze the instant 14:00 UTC. In New York (UTC-5) that is 9:00 AM.
+  await page.clock.setFixedTime(new Date('2025-01-15T14:00:00Z'));
+  await page.goto('/dashboard');
+
+  await expect(page.getByTestId('greeting')).toHaveText('Good morning, 9:00 AM');
+});`},
+
+{name:'DST change mid-session',
+ level:'advanced',
+ desc:'Simulates the wall clock shifting while the page stays open, such as a daylight-saving jump. setSystemTime() moves the clock to a new instant without firing timers, so you can assert how time-displaying UI re-renders.',
+ tip:'Pick instants just before and after the DST boundary of the emulated timezoneId. To emulate a user changing their device timezone instead, create a new context with a different timezoneId; a context timezone is fixed for its lifetime.',
+ docs:'https://playwright.dev/docs/api/class-clock#clock-set-system-time',
+ code:`test.use({ timezoneId: 'Europe/London' });
+
+test('clock survives the spring-forward jump', async ({ page }) => {
+  // 00:30 GMT on 30 Mar 2025, just before the UK springs forward
+  await page.clock.setFixedTime(new Date('2025-03-30T00:30:00Z'));
+  await page.goto('/');
+  await expect(page.getByTestId('local-time')).toHaveText('12:30 AM');
+
+  // 01:30 GMT: London leaps 01:00 to 02:00 (BST), so it reads 02:30 local
+  await page.clock.setSystemTime(new Date('2025-03-30T01:30:00Z'));
+  await expect(page.getByTestId('local-time')).toHaveText('2:30 AM');
+});`},
 ]};
