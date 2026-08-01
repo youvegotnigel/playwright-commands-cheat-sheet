@@ -194,4 +194,19 @@ await card.getByRole('button', { name: 'Delete' }).click();
 
 // Scope a link search to the navigation only
 const links = await page.locator('nav').getByRole('link').allTextContents();`},
+
+{name:'locator.waitForFunction()',
+ level:'intermediate',
+ desc:'Waits for a custom JavaScript expression to return a truthy value when evaluated against the element. Re-resolves the locator on each retry to tolerate re-rendering.',
+ tip:'Use for custom conditions when no assertion or wait method fits perfectly. Useful for waiting on computed attributes or complex DOM states that change dynamically.',
+ docs:'https://playwright.dev/docs/api/class-locator#locator-wait-for-function',
+ code:`// Wait for text content to match a value
+await page.getByTestId('status').waitForFunction((element, value) => {
+  return element.textContent === value;
+}, 'Ready');
+
+// Wait for an attribute to be set
+const toggle = page.getByRole('button', { name: 'Menu' });
+await toggle.click();
+await toggle.waitForFunction(element => element.hasAttribute('aria-expanded'));`},
 ]};
