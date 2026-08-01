@@ -16,13 +16,13 @@ window.popularCommands = popularCmds;
 
 /* ── STATE ────────────────────────────────────────────────────── */
 let activeFilter = 'all';
-let activeView   = 'flat';
-let searchVal    = '';
+let activeView = 'flat';
+let searchVal = '';
 
 // Flatten all items into a single array, tagging each with its category info
 const allItems = [];
-categories.forEach(sec =>
-  sec.items.forEach(item =>
+categories.forEach((sec) =>
+  sec.items.forEach((item) =>
     allItems.push({ ...item, cls: sec.cls, cat: sec.cat, color: sec.color })
   )
 );
@@ -32,26 +32,27 @@ function getItems() {
   let items = allItems;
 
   if (activeFilter === 'beginner') {
-    items = items.filter(i => i.level === 'beginner');
+    items = items.filter((i) => i.level === 'beginner');
   } else if (activeFilter === 'popular') {
     items = items
-      .filter(i => popularCmds.isPopular(popularCmds.commandId(i)))
+      .filter((i) => popularCmds.isPopular(popularCmds.commandId(i)))
       .sort(
         (a, b) =>
           popularCmds.getViewCount(popularCmds.commandId(b)) -
           popularCmds.getViewCount(popularCmds.commandId(a))
       );
   } else if (activeFilter !== 'all') {
-    items = items.filter(i => i.cat === activeFilter);
+    items = items.filter((i) => i.cat === activeFilter);
   }
 
   if (searchVal) {
     const q = searchVal.toLowerCase();
-    items = items.filter(i =>
-      i.name.toLowerCase().includes(q) ||
-      i.desc.toLowerCase().includes(q) ||
-      i.code.toLowerCase().includes(q) ||
-      (i.tip && i.tip.toLowerCase().includes(q))
+    items = items.filter(
+      (i) =>
+        i.name.toLowerCase().includes(q) ||
+        i.desc.toLowerCase().includes(q) ||
+        i.code.toLowerCase().includes(q) ||
+        (i.tip && i.tip.toLowerCase().includes(q))
     );
   }
 
@@ -89,13 +90,13 @@ function renderFlat(items, container) {
 
 function renderGrouped(items, container) {
   const groups = {};
-  items.forEach(item => {
+  items.forEach((item) => {
     if (!groups[item.cat]) groups[item.cat] = [];
     groups[item.cat].push(item);
   });
 
   // Render in the original category order
-  categories.forEach(sec => {
+  categories.forEach((sec) => {
     if (!groups[sec.cat]) return;
     const section = document.createElement('div');
     section.className = 'group-section';
@@ -119,9 +120,9 @@ function renderGrouped(items, container) {
 
 /* ── TILE ─────────────────────────────────────────────────────── */
 function levelDots(level) {
-  if (level === 'beginner')     return '<span style="color:#4ade80">●</span>';
+  if (level === 'beginner') return '<span style="color:#4ade80">●</span>';
   if (level === 'intermediate') return '<span style="color:#fb923c">●●</span>';
-  if (level === 'advanced')     return '<span style="color:#c084fc">●●●</span>';
+  if (level === 'advanced') return '<span style="color:#c084fc">●●●</span>';
   return '';
 }
 
@@ -146,17 +147,22 @@ function makeTile(item, n) {
 function openModal(item) {
   document.getElementById('modal').style.display = 'flex';
   document.getElementById('m-title').innerHTML = item.name;
-  document.getElementById('m-desc').innerText  = item.desc;
+  document.getElementById('m-desc').innerText = item.desc;
   // Shell highlighter for CLI snippets: the CLI category, or any code that
   // starts with an npx command or a shell '#' comment (e.g. moved trace commands).
   const isShell = item.cls === 'cli' || /^\s*(npx|#)/.test(item.code);
-  document.getElementById('m-code').innerHTML  =
-    isShell ? highlightShell(item.code) : highlight(item.code);
-  document.getElementById('btn-docs').href     = item.docs;
+  document.getElementById('m-code').innerHTML = isShell
+    ? highlightShell(item.code)
+    : highlight(item.code);
+  document.getElementById('btn-docs').href = item.docs;
 
   // Difficulty badge
   const badge = document.getElementById('m-level');
-  const labels = { beginner: '● Beginner', intermediate: '●● Intermediate', advanced: '●●● Advanced' };
+  const labels = {
+    beginner: '● Beginner',
+    intermediate: '●● Intermediate',
+    advanced: '●●● Advanced',
+  };
   badge.innerText = labels[item.level] || '';
   badge.className = `level-badge level-${item.level}`;
 
@@ -171,7 +177,7 @@ function openModal(item) {
   // Reset copy button state
   const copyBtn = document.getElementById('btn-copy');
   copyBtn.textContent = 'Copy';
-  copyBtn.className   = 'btn-copy';
+  copyBtn.className = 'btn-copy';
 
   // Record this open for the popularity counter (no-op for bots / repeat opens)
   popularCmds.recordOpen(item);
@@ -185,10 +191,10 @@ function copyCode() {
   navigator.clipboard.writeText(document.getElementById('m-code').innerText);
   const btn = document.getElementById('btn-copy');
   btn.textContent = '✓ Copied!';
-  btn.className   = 'btn-copy copied';
+  btn.className = 'btn-copy copied';
   setTimeout(() => {
     btn.textContent = 'Copy';
-    btn.className   = 'btn-copy';
+    btn.className = 'btn-copy';
   }, 2000);
 }
 
@@ -204,17 +210,19 @@ function updateHash() {
 // Reads current URL hash and applies filter/search state.
 // Called on initial page load and on hashchange (e.g. browser back/forward).
 function applyHashState() {
-  const params = location.hash ? new URLSearchParams(location.hash.slice(1)) : new URLSearchParams();
+  const params = location.hash
+    ? new URLSearchParams(location.hash.slice(1))
+    : new URLSearchParams();
   const filter = params.get('filter');
   const search = params.get('search');
 
   activeFilter = filter || 'all';
-  searchVal    = search ? search.toLowerCase() : '';
+  searchVal = search ? search.toLowerCase() : '';
   document.getElementById('search-input').value = search || '';
 
-  document.querySelectorAll('.filter-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.filter === activeFilter)
-  );
+  document
+    .querySelectorAll('.filter-btn')
+    .forEach((b) => b.classList.toggle('active', b.dataset.filter === activeFilter));
   render();
 }
 
@@ -225,16 +233,16 @@ window.addEventListener('hashchange', applyHashState);
 /* ── FILTERS & VIEW ───────────────────────────────────────────── */
 function setFilter(f) {
   activeFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(b =>
-    b.classList.toggle('active', b.dataset.filter === f)
-  );
+  document
+    .querySelectorAll('.filter-btn')
+    .forEach((b) => b.classList.toggle('active', b.dataset.filter === f));
   updateHash();
   render();
 }
 
 function setView(v) {
   activeView = v;
-  document.getElementById('btnFlat').classList.toggle('active',    v === 'flat');
+  document.getElementById('btnFlat').classList.toggle('active', v === 'flat');
   document.getElementById('btnGrouped').classList.toggle('active', v === 'grouped');
   render();
 }
@@ -242,17 +250,17 @@ function setView(v) {
 function buildFilters() {
   const container = document.getElementById('filters');
   const defs = [
-    { label: 'All',          filter: 'all',      color: null },
+    { label: 'All', filter: 'all', color: null },
     { label: '⭐ Start Here', filter: 'beginner', color: null },
-    { label: '🔥 Popular',   filter: 'popular',  color: null },
-    ...categories.map(c => ({ label: c.cat, filter: c.cat, color: c.color }))
+    { label: '🔥 Popular', filter: 'popular', color: null },
+    ...categories.map((c) => ({ label: c.cat, filter: c.cat, color: c.color })),
   ];
   defs.forEach(({ label, filter, color }) => {
     const btn = document.createElement('button');
-    btn.className      = 'filter-btn' + (filter === 'all' ? ' active' : '');
+    btn.className = 'filter-btn' + (filter === 'all' ? ' active' : '');
     btn.dataset.filter = filter;
     btn.addEventListener('click', () => setFilter(filter));
-    btn.innerHTML      = color
+    btn.innerHTML = color
       ? `<span class="filter-dot" style="background:${color}"></span>${label}`
       : label;
     container.appendChild(btn);
@@ -260,7 +268,7 @@ function buildFilters() {
 }
 
 /* ── KEYBOARD ─────────────────────────────────────────────────── */
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeModal();
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
@@ -269,17 +277,17 @@ document.addEventListener('keydown', e => {
 });
 
 /* ── INIT ─────────────────────────────────────────────────────── */
-document.getElementById('search-input').addEventListener('input', e => {
+document.getElementById('search-input').addEventListener('input', (e) => {
   searchVal = e.target.value.toLowerCase();
   updateHash();
   render();
 });
 
-document.getElementById('btnFlat').addEventListener('click',    () => setView('flat'));
+document.getElementById('btnFlat').addEventListener('click', () => setView('flat'));
 document.getElementById('btnGrouped').addEventListener('click', () => setView('grouped'));
 
 document.getElementById('modal').addEventListener('click', closeModal);
-document.querySelector('.modal-content').addEventListener('click', e => e.stopPropagation());
+document.querySelector('.modal-content').addEventListener('click', (e) => e.stopPropagation());
 document.getElementById('btn-close-icon').addEventListener('click', closeModal);
 document.getElementById('btn-close').addEventListener('click', closeModal);
 document.getElementById('btn-copy').addEventListener('click', copyCode);
@@ -296,11 +304,10 @@ buildFilters();
 
   // Playwright version — read from package.json's declared dependency
   fetch('./package.json')
-    .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then(pkg => {
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((pkg) => {
       const dep =
-        pkg.devDependencies?.['@playwright/test'] ??
-        pkg.dependencies?.['@playwright/test'];
+        pkg.devDependencies?.['@playwright/test'] ?? pkg.dependencies?.['@playwright/test'];
       if (!dep) return;
       const clean = dep.replace(/^[\^~>=<\s]+/, ''); // strip range prefix
       const el = document.getElementById('pw-version');
@@ -312,14 +319,14 @@ buildFilters();
   // date" GitHub Action on every push to master, so it reflects the most
   // recent merge without any runtime API call or rate limits.
   fetch('./js/meta.json', { cache: 'no-cache' })
-    .then(r => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then(meta => {
+    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+    .then((meta) => {
       if (!meta?.lastUpdated) return;
       const el = document.getElementById('last-updated');
       if (el) el.textContent = meta.lastUpdated; // YYYY-MM-DD
     })
     .catch(() => {});
-}());
+})();
 
 // Show platform-appropriate keyboard shortcut hint
 (function () {
@@ -328,11 +335,14 @@ buildFilters();
   );
   const el = document.getElementById('search-shortcut');
   if (el) el.textContent = isMac ? '⌘K' : 'Ctrl+K';
-}());
+})();
 
 applyHashState();
 
 // Popularity data arrives after first paint; re-render once it lands so the
 // 🔥 badges appear and the "🔥 Popular" filter has content. Fails gracefully
 // (no badges) if the backend is unreachable.
-popularCmds.loadCounts().then(render).catch(() => {});
+popularCmds
+  .loadCounts()
+  .then(render)
+  .catch(() => {});

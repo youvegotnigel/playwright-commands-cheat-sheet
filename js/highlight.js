@@ -8,11 +8,41 @@
 // =============================================================
 
 const KEYWORDS = new Set([
-  'await', 'const', 'let', 'var', 'async', 'function', 'return', 'new',
-  'if', 'else', 'for', 'of', 'in', 'import', 'from', 'export', 'default',
-  'true', 'false', 'null', 'undefined', 'typeof', 'instanceof', 'class',
-  'extends', 'try', 'catch', 'finally', 'throw', 'while', 'do', 'switch',
-  'case', 'break', 'continue',
+  'await',
+  'const',
+  'let',
+  'var',
+  'async',
+  'function',
+  'return',
+  'new',
+  'if',
+  'else',
+  'for',
+  'of',
+  'in',
+  'import',
+  'from',
+  'export',
+  'default',
+  'true',
+  'false',
+  'null',
+  'undefined',
+  'typeof',
+  'instanceof',
+  'class',
+  'extends',
+  'try',
+  'catch',
+  'finally',
+  'throw',
+  'while',
+  'do',
+  'switch',
+  'case',
+  'break',
+  'continue',
 ]);
 
 const APIS = new Set(['page', 'expect', 'browser', 'context', 'test', 'request']);
@@ -46,9 +76,7 @@ export function highlight(code) {
       if (KEYWORDS.has(ident)) cls = 'tok-keyword';
       else if (APIS.has(ident)) cls = 'tok-api';
       else if (code[TOKEN_RE.lastIndex] === '(') cls = 'tok-fn';
-      out += cls
-        ? `<span class="${cls}">${escapeHtml(ident)}</span>`
-        : escapeHtml(ident);
+      out += cls ? `<span class="${cls}">${escapeHtml(ident)}</span>` : escapeHtml(ident);
     }
     last = TOKEN_RE.lastIndex;
   }
@@ -58,7 +86,15 @@ export function highlight(code) {
 
 // Programs that lead a CLI command — colored like APIs.
 const SHELL_PROGRAMS = new Set([
-  'npx', 'npm', 'pnpm', 'yarn', 'node', 'deno', 'bun', 'git', 'playwright',
+  'npx',
+  'npm',
+  'pnpm',
+  'yarn',
+  'node',
+  'deno',
+  'bun',
+  'git',
+  'playwright',
 ]);
 
 // Shell variant for CLI snippets: '#' comments (not '//'), quoted strings,

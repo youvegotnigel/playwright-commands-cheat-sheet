@@ -1,11 +1,16 @@
 /** @type {import('./index.js').Category} */
-export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
-{name:'Login flow',
- level:'beginner',
- desc:'A complete end-to-end login test: navigate, fill credentials, submit, and assert you landed on the right page.',
- tip:'For repeated logins across many tests, extract this into a storageState fixture or a page object to avoid duplication.',
- docs:'https://playwright.dev/docs/auth',
- code:`test('user can log in', async ({ page }) => {
+export default {
+  cat: 'Patterns',
+  cls: 'pattern',
+  color: '#ec4899',
+  items: [
+    {
+      name: 'Login flow',
+      level: 'beginner',
+      desc: 'A complete end-to-end login test: navigate, fill credentials, submit, and assert you landed on the right page.',
+      tip: 'For repeated logins across many tests, extract this into a storageState fixture or a page object to avoid duplication.',
+      docs: 'https://playwright.dev/docs/auth',
+      code: `test('user can log in', async ({ page }) => {
   await page.goto('/login');
   await page.getByLabel('Email').fill('user@test.com');
   await page.getByLabel('Password').fill('secret123');
@@ -13,14 +18,16 @@ export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
 
   await expect(page).toHaveURL('/dashboard');
   await expect(page.getByRole('heading', { name: 'Welcome' })).toBeVisible();
-});`},
+});`,
+    },
 
-{name:'Form submit',
- level:'beginner',
- desc:'Fill in a form, submit it, and assert the success state the most common pattern in web testing.',
- tip:'Assert on visible UI feedback (success message, new item in list) rather than just the URL to make the test more meaningful.',
- docs:'https://playwright.dev/docs/input',
- code:`test('creates a new contact', async ({ page }) => {
+    {
+      name: 'Form submit',
+      level: 'beginner',
+      desc: 'Fill in a form, submit it, and assert the success state the most common pattern in web testing.',
+      tip: 'Assert on visible UI feedback (success message, new item in list) rather than just the URL to make the test more meaningful.',
+      docs: 'https://playwright.dev/docs/input',
+      code: `test('creates a new contact', async ({ page }) => {
   await page.goto('/contacts/new');
 
   await page.getByLabel('Name').fill('Jane Smith');
@@ -29,14 +36,16 @@ export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
 
   await expect(page.getByText('Contact saved')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Jane Smith' })).toBeVisible();
-});`},
+});`,
+    },
 
-{name:'Wait for API',
- level:'intermediate',
- desc:'Trigger an action, wait for the API response, then assert the UI updated. Prevents flaky tests from asserting before data loads.',
- tip:'Wrap the click and waitForResponse in Promise.all so they start at the same time, otherwise you might miss the response event.',
- docs:'https://playwright.dev/docs/network#waiting-for-response',
- code:`test('loads user list', async ({ page }) => {
+    {
+      name: 'Wait for API',
+      level: 'intermediate',
+      desc: 'Trigger an action, wait for the API response, then assert the UI updated. Prevents flaky tests from asserting before data loads.',
+      tip: 'Wrap the click and waitForResponse in Promise.all so they start at the same time, otherwise you might miss the response event.',
+      docs: 'https://playwright.dev/docs/network#waiting-for-response',
+      code: `test('loads user list', async ({ page }) => {
   await page.goto('/users');
 
   const [response] = await Promise.all([
@@ -46,14 +55,16 @@ export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
   expect(response.status()).toBe(200);
 
   await expect(page.locator('tbody tr')).toHaveCount(5);
-});`},
+});`,
+    },
 
-{name:'Mock API',
- level:'intermediate',
- desc:'Intercept and mock an API response before navigating. Makes tests fast and independent of real backend data.',
- tip:'Set up route() before page.goto() so the mock is in place when the page first loads and makes its requests.',
- docs:'https://playwright.dev/docs/mock',
- code:`test('shows users from mocked API', async ({ page }) => {
+    {
+      name: 'Mock API',
+      level: 'intermediate',
+      desc: 'Intercept and mock an API response before navigating. Makes tests fast and independent of real backend data.',
+      tip: 'Set up route() before page.goto() so the mock is in place when the page first loads and makes its requests.',
+      docs: 'https://playwright.dev/docs/mock',
+      code: `test('shows users from mocked API', async ({ page }) => {
   await page.route('**/api/users', route => {
     route.fulfill({
       status: 200,
@@ -68,14 +79,16 @@ export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
   await page.goto('/users');
   await expect(page.getByText('Alice')).toBeVisible();
   await expect(page.getByText('Bob')).toBeVisible();
-});`},
+});`,
+    },
 
-{name:'File upload',
- level:'intermediate',
- desc:'Upload a file using a file input without triggering the OS file picker dialog.',
- tip:'Store test fixtures in a tests/fixtures/ folder. For drag-and-drop uploads, use dispatchEvent with a DataTransfer object.',
- docs:'https://playwright.dev/docs/input#upload-files',
- code:`test('uploads a document', async ({ page }) => {
+    {
+      name: 'File upload',
+      level: 'intermediate',
+      desc: 'Upload a file using a file input without triggering the OS file picker dialog.',
+      tip: 'Store test fixtures in a tests/fixtures/ folder. For drag-and-drop uploads, use dispatchEvent with a DataTransfer object.',
+      docs: 'https://playwright.dev/docs/input#upload-files',
+      code: `test('uploads a document', async ({ page }) => {
   await page.goto('/upload');
 
   await page.locator('input[type=file]').setInputFiles(
@@ -84,14 +97,16 @@ export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
   await page.getByRole('button', { name: 'Upload' }).click();
 
   await expect(page.getByText('Upload complete')).toBeVisible();
-});`},
+});`,
+    },
 
-{name:'API login setup',
- level:'intermediate',
- desc:'Log in via the API to get auth state, then inject it into the browser, much faster than UI login for every test.',
- tip:'Save the storage state to a file and reuse it with storageState in playwright.config.ts for maximum speed across all tests.',
- docs:'https://playwright.dev/docs/auth',
- code:`test.beforeEach(async ({ page, request }) => {
+    {
+      name: 'API login setup',
+      level: 'intermediate',
+      desc: 'Log in via the API to get auth state, then inject it into the browser, much faster than UI login for every test.',
+      tip: 'Save the storage state to a file and reuse it with storageState in playwright.config.ts for maximum speed across all tests.',
+      docs: 'https://playwright.dev/docs/auth',
+      code: `test.beforeEach(async ({ page, request }) => {
   // Log in via API, no UI needed
   const res = await request.post('/api/login', {
     data: { email: 'test@mail.com', password: 'secret' }
@@ -104,14 +119,16 @@ export default {cat:'Patterns', cls:'pattern', color:'#ec4899', items:[
   }, token);
 
   await page.goto('/dashboard');
-});`},
+});`,
+    },
 
-{name:'Page Object Model',
- level:'intermediate',
- desc:"Encapsulates a page's selectors and actions into a reusable class. Keeps tests readable and centralizes locator maintenance.",
- tip:'If a locator changes, fix it in one place, not in every test. The biggest maintainability win in large test suites.',
- docs:'https://playwright.dev/docs/pom',
- code:`// pages/LoginPage.ts
+    {
+      name: 'Page Object Model',
+      level: 'intermediate',
+      desc: "Encapsulates a page's selectors and actions into a reusable class. Keeps tests readable and centralizes locator maintenance.",
+      tip: 'If a locator changes, fix it in one place, not in every test. The biggest maintainability win in large test suites.',
+      docs: 'https://playwright.dev/docs/pom',
+      code: `// pages/LoginPage.ts
 export class LoginPage {
   constructor(private page: Page) {}
 
@@ -128,14 +145,16 @@ test('user can log in', async ({ page }) => {
   await page.goto('/login');
   await loginPage.login('user@test.com', 'secret');
   await expect(page).toHaveURL('/dashboard');
-});`},
+});`,
+    },
 
-{name:'storageState auth',
- level:'intermediate',
- desc:'Saves authenticated browser state (cookies, localStorage) to a file and reuses it across tests, eliminating repeated UI logins.',
- tip:'This globalSetup approach still works, but the modern recommended pattern is a dedicated "setup" project that other projects list in dependencies. It shows up in reports and traces and reruns on retry. See "projects (dependencies)" in the Config category.',
- docs:'https://playwright.dev/docs/auth#basic-shared-account-in-all-tests',
- code:`// global-setup.ts, runs once before all tests
+    {
+      name: 'storageState auth',
+      level: 'intermediate',
+      desc: 'Saves authenticated browser state (cookies, localStorage) to a file and reuses it across tests, eliminating repeated UI logins.',
+      tip: 'This globalSetup approach still works, but the modern recommended pattern is a dedicated "setup" project that other projects list in dependencies. It shows up in reports and traces and reruns on retry. See "projects (dependencies)" in the Config category.',
+      docs: 'https://playwright.dev/docs/auth#basic-shared-account-in-all-tests',
+      code: `// global-setup.ts, runs once before all tests
 import { chromium } from '@playwright/test';
 
 export default async function globalSetup() {
@@ -150,14 +169,16 @@ export default async function globalSetup() {
 }
 
 // playwright.config.ts
-// use: { storageState: 'auth.json' }`},
+// use: { storageState: 'auth.json' }`,
+    },
 
-{name:'New window or popup',
- level:'intermediate',
- desc:'Clicking a link or button can open a second window or tab. Use Promise.all to start listening before the click fires, so you never miss the popup event.',
- tip:'If "popup" never fires, the page opened at the browser context level (e.g. a target=_blank link). Listen with context.waitForEvent("page") instead.',
- docs:'https://playwright.dev/docs/pages#handling-new-pages',
- code:`// Race risk: if you click first, the popup can open
+    {
+      name: 'New window or popup',
+      level: 'intermediate',
+      desc: 'Clicking a link or button can open a second window or tab. Use Promise.all to start listening before the click fires, so you never miss the popup event.',
+      tip: 'If "popup" never fires, the page opened at the browser context level (e.g. a target=_blank link). Listen with context.waitForEvent("page") instead.',
+      docs: 'https://playwright.dev/docs/pages#handling-new-pages',
+      code: `// Race risk: if you click first, the popup can open
 // before you start waiting. Promise.all starts the
 // listener and the click together, so you never miss it.
 const [popup] = await Promise.all([
@@ -173,14 +194,16 @@ const [newTab] = await Promise.all([
   context.waitForEvent('page'),
   page.click('text=Terms'),
 ]);
-await newTab.waitForLoadState('domcontentloaded');`},
+await newTab.waitForLoadState('domcontentloaded');`,
+    },
 
-{name:'Popup via Page Object',
- level:'intermediate',
- desc:'Hide the popup timing logic inside a page object method that returns the new page object, so the test stays clean and reads like plain English.',
- tip:'The test never sees waitForEvent or Promise.all, just a method call that hands back a ready-to-use page object for the new window.',
- docs:'https://playwright.dev/docs/pom',
- code:`// pages/DashboardPage.ts
+    {
+      name: 'Popup via Page Object',
+      level: 'intermediate',
+      desc: 'Hide the popup timing logic inside a page object method that returns the new page object, so the test stays clean and reads like plain English.',
+      tip: 'The test never sees waitForEvent or Promise.all, just a method call that hands back a ready-to-use page object for the new window.',
+      docs: 'https://playwright.dev/docs/pom',
+      code: `// pages/DashboardPage.ts
 async openReportInNewWindow(): Promise<ReportPage> {
   const [popup] = await Promise.all([
     this.page.waitForEvent('popup'),
@@ -192,14 +215,16 @@ async openReportInNewWindow(): Promise<ReportPage> {
 
 // The test reads cleanly, no timing noise
 const reportPage = await dashboardPage.openReportInNewWindow();
-await reportPage.expectLoaded();`},
+await reportPage.expectLoaded();`,
+    },
 
-{name:'Many popups at once',
- level:'advanced',
- desc:'Promise.all on one event catches only one window. If a single action opens several, collect each new page with a context event handler, then wait for the count you expect.',
- tip:'Close popups once you are done with them. Leftover windows pile up in long suites and slow the run.',
- docs:'https://playwright.dev/docs/pages#handling-new-pages',
- code:`const newPages = [];
+    {
+      name: 'Many popups at once',
+      level: 'advanced',
+      desc: 'Promise.all on one event catches only one window. If a single action opens several, collect each new page with a context event handler, then wait for the count you expect.',
+      tip: 'Close popups once you are done with them. Leftover windows pile up in long suites and slow the run.',
+      docs: 'https://playwright.dev/docs/pages#handling-new-pages',
+      code: `const newPages = [];
 context.on('page', p => newPages.push(p)); // catch each new tab
 
 await page.click('text=Open all');
@@ -208,14 +233,16 @@ await expect.poll(() => newPages.length).toBe(3); // wait for all 3
 await Promise.all(newPages.map(p => p.waitForLoadState()));
 
 // Tidy up when finished
-await popup.close();`},
+await popup.close();`,
+    },
 
-{name:'Page vs context events',
- level:'intermediate',
- desc:'waitForEvent only accepts events that the object itself emits. A Page emits page level events, a BrowserContext emits context level events. Pass the right name to the right object.',
- tip:"A new window opened by a page is page.waitForEvent('popup'). A new tab at the browser level (target=_blank) is context.waitForEvent('page'). There is no 'page' event on a Page, and no 'popup' event on a context.",
- docs:'https://playwright.dev/docs/events',
- code:`// PAGE events: one tab. Listen on page.
+    {
+      name: 'Page vs context events',
+      level: 'intermediate',
+      desc: 'waitForEvent only accepts events that the object itself emits. A Page emits page level events, a BrowserContext emits context level events. Pass the right name to the right object.',
+      tip: "A new window opened by a page is page.waitForEvent('popup'). A new tab at the browser level (target=_blank) is context.waitForEvent('page'). There is no 'page' event on a Page, and no 'popup' event on a context.",
+      docs: 'https://playwright.dev/docs/events',
+      code: `// PAGE events: one tab. Listen on page.
 //   popup, download, filechooser, dialog, console,
 //   pageerror, request, response, load, worker, ...
 const [popup] = await Promise.all([
@@ -230,14 +257,16 @@ const [newTab] = await Promise.all([
   page.click('text=Terms'),
 ]);
 
-// Rule of thumb: if 'popup' never fires, try 'page'.`},
+// Rule of thumb: if 'popup' never fires, try 'page'.`,
+    },
 
-{name:'WebAuthn passkeys',
- level:'advanced',
- desc:'Tests passkey and WebAuthn flows without physical hardware. context.credentials seeds a virtual authenticator so navigator.credentials ceremonies resolve against a credential you control. Added in Playwright v1.61.',
- tip:"Seed a credential your backend already provisioned for the test user, then install() the authenticator before the page loads. The page's navigator.credentials.get() is answered with the seeded passkey, no real device or fingerprint prompt needed.",
- docs:'https://playwright.dev/docs/api/class-browsercontext#browser-context-credentials',
- code:`const context = await browser.newContext();
+    {
+      name: 'WebAuthn passkeys',
+      level: 'advanced',
+      desc: 'Tests passkey and WebAuthn flows without physical hardware. context.credentials seeds a virtual authenticator so navigator.credentials ceremonies resolve against a credential you control. Added in Playwright v1.61.',
+      tip: "Seed a credential your backend already provisioned for the test user, then install() the authenticator before the page loads. The page's navigator.credentials.get() is answered with the seeded passkey, no real device or fingerprint prompt needed. Since v1.62 credentials are captured in storageState, so restoring a saved state reinstalls the virtual authenticator and its passkeys for you.",
+      docs: 'https://playwright.dev/docs/api/class-browsercontext#browser-context-credentials',
+      code: `const context = await browser.newContext();
 
 // Seed a passkey for a test user, then install the authenticator
 await context.credentials.create('example.com', {
@@ -252,5 +281,7 @@ const page = await context.newPage();
 await page.goto('https://example.com/login');
 // navigator.credentials.get() now resolves with the seeded passkey
 await page.getByRole('button', { name: 'Sign in with passkey' }).click();
-await expect(page.getByText('Welcome back')).toBeVisible();`},
-]};
+await expect(page.getByText('Welcome back')).toBeVisible();`,
+    },
+  ],
+};

@@ -7,8 +7,7 @@ const MOCK_COUNT = 12345;
 const CORS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'POST, GET, OPTIONS',
-  'access-control-allow-headers':
-    'authorization, content-type, apikey, x-client-info',
+  'access-control-allow-headers': 'authorization, content-type, apikey, x-client-info',
 };
 
 // Install deterministic network mocks so tests never hit the real Supabase /
@@ -28,9 +27,7 @@ async function mockBackends(page, { count = MOCK_COUNT, offline = false } = {}) 
 
   if (offline) {
     // Simulate the backend being unreachable
-    await page.route('**tilbhgcncnwibnfgebkg.supabase.co/**', (route) =>
-      route.abort()
-    );
+    await page.route('**tilbhgcncnwibnfgebkg.supabase.co/**', (route) => route.abort());
     return state;
   }
 
@@ -64,12 +61,7 @@ test.describe('Meta bar', () => {
 
     await expect(page.locator('.meta-badge')).toHaveCount(4);
     const labels = await page.locator('.meta-badge .k').allInnerTexts();
-    expect(labels).toEqual([
-      'playwright',
-      'last updated',
-      'commands',
-      'visitors',
-    ]);
+    expect(labels).toEqual(['playwright', 'last updated', 'commands', 'visitors']);
   });
 
   test('command count badge matches the data', async ({ page }) => {
@@ -91,31 +83,24 @@ test.describe('Meta bar', () => {
     const expected = await page.evaluate(async () => {
       const pkg = await (await fetch('./package.json')).json();
       const dep =
-        pkg.devDependencies?.['@playwright/test'] ??
-        pkg.dependencies?.['@playwright/test'];
+        pkg.devDependencies?.['@playwright/test'] ?? pkg.dependencies?.['@playwright/test'];
       return 'v' + dep.replace(/^[\^~>=<\s]+/, '');
     });
     await expect(page.locator('#pw-version')).toHaveText(expected);
   });
 
-  test('last-updated badge reflects the stamped meta.json date', async ({
-    page,
-  }) => {
+  test('last-updated badge reflects the stamped meta.json date', async ({ page }) => {
     await mockBackends(page);
     await page.goto('/');
 
     await expect(page.locator('#last-updated')).toHaveText('2025-12-25');
   });
 
-  test('keeps fallback values if version/date lookups fail', async ({
-    page,
-  }) => {
+  test('keeps fallback values if version/date lookups fail', async ({ page }) => {
     // Fail every dynamic source: meta.json, package.json, and Supabase
     await page.route('**/js/meta.json**', (route) => route.abort());
     await page.route('**/package.json**', (route) => route.abort());
-    await page.route('**tilbhgcncnwibnfgebkg.supabase.co/**', (route) =>
-      route.abort()
-    );
+    await page.route('**tilbhgcncnwibnfgebkg.supabase.co/**', (route) => route.abort());
     await page.goto('/');
 
     // Hardcoded fallbacks in the HTML must still be shown (never blank)
@@ -133,12 +118,8 @@ test.describe('Visitor counter — display', () => {
     await expect(page.locator('#visitor-count-number')).toHaveText('12,345');
   });
 
-  test('falls back to the cached value (dimmed) when offline', async ({
-    page,
-  }) => {
-    await page.addInitScript(() =>
-      localStorage.setItem('visitor-count-cache', '9876')
-    );
+  test('falls back to the cached value (dimmed) when offline', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('visitor-count-cache', '9876'));
     await mockBackends(page, { offline: true });
     await page.goto('/');
 
@@ -168,9 +149,7 @@ async function poseAsRealVisitor(page) {
 }
 
 test.describe('Visitor counter — increment', () => {
-  test('does NOT increment in automated browsers (CI / bots)', async ({
-    page,
-  }) => {
+  test('does NOT increment in automated browsers (CI / bots)', async ({ page }) => {
     const state = await mockBackends(page);
     await page.goto('/'); // navigator.webdriver is true under Playwright
     await page.waitForTimeout(500);
@@ -178,9 +157,7 @@ test.describe('Visitor counter — increment', () => {
     expect(state.posts).toBe(0);
   });
 
-  test('increments exactly once on first load (real visitor)', async ({
-    page,
-  }) => {
+  test('increments exactly once on first load (real visitor)', async ({ page }) => {
     await poseAsRealVisitor(page);
     const state = await mockBackends(page);
     await page.goto('/');
@@ -189,9 +166,7 @@ test.describe('Visitor counter — increment', () => {
     expect(state.posts).toBe(1);
   });
 
-  test('does not increment again on refresh (once per session)', async ({
-    page,
-  }) => {
+  test('does not increment again on refresh (once per session)', async ({ page }) => {
     await poseAsRealVisitor(page);
     const state = await mockBackends(page);
     await page.goto('/');
