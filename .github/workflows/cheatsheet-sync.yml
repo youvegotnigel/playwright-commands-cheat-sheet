@@ -64,8 +64,12 @@ jobs:
           # Haiku 4.5 keeps a monthly run well under $0.50. The human PR review +
           # full test gate + Context7 ground truth cover the lower model tier.
           # Bump --model to claude-sonnet-4-6 (or claude-opus-4-8) for more quality.
+          # --max-turns was 40 and that was too low: the 2026-08-01 run read the
+          # ~20 mandated files, verified via Context7, edited, linted, committed
+          # and pushed, then hit the limit before `gh pr create` and failed the
+          # job with the work stranded on the branch. 120 leaves real headroom.
           claude_args: |
             --model claude-haiku-4-5
-            --max-turns 40
+            --max-turns 120
             --mcp-config .github/cheatsheet-sync.mcp.json
             --allowedTools Read,Edit,Write,Bash,mcp__context7

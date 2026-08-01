@@ -15,8 +15,8 @@ test.describe('Data integrity', () => {
     const issues = await page.evaluate(() => {
       const problems = [];
       categories.forEach((cat, i) => {
-        if (!cat.cat)   problems.push(`categories[${i}] missing "cat"`);
-        if (!cat.cls)   problems.push(`categories[${i}] missing "cls"`);
+        if (!cat.cat) problems.push(`categories[${i}] missing "cat"`);
+        if (!cat.cls) problems.push(`categories[${i}] missing "cls"`);
         if (!cat.color) problems.push(`categories[${i}] missing "color"`);
         if (!Array.isArray(cat.items) || cat.items.length === 0)
           problems.push(`categories[${i}] missing or empty "items"`);
@@ -30,9 +30,9 @@ test.describe('Data integrity', () => {
     const issues = await page.evaluate(() => {
       const required = ['name', 'level', 'desc', 'tip', 'docs', 'code'];
       const problems = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
-          required.forEach(field => {
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
+          required.forEach((field) => {
             if (!item[field])
               problems.push(`"${item.name || '?'}" in "${cat.cat}" is missing "${field}"`);
           });
@@ -47,10 +47,9 @@ test.describe('Data integrity', () => {
     const invalid = await page.evaluate(() => {
       const valid = new Set(['beginner', 'intermediate', 'advanced']);
       const bad = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
-          if (!valid.has(item.level))
-            bad.push(`"${item.name}" has invalid level: "${item.level}"`);
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
+          if (!valid.has(item.level)) bad.push(`"${item.name}" has invalid level: "${item.level}"`);
         });
       });
       return bad;
@@ -61,8 +60,8 @@ test.describe('Data integrity', () => {
   test('every item docs URL starts with https://', async ({ page }) => {
     const invalid = await page.evaluate(() => {
       const bad = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
           if (!item.docs.startsWith('https://'))
             bad.push(`"${item.name}" has invalid docs URL: "${item.docs}"`);
         });
@@ -75,11 +74,10 @@ test.describe('Data integrity', () => {
   test('no duplicate command names within a category', async ({ page }) => {
     const duplicates = await page.evaluate(() => {
       const dupes = [];
-      categories.forEach(cat => {
+      categories.forEach((cat) => {
         const seen = new Set();
-        cat.items.forEach(item => {
-          if (seen.has(item.name))
-            dupes.push(`Duplicate "${item.name}" in category "${cat.cat}"`);
+        cat.items.forEach((item) => {
+          if (seen.has(item.name)) dupes.push(`Duplicate "${item.name}" in category "${cat.cat}"`);
           seen.add(item.name);
         });
       });
@@ -92,10 +90,9 @@ test.describe('Data integrity', () => {
     const duplicates = await page.evaluate(() => {
       const seen = new Set();
       const dupes = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
-          if (seen.has(item.name))
-            dupes.push(`"${item.name}" appears in more than one category`);
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
+          if (seen.has(item.name)) dupes.push(`"${item.name}" appears in more than one category`);
           seen.add(item.name);
         });
       });
@@ -108,9 +105,9 @@ test.describe('Data integrity', () => {
     const issues = await page.evaluate(() => {
       const required = ['name', 'level', 'desc', 'tip', 'docs', 'code'];
       const problems = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
-          required.forEach(field => {
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
+          required.forEach((field) => {
             if (typeof item[field] === 'string' && item[field].trim() === '')
               problems.push(`"${item.name}" in "${cat.cat}" has blank "${field}"`);
           });
@@ -124,8 +121,8 @@ test.describe('Data integrity', () => {
   test('all docs URLs point to playwright.dev', async ({ page }) => {
     const invalid = await page.evaluate(() => {
       const bad = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
           if (!item.docs.includes('playwright.dev'))
             bad.push(`"${item.name}" docs URL does not point to playwright.dev: "${item.docs}"`);
         });
@@ -138,8 +135,8 @@ test.describe('Data integrity', () => {
   test('all code snippets are non-trivial (at least 20 characters)', async ({ page }) => {
     const issues = await page.evaluate(() => {
       const bad = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
           if (item.code.trim().length < 20)
             bad.push(`"${item.name}" has a suspiciously short code snippet: "${item.code.trim()}"`);
         });
@@ -153,7 +150,7 @@ test.describe('Data integrity', () => {
     const invalid = await page.evaluate(() => {
       const hexPattern = /^#[0-9a-fA-F]{6}$/;
       const bad = [];
-      categories.forEach(cat => {
+      categories.forEach((cat) => {
         if (!hexPattern.test(cat.color))
           bad.push(`Category "${cat.cat}" has invalid color: "${cat.color}"`);
       });
@@ -168,9 +165,9 @@ test.describe('Data integrity', () => {
     const offenders = await page.evaluate(() => {
       const fields = ['name', 'level', 'desc', 'tip', 'docs', 'code'];
       const bad = [];
-      categories.forEach(cat => {
-        cat.items.forEach(item => {
-          fields.forEach(field => {
+      categories.forEach((cat) => {
+        cat.items.forEach((item) => {
+          fields.forEach((field) => {
             const value = item[field];
             if (typeof value !== 'string') return;
             if (value.includes('—'))
@@ -189,32 +186,32 @@ test.describe('Data integrity', () => {
 test.describe('test.info() entry', () => {
   test('test.info() exists in the Setup category', async ({ page }) => {
     const found = await page.evaluate(() => {
-      const setup = categories.find(c => c.cat === 'Setup');
-      return setup ? setup.items.some(i => i.name === 'test.info()') : false;
+      const setup = categories.find((c) => c.cat === 'Setup');
+      return setup ? setup.items.some((i) => i.name === 'test.info()') : false;
     });
     expect(found).toBe(true);
   });
 
   test('test.info() has level intermediate', async ({ page }) => {
     const level = await page.evaluate(() => {
-      const setup = categories.find(c => c.cat === 'Setup');
-      return setup?.items.find(i => i.name === 'test.info()')?.level;
+      const setup = categories.find((c) => c.cat === 'Setup');
+      return setup?.items.find((i) => i.name === 'test.info()')?.level;
     });
     expect(level).toBe('intermediate');
   });
 
   test('test.info() docs URL points to the TestInfo class', async ({ page }) => {
     const docs = await page.evaluate(() => {
-      const setup = categories.find(c => c.cat === 'Setup');
-      return setup?.items.find(i => i.name === 'test.info()')?.docs ?? '';
+      const setup = categories.find((c) => c.cat === 'Setup');
+      return setup?.items.find((i) => i.name === 'test.info()')?.docs ?? '';
     });
     expect(docs).toBe('https://playwright.dev/docs/api/class-testinfo');
   });
 
   test('test.info() code covers key properties and methods', async ({ page }) => {
     const code = await page.evaluate(() => {
-      const setup = categories.find(c => c.cat === 'Setup');
-      return setup?.items.find(i => i.name === 'test.info()')?.code ?? '';
+      const setup = categories.find((c) => c.cat === 'Setup');
+      return setup?.items.find((i) => i.name === 'test.info()')?.code ?? '';
     });
     expect(code).toContain('title');
     expect(code).toContain('retry');
@@ -223,10 +220,12 @@ test.describe('test.info() entry', () => {
     expect(code).toContain('attach');
   });
 
-  test('test.info() tip clarifies that testInfo and test.info() are identical', async ({ page }) => {
+  test('test.info() tip clarifies that testInfo and test.info() are identical', async ({
+    page,
+  }) => {
     const tip = await page.evaluate(() => {
-      const setup = categories.find(c => c.cat === 'Setup');
-      return setup?.items.find(i => i.name === 'test.info()')?.tip ?? '';
+      const setup = categories.find((c) => c.cat === 'Setup');
+      return setup?.items.find((i) => i.name === 'test.info()')?.tip ?? '';
     });
     expect(tip).toContain('testInfo');
     expect(tip.toLowerCase()).toContain('identical');
@@ -234,8 +233,8 @@ test.describe('test.info() entry', () => {
 
   test('afterEach() tip mentions testInfo === test.info() equivalence', async ({ page }) => {
     const tip = await page.evaluate(() => {
-      const setup = categories.find(c => c.cat === 'Setup');
-      return setup?.items.find(i => i.name === 'afterEach()')?.tip ?? '';
+      const setup = categories.find((c) => c.cat === 'Setup');
+      return setup?.items.find((i) => i.name === 'afterEach()')?.tip ?? '';
     });
     expect(tip).toContain('testInfo');
     expect(tip).toContain('test.info()');
@@ -245,24 +244,24 @@ test.describe('test.info() entry', () => {
 test.describe('consoleMessages() entry', () => {
   test('consoleMessages() exists in the Utility category', async ({ page }) => {
     const found = await page.evaluate(() => {
-      const utility = categories.find(c => c.cat === 'Utility');
-      return utility ? utility.items.some(i => i.name === 'consoleMessages()') : false;
+      const utility = categories.find((c) => c.cat === 'Utility');
+      return utility ? utility.items.some((i) => i.name === 'consoleMessages()') : false;
     });
     expect(found).toBe(true);
   });
 
   test('consoleMessages() has level intermediate', async ({ page }) => {
     const level = await page.evaluate(() => {
-      const utility = categories.find(c => c.cat === 'Utility');
-      return utility?.items.find(i => i.name === 'consoleMessages()')?.level;
+      const utility = categories.find((c) => c.cat === 'Utility');
+      return utility?.items.find((i) => i.name === 'consoleMessages()')?.level;
     });
     expect(level).toBe('intermediate');
   });
 
   test('consoleMessages() code covers consoleMessages() and type()', async ({ page }) => {
     const code = await page.evaluate(() => {
-      const utility = categories.find(c => c.cat === 'Utility');
-      return utility?.items.find(i => i.name === 'consoleMessages()')?.code ?? '';
+      const utility = categories.find((c) => c.cat === 'Utility');
+      return utility?.items.find((i) => i.name === 'consoleMessages()')?.code ?? '';
     });
     expect(code).toContain('consoleMessages()');
     expect(code).toContain('type()');
@@ -272,24 +271,24 @@ test.describe('consoleMessages() entry', () => {
 test.describe('pageErrors() entry', () => {
   test('pageErrors() exists in the Utility category', async ({ page }) => {
     const found = await page.evaluate(() => {
-      const utility = categories.find(c => c.cat === 'Utility');
-      return utility ? utility.items.some(i => i.name === 'pageErrors()') : false;
+      const utility = categories.find((c) => c.cat === 'Utility');
+      return utility ? utility.items.some((i) => i.name === 'pageErrors()') : false;
     });
     expect(found).toBe(true);
   });
 
   test('pageErrors() has level intermediate', async ({ page }) => {
     const level = await page.evaluate(() => {
-      const utility = categories.find(c => c.cat === 'Utility');
-      return utility?.items.find(i => i.name === 'pageErrors()')?.level;
+      const utility = categories.find((c) => c.cat === 'Utility');
+      return utility?.items.find((i) => i.name === 'pageErrors()')?.level;
     });
     expect(level).toBe('intermediate');
   });
 
   test('pageErrors() code covers pageErrors() and toHaveLength', async ({ page }) => {
     const code = await page.evaluate(() => {
-      const utility = categories.find(c => c.cat === 'Utility');
-      return utility?.items.find(i => i.name === 'pageErrors()')?.code ?? '';
+      const utility = categories.find((c) => c.cat === 'Utility');
+      return utility?.items.find((i) => i.name === 'pageErrors()')?.code ?? '';
     });
     expect(code).toContain('pageErrors()');
     expect(code).toContain('toHaveLength');
@@ -299,32 +298,32 @@ test.describe('pageErrors() entry', () => {
 test.describe('expect.configure() entry', () => {
   test('expect.configure() exists in the Assertions category', async ({ page }) => {
     const found = await page.evaluate(() => {
-      const assertions = categories.find(c => c.cat === 'Assertions');
-      return assertions ? assertions.items.some(i => i.name === 'expect.configure()') : false;
+      const assertions = categories.find((c) => c.cat === 'Assertions');
+      return assertions ? assertions.items.some((i) => i.name === 'expect.configure()') : false;
     });
     expect(found).toBe(true);
   });
 
   test('expect.configure() has level advanced', async ({ page }) => {
     const level = await page.evaluate(() => {
-      const assertions = categories.find(c => c.cat === 'Assertions');
-      return assertions?.items.find(i => i.name === 'expect.configure()')?.level;
+      const assertions = categories.find((c) => c.cat === 'Assertions');
+      return assertions?.items.find((i) => i.name === 'expect.configure()')?.level;
     });
     expect(level).toBe('advanced');
   });
 
   test('expect.configure() docs URL points to the expectconfigure section', async ({ page }) => {
     const docs = await page.evaluate(() => {
-      const assertions = categories.find(c => c.cat === 'Assertions');
-      return assertions?.items.find(i => i.name === 'expect.configure()')?.docs ?? '';
+      const assertions = categories.find((c) => c.cat === 'Assertions');
+      return assertions?.items.find((i) => i.name === 'expect.configure()')?.docs ?? '';
     });
     expect(docs).toBe('https://playwright.dev/docs/test-assertions#expectconfigure');
   });
 
   test('expect.configure() code covers timeout and soft defaults', async ({ page }) => {
     const code = await page.evaluate(() => {
-      const assertions = categories.find(c => c.cat === 'Assertions');
-      return assertions?.items.find(i => i.name === 'expect.configure()')?.code ?? '';
+      const assertions = categories.find((c) => c.cat === 'Assertions');
+      return assertions?.items.find((i) => i.name === 'expect.configure()')?.code ?? '';
     });
     expect(code).toContain('expect.configure(');
     expect(code).toContain('timeout');
@@ -332,14 +331,88 @@ test.describe('expect.configure() entry', () => {
   });
 });
 
+test.describe('Playwright 1.62 entries', () => {
+  test('locator.waitForFunction() exists in the Query category as intermediate', async ({
+    page,
+  }) => {
+    const entry = await page.evaluate(() => {
+      const query = categories.find((c) => c.cat === 'Query');
+      return query?.items.find((i) => i.name === 'locator.waitForFunction()') ?? null;
+    });
+    expect(entry).not.toBeNull();
+    expect(entry.level).toBe('intermediate');
+    expect(entry.docs).toBe(
+      'https://playwright.dev/docs/api/class-locator#locator-wait-for-function'
+    );
+  });
+
+  test('locator.waitForFunction() code calls the method on a locator', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const query = categories.find((c) => c.cat === 'Query');
+      return query?.items.find((i) => i.name === 'locator.waitForFunction()')?.code ?? '';
+    });
+    expect(code).toContain('.waitForFunction(');
+    // The element is the first argument, which is what distinguishes it from
+    // page.waitForFunction().
+    expect(code).toContain('el');
+  });
+
+  test("scroll: 'none' option exists in the Action category as advanced", async ({ page }) => {
+    const entry = await page.evaluate(() => {
+      const action = categories.find((c) => c.cat === 'Action');
+      return action?.items.find((i) => i.name === "scroll: 'none' option") ?? null;
+    });
+    expect(entry).not.toBeNull();
+    expect(entry.level).toBe('advanced');
+  });
+
+  test("scroll option code shows both 'none' and the 'auto' default", async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const action = categories.find((c) => c.cat === 'Action');
+      return action?.items.find((i) => i.name === "scroll: 'none' option")?.code ?? '';
+    });
+    expect(code).toContain("scroll: 'none'");
+    expect(code).toContain("scroll: 'auto'");
+  });
+
+  test('apiResponse.timing() exists in the API category as advanced', async ({ page }) => {
+    const entry = await page.evaluate(() => {
+      const api = categories.find((c) => c.cat === 'API');
+      return api?.items.find((i) => i.name === 'apiResponse.timing()') ?? null;
+    });
+    expect(entry).not.toBeNull();
+    expect(entry.level).toBe('advanced');
+    expect(entry.docs).toBe(
+      'https://playwright.dev/docs/api/class-apiresponse#api-response-timing'
+    );
+  });
+
+  test('apiResponse.timing() code reads timing milestones and guards -1', async ({ page }) => {
+    const code = await page.evaluate(() => {
+      const api = categories.find((c) => c.cat === 'API');
+      return api?.items.find((i) => i.name === 'apiResponse.timing()')?.code ?? '';
+    });
+    expect(code).toContain('.timing()');
+    expect(code).toContain('responseStart');
+    // Unavailable values come back as -1, so the example must show the guard.
+    expect(code).toContain('-1');
+  });
+
+  test('WebAuthn passkeys entry notes v1.62 storage state persistence', async ({ page }) => {
+    const tip = await page.evaluate(() => {
+      const patterns = categories.find((c) => c.cat === 'Patterns');
+      return patterns?.items.find((i) => i.name === 'WebAuthn passkeys')?.tip ?? '';
+    });
+    expect(tip).toContain('storageState');
+    expect(tip).toContain('v1.62');
+  });
+});
+
 test.describe('Reorganized categories', () => {
   // Helper: return the list of category names that contain a command.
   const homesOf = (page, name) =>
     page.evaluate(
-      (cmd) =>
-        categories
-          .filter((c) => c.items.some((i) => i.name === cmd))
-          .map((c) => c.cat),
+      (cmd) => categories.filter((c) => c.items.some((i) => i.name === cmd)).map((c) => c.cat),
       name
     );
 
@@ -401,7 +474,12 @@ test.describe('Reorganized categories', () => {
     });
   }
 
-  test('the API category retains only request.* commands', async ({ page }) => {
+  // Still an exhaustive list, so unrelated entries cannot drift back into this
+  // category. apiResponse.timing() was added deliberately for Playwright v1.62:
+  // it reads the response returned by these same request.* calls.
+  test('the API category holds the request.* commands plus apiResponse.timing()', async ({
+    page,
+  }) => {
     const names = await namesIn(page, 'API');
     expect(names).toEqual([
       'request.get()',
@@ -409,12 +487,11 @@ test.describe('Reorganized categories', () => {
       'request.put()',
       'request.patch()',
       'request.delete()',
+      'apiResponse.timing()',
     ]);
   });
 
-  test('"page.clock" was split into methods and no longer exists as an entry', async ({
-    page,
-  }) => {
+  test('"page.clock" was split into methods and no longer exists as an entry', async ({ page }) => {
     expect(await homesOf(page, 'page.clock')).toEqual([]);
   });
 
@@ -479,8 +556,7 @@ test.describe('Reorganized categories', () => {
       const items = categories.find((c) => c.cat === 'Network & Mocking')?.items ?? [];
       return {
         wsCode: items.find((i) => i.name === 'page.routeWebSocket()')?.code ?? '',
-        serverCode:
-          items.find((i) => i.name === 'WebSocketRoute.connectToServer()')?.code ?? '',
+        serverCode: items.find((i) => i.name === 'WebSocketRoute.connectToServer()')?.code ?? '',
       };
     });
     expect(wsCode).toContain('routeWebSocket');

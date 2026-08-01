@@ -17,7 +17,7 @@ test.describe('Page load', () => {
     await expect(logos.first()).toBeVisible();
     await expect(logos.last()).toBeVisible();
     // Each logo must actually load (non-zero rendered size), not just exist in the DOM
-    for (const box of await logos.all().then(ls => Promise.all(ls.map(l => l.boundingBox())))) {
+    for (const box of await logos.all().then((ls) => Promise.all(ls.map((l) => l.boundingBox())))) {
       expect(box?.width).toBeGreaterThan(0);
       expect(box?.height).toBeGreaterThan(0);
     }
@@ -150,9 +150,7 @@ test.describe('New category filters', () => {
   ];
 
   for (const { label, cls, sample } of cats) {
-    test(`"${label}" filter renders only its tiles, including ${sample}`, async ({
-      page,
-    }) => {
+    test(`"${label}" filter renders only its tiles, including ${sample}`, async ({ page }) => {
       const allCount = await page.locator('.tile').count();
 
       const btn = page.locator('.filter-btn', { hasText: label });
@@ -165,9 +163,7 @@ test.describe('New category filters', () => {
       expect(total).toBeLessThan(allCount); // a real subset of all tiles
       expect(inCategory).toBe(total); // every visible tile belongs to the category
 
-      await expect(
-        page.locator('.tile', { hasText: sample }).first()
-      ).toBeVisible();
+      await expect(page.locator('.tile', { hasText: sample }).first()).toBeVisible();
     });
   }
 });
@@ -201,7 +197,7 @@ test.describe('View toggle', () => {
 test.describe('Modal', () => {
   test('opens when a tile is clicked and shows title/code', async ({ page }) => {
     const firstTile = page.locator('.tile').first();
-    const tileName  = await firstTile.locator('.tile-name').innerText();
+    const tileName = await firstTile.locator('.tile-name').innerText();
 
     await firstTile.click();
 
@@ -215,7 +211,7 @@ test.describe('Modal', () => {
     await page.locator('.tile').first().click();
     await expect(page.locator('#m-level')).toBeVisible();
     const badgeText = await page.locator('#m-level').innerText();
-    expect(['Beginner', 'Intermediate', 'Advanced'].some(l => badgeText.includes(l))).toBe(true);
+    expect(['Beginner', 'Intermediate', 'Advanced'].some((l) => badgeText.includes(l))).toBe(true);
   });
 
   test('Docs link has a valid href', async ({ page }) => {
@@ -264,7 +260,7 @@ test.describe('Modal', () => {
 
   test('opening a different tile shows its content', async ({ page }) => {
     const tiles = page.locator('.tile');
-    const firstName  = await tiles.nth(0).locator('.tile-name').innerText();
+    const firstName = await tiles.nth(0).locator('.tile-name').innerText();
     const secondName = await tiles.nth(1).locator('.tile-name').innerText();
 
     await tiles.nth(0).click();
@@ -335,7 +331,9 @@ test.describe('URL deep-linking', () => {
     expect(filteredCount).toBeLessThan(totalCount);
   });
 
-  test('loading with #search hash pre-populates the search input and filters tiles', async ({ page }) => {
+  test('loading with #search hash pre-populates the search input and filters tiles', async ({
+    page,
+  }) => {
     const totalCount = await page.locator('.tile').count();
 
     await page.goto('/#search=click');
@@ -366,9 +364,9 @@ test.describe('Keyboard shortcuts', () => {
   test('Ctrl+K focuses the search input', async ({ page }) => {
     await page.locator('body').click(); // ensure focus is away from search
     await page.keyboard.press('Control+k');
-    const isFocused = await page.locator('#search-input').evaluate(
-      el => document.activeElement === el
-    );
+    const isFocused = await page
+      .locator('#search-input')
+      .evaluate((el) => document.activeElement === el);
     expect(isFocused).toBe(true);
   });
 
@@ -383,10 +381,10 @@ test.describe('Mobile', () => {
   test('filter bar is scrollable when filters overflow', async ({ page, isMobile }) => {
     if (!isMobile) test.skip();
     const filterBar = page.locator('#filters');
-    const scrollWidth  = await filterBar.evaluate(el => el.scrollWidth);
-    const clientWidth  = await filterBar.evaluate(el => el.clientWidth);
+    const scrollWidth = await filterBar.evaluate((el) => el.scrollWidth);
+    const clientWidth = await filterBar.evaluate((el) => el.clientWidth);
     // On mobile the filter bar should allow horizontal scrolling
-    const overflowX = await filterBar.evaluate(el => getComputedStyle(el).overflowX);
+    const overflowX = await filterBar.evaluate((el) => getComputedStyle(el).overflowX);
     if (scrollWidth > clientWidth) {
       expect(['auto', 'scroll']).toContain(overflowX);
     }
@@ -438,8 +436,8 @@ test.describe('New assertion tiles', () => {
 
   test('Assertions category tile count matches data', async ({ page }) => {
     await page.locator('.filter-btn', { hasText: 'Assertions' }).click();
-    const expected = await page.evaluate(() =>
-      categories.find(c => c.cat === 'Assertions').items.length
+    const expected = await page.evaluate(
+      () => categories.find((c) => c.cat === 'Assertions').items.length
     );
     await expect(page.locator('.tile')).toHaveCount(expected);
   });

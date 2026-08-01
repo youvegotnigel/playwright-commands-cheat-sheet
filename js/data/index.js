@@ -3,21 +3,21 @@
  * @typedef {{ cat: string, cls: string, color: string, items: Item[] }} Category
  */
 
-import config        from './config.js';
-import setup         from './setup.js';
-import actions       from './actions.js';
-import queries       from './queries.js';
-import assertions    from './assertions.js';
-import utility       from './utility.js';
-import network       from './network.js';
-import api           from './api.js';
+import config from './config.js';
+import setup from './setup.js';
+import actions from './actions.js';
+import queries from './queries.js';
+import assertions from './assertions.js';
+import utility from './utility.js';
+import network from './network.js';
+import api from './api.js';
 import accessibility from './accessibility.js';
-import fixtures      from './fixtures.js';
-import clock         from './clock.js';
-import tracing       from './tracing.js';
-import component     from './component.js';
-import patterns      from './patterns.js';
-import cli           from './cli.js';
+import fixtures from './fixtures.js';
+import clock from './clock.js';
+import tracing from './tracing.js';
+import component from './component.js';
+import patterns from './patterns.js';
+import cli from './cli.js';
 
 /** @type {Category[]} */
 export const categories = [
