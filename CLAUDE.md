@@ -36,24 +36,30 @@ playwright-commands-cheat-sheet/
 ├── index.html                    # Main markup: header, meta-bar, search, filters, grid, modal
 ├── style.css                     # Single stylesheet: dark theme, category tile gradients
 ├── js/
-│   ├── app.js                    # Primary logic: render, filter, search, modal, meta-bar (~330 lines)
-│   ├── highlight.js              # Dependency-free syntax highlighter (JS/TS + shell, ~120 lines)
-│   ├── popular-commands.js       # Command open tracking via Supabase (~90 lines)
+│   ├── app.js                    # Primary logic: render, filter, search, modal, meta-bar (~350 lines)
+│   ├── highlight.js              # Dependency-free syntax highlighter (JS/TS + shell, ~130 lines)
+│   ├── popular-commands.js       # Command open tracking via Supabase (~95 lines)
 │   ├── visitor-counter.js        # Visitor increment on page load (~40 lines)
-│   ├── visitor-display.js        # Live visitor count display, polls every 30s (~80 lines)
+│   ├── visitor-display.js        # Live visitor count display, polls every 30s (~75 lines)
 │   ├── meta.json                 # { "lastUpdated": "YYYY-MM-DD" } — auto-stamped by CI
 │   └── data/
-│       ├── index.js              # Imports and re-exports all category modules
-│       ├── config.js             # Config commands (baseURL, testDir, timeout, retries…)
+│       ├── index.js              # Imports and re-exports all category modules (order = display order)
+│       ├── config.js             # Config commands (baseURL, testDir, timeout, launchOptions…)
 │       ├── setup.js              # Setup commands (test(), describe(), beforeEach()…)
 │       ├── actions.js            # Action commands (click, fill, press, drag…)
 │       ├── queries.js            # Locator commands (getByRole, getByLabel, locator…)
 │       ├── assertions.js         # Assertion commands (toBeVisible, toHaveText…)
-│       ├── utility.js            # Utility commands (goto, screenshot, pdf, context…) — largest file
+│       ├── utility.js            # Utility commands (goto, screenshot, evaluate, events…) — largest file
+│       ├── network.js            # Network & Mocking (route, fulfill, HAR, WebSocket…)
 │       ├── api.js                # API commands (request.get/post/put/delete…)
 │       ├── accessibility.js      # Accessibility commands (ARIA roles, aria-*)
-│       ├── patterns.js           # Common patterns (waiting, dialogs, auth, intercepts…)
-│       └── cli.js                # CLI commands (npx playwright, flags, codegen…)
+│       ├── fixtures.js           # Fixtures (test.extend(), scopes, auto, option fixtures)
+│       ├── clock.js              # Clock & Time (clock.install(), setFixedTime, fastForward…)
+│       ├── tracing.js            # Tracing & Debugging (trace, pause(), codegen, show-trace…)
+│       ├── component.js          # Component Testing (experimental-ct, mount(), props…)
+│       ├── media.js              # Media & Audio (HTMLMediaElement state, AnalyserNode, getStats…)
+│       ├── patterns.js           # Common patterns (auth, POM, popups, WebAuthn…)
+│       └── cli.js                # CLI commands (npx playwright, flags…)
 ├── tests/
 │   ├── cheatsheet.spec.js        # UI: page load, search, filters, modal, views, keyboard, URL state
 │   ├── data-integrity.spec.js    # Data: required fields, level enum, docs URLs, code validity
@@ -73,7 +79,8 @@ playwright-commands-cheat-sheet/
 ├── images/                       # Dashboard and modal screenshots
 ├── .github/workflows/
 │   ├── test.yml                  # CI: run full test suite (chromium + 2 mobile) on push/PR
-│   └── stamp-date.yml            # CI: auto-update js/meta.json on push to master
+│   ├── stamp-date.yml            # CI: auto-update js/meta.json on push to master
+│   └── cheatsheet-sync.yml       # CI: monthly agent run to sync with new Playwright releases
 ├── playwright.config.js          # Test config: webServer port 3000, 3 projects
 ├── eslint.config.js              # Flat config: lints js/ only, per-block globals
 ├── .prettierrc                   # singleQuote, semi, tabWidth: 2, trailingComma: es5
@@ -113,7 +120,7 @@ npm run format:check              # Prettier check (no write)
   - `chromium` — desktop Chrome
   - `iPhone 16` — mobile emulation
   - `Pixel 7` — mobile emulation
-- **Reporter:** GitHub in CI, HTML locally
+- **Reporter:** `github` when `process.env.CI` is set, otherwise `list` + `html`
 - **Artifacts:** test reports uploaded on failure, retained 14 days
 
 ---
@@ -123,31 +130,51 @@ npm run format:check              # Prettier check (no write)
 Every command lives in a category module under `js/data/`. Each file exports a single `Category` object:
 
 ```js
-export const myCategory = {
+/** @type {import('./index.js').Category} */
+export default {
   cat: 'Display Name',     // shown in filter buttons and tiles
   cls: 'css-class',        // matches CSS class for tile gradient
-  color: '#hexcolor',      // accent color
+  color: '#hexcolor',      // 6-digit hex, validated by the test suite
   items: [
     {
-      name: 'commandName()',           // required — display name
-      level: 'beginner',              // required — 'beginner' | 'intermediate' | 'advanced'
-      desc: 'What this does.',        // required — short description
-      tip: 'Pro tip or warning.',     // optional
-      docs: 'https://playwright.dev/docs/...', // optional — full docs URL
-      code: `// JS/TS code example\nawait page.doSomething();`, // optional
+      name: 'commandName()',                    // display name, globally unique
+      level: 'beginner',                        // 'beginner' | 'intermediate' | 'advanced'
+      desc: 'What this does.',                  // short description
+      tip: 'Pro tip or warning.',               // pro tip / gotcha
+      docs: 'https://playwright.dev/docs/...',  // must be https and playwright.dev
+      code: `// JS/TS code example
+await page.doSomething();`,                     // template literal, min 20 chars
     },
   ],
 };
 ```
 
-All fields in `items` (except `name`, `level`, `desc`) are optional. The `data-integrity.spec.js` test validates every item's shape — run it after adding commands.
+**Every category module uses `export default`, not a named export.**
+
+**All six item fields are required.** `data-integrity.spec.js` fails on a missing, blank, or whitespace-only value for any of `name`, `level`, `desc`, `tip`, `docs`, `code`. Beyond presence, it enforces:
+
+| Rule | Check |
+|------|-------|
+| `level` | one of `beginner` \| `intermediate` \| `advanced` |
+| `docs` | starts with `https://` **and** contains `playwright.dev` |
+| `code` | at least 20 characters after trimming |
+| `name` | unique within its category **and** across every category |
+| `color` | matches `/^#[0-9a-fA-F]{6}$/` |
+| all fields | contain no em-dash `—` or en-dash `–` |
+
+Because `code` is a template literal, escape any literal `${` as `\${` and any backslash sequence (e.g. a regex `\.`) as `\\.`.
 
 ### Adding a new category
 
-1. Create `js/data/mycategory.js` following the schema above
-2. Import and re-export it in `js/data/index.js`
-3. Add a gradient rule in `style.css` targeting `.mycategory` tiles
+1. Create `js/data/mycategory.js` with `export default { cat, cls, color, items }`
+2. In `js/data/index.js`, add **both** the `import` line and an entry in the exported
+   `categories` array — array position controls display and filter-button order
+3. Add a gradient rule in `style.css` targeting `.mycategory` tiles, matching the
+   category's `color` as the gradient start
 4. Run `npm test` — `data-integrity.spec.js` will catch schema errors
+
+The filter button is built automatically from the `categories` array (`buildFilters()` in
+`app.js`), so no markup change is needed in `index.html`.
 
 ### Adding commands to an existing category
 
@@ -162,9 +189,21 @@ Append to the `items` array in the relevant `js/data/*.js` file. The `data-integ
 - **`highlight(code)`** — for JavaScript/TypeScript snippets
 - **`highlightShell(code)`** — for CLI/shell snippets
 
-`app.js` chooses which function to use based on the `code` content (CLI category uses `highlightShell`; all others use `highlight`). Both return HTML with `<span class="tok-*">` tokens. The highlighter HTML-escapes all text and uses single-pass regex tokenization.
+`app.js` picks the shell highlighter when `item.cls === 'cli'` **or** the snippet starts with
+`npx` or a `#` comment (`/^\s*(npx|#)/`); everything else uses `highlight()`. Both return HTML
+with `<span class="tok-*">` tokens. The highlighter HTML-escapes all text and uses single-pass
+regex tokenization, so `Copy` always yields the original source exactly.
 
-**Token CSS classes:** `tok-kw` (keywords), `tok-str` (strings), `tok-cmt` (comments), `tok-num` (numbers), `tok-fn` (function names), `tok-api` (Playwright API), `tok-flag` (shell flags), `tok-prog` (shell programs).
+**Token CSS classes** (six, shared by both highlighters):
+
+| Class | JS/TS meaning | Shell meaning |
+|-------|---------------|---------------|
+| `tok-keyword` | language keywords | flags (`-x`, `--xyz`) |
+| `tok-string` | string literals | quoted strings |
+| `tok-comment` | `//` and `/* */` | `#` comments (`//` is **not** a comment) |
+| `tok-number` | numeric literals | numeric literals |
+| `tok-fn` | function names | not used |
+| `tok-api` | Playwright API identifiers | known program names |
 
 ---
 
@@ -240,7 +279,7 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 - **Trailing commas:** ES5 style
 - **Line length:** ~100 chars (Prettier enforced)
 - **No em-dashes or en-dashes in command data.** Never use `—` (em-dash) or `–` (en-dash) in any `js/data/` item field (`name`, `desc`, `tip`, `code`, etc.). Use a period, comma, or colon to break a sentence, and a hyphen `-` for ranges (e.g. `200-299`). `data-integrity.spec.js` enforces this — a stray dash fails the suite.
-- **ESLint globals:** each block (app, test, supabase functions) has its own globals whitelist in `eslint.config.js` — add new globals there if needed
+- **ESLint globals:** `eslint.config.js` has two blocks, `js/**/*.js` and `tests/**/*.js`, each with its own explicit globals whitelist. There is no `env`, so a browser global not on the list is reported as `no-undef` — add it to the right block when you use a new one.
 
 ---
 
@@ -248,7 +287,8 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 
 ### `test.yml`
 
-- Triggers: push to `master` or `develop`, PR to `master`
+- Triggers: push to `master`, PR to `master`
+- Concurrency: superseded runs on the same ref are cancelled
 - Matrix: chromium, iPhone 16, Pixel 7
 - Steps: checkout → Node 20 → `npm ci` → install Playwright → run tests → upload report artifacts
 
@@ -258,13 +298,18 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 - Writes today's date to `js/meta.json` and commits with `[skip ci]`
 - Keeps the "Last Updated" meta-bar badge accurate after every merge
 
+### `cheatsheet-sync.yml`
+
+- Triggers: monthly cron (06:00 UTC on the 1st, tracking the Playwright release cadence) plus manual `workflow_dispatch`
+- Runs an agent to add commands introduced by new Playwright releases
+
 ---
 
 ## Important Gotchas
 
 - **No build step.** Never introduce a bundler, transpiler, or import from a CDN. The app must work by opening `index.html` directly with a static file server.
-- **ESLint lints `js/` only.** Test files (`tests/`) are formatted with Prettier but not ESLint-linted. If you add new globals used in `js/`, add them to `eslint.config.js`.
+- **`npm run lint` covers `js/` only.** `eslint.config.js` does define a `tests/**/*.js` block, but the `lint` script runs `eslint js/`, so test files are Prettier-formatted and never linted in practice. Pass `npx eslint tests/` explicitly if you want them checked.
 - **`js/meta.json` is auto-updated by CI.** Do not manually edit it; the `stamp-date.yml` workflow overwrites it on every push to master.
 - **Supabase URLs are public but RLS-protected.** The Supabase project URL and anon key are intentionally embedded in client-side JS. RLS policies ensure users can only increment counts, never read raw rows directly (aggregates only).
-- **`data-integrity.spec.js` is your schema enforcer.** Run it after any change to `js/data/`. It validates required fields, level enum values, and that code snippets are parseable JS.
+- **`data-integrity.spec.js` is your schema enforcer.** Run it after any change to `js/data/`. It validates required fields, the level enum, docs URLs, global name uniqueness, and the dash ban. It checks `code` length only — it does **not** parse the snippet, so a syntax error in an example will ship silently. Read your example back before committing.
 - **Mobile tests use real device emulation.** The `playwright.config.js` uses `iPhone 16` and `Pixel 7` device descriptors. UI tests written for desktop may fail on mobile — check responsive behaviour.
