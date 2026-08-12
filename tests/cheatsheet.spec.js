@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test';
 
+// Stub Supabase before every test. app.js re-renders the whole grid when
+// popularCmds.loadCounts() resolves, so a live response landing mid-test
+// detaches the tile a locator already resolved and the click is lost. These
+// tests assert layout and interaction, never popularity, so empty counts are
+// the right fixture. Same convention as meta-bar / popular-commands specs.
 test.beforeEach(async ({ page }) => {
+  await page.route('**/rest/v1/**', (route) => route.fulfill({ json: [] }));
+  await page.route('**/functions/v1/**', (route) => route.fulfill({ status: 200, body: '' }));
   await page.goto('/');
 });
 
@@ -147,6 +154,7 @@ test.describe('New category filters', () => {
     { label: 'Fixtures', cls: 'fixture', sample: 'test.extend()' },
     { label: 'Tracing & Debugging', cls: 'tracing', sample: 'codegen' },
     { label: 'Component Testing', cls: 'component', sample: 'mount()' },
+    { label: 'Media & Audio', cls: 'media', sample: 'AnalyserNode peak amplitude' },
   ];
 
   for (const { label, cls, sample } of cats) {

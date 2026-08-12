@@ -110,6 +110,7 @@ input[type=text]:focus { outline: none; border-color: #64748b; }
 .fixture       { background: linear-gradient(135deg, #84cc16, #4d7c0f); }
 .tracing       { background: linear-gradient(135deg, #64748b, #334155); }
 .component     { background: linear-gradient(135deg, #d946ef, #a21caf); }
+.media         { background: linear-gradient(135deg, #f43f5e, #be123c); }
 
 .tile-level {
   position: absolute; top: 7px; right: 9px;

@@ -235,5 +235,219 @@ export default defineConfig({
   ],
 });`,
     },
+
+    {
+      name: 'launchOptions',
+      level: 'intermediate',
+      desc: 'Passes browser launch settings such as args, slowMo, and executablePath through the use block to every browser Playwright starts.',
+      tip: 'launchOptions applies at launch time, so it is per-project and cannot be changed inside a test. Put anything that must vary per test in context options like viewport or colorScheme instead.',
+      docs: 'https://playwright.dev/docs/api/class-testoptions#test-options-launch-options',
+      code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: ['--disable-dev-shm-usage'],
+      slowMo: 0, // milliseconds to pause between operations, for debugging
+    },
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: { args: ['--no-sandbox'] }, // replaces, does not merge
+      },
+    },
+  ],
+});`,
+    },
+
+    {
+      name: 'launchOptions.args (container stability)',
+      level: 'advanced',
+      desc: 'Chromium switches that stop the browser crashing inside Docker, CI runners, and other containers with restricted kernels or small shared memory.',
+      tip: 'Reach for --disable-dev-shm-usage first. The classic "Target closed" or "Page crashed" failure in Docker is Chromium exhausting the default 64MB /dev/shm. Avoid --single-process, it trades crashes for hangs.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: [
+        '--no-sandbox',              // needed when running as root in a container
+        '--disable-setuid-sandbox',  // pairs with the above
+        '--disable-dev-shm-usage',   // write to /tmp instead of a tiny /dev/shm
+        '--disable-gpu',             // no GPU on most CI runners
+      ],
+    },
+  },
+});
+
+// Better than --disable-dev-shm-usage if you control the container:
+// docker run --shm-size=1gb ...`,
+    },
+
+    {
+      name: 'launchOptions.args (visual determinism)',
+      level: 'advanced',
+      desc: 'Chromium switches that remove rendering variance so toHaveScreenshot() comparisons stay stable across machines.',
+      tip: 'Font rendering and device scale factor are the two biggest sources of screenshot diffs between a developer laptop and a Linux CI runner. Pin both, and run visual tests in a container so the installed font set matches too.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: [
+        '--force-device-scale-factor=1', // stop HiDPI laptops rendering at 2x
+        '--font-render-hinting=none',    // identical glyphs across machines
+        '--disable-lcd-text',            // no subpixel colour fringing
+        '--force-color-profile=srgb',    // ignore the monitor colour profile
+        '--hide-scrollbars',             // scrollbars differ per platform
+        '--disable-partial-raster',      // full repaints, no stale tiles
+      ],
+    },
+  },
+});`,
+    },
+
+    {
+      name: 'launchOptions.args (media and autoplay)',
+      level: 'advanced',
+      desc: 'Chromium switches that let audio and video autoplay without a user gesture and swap real cameras and microphones for fake devices.',
+      tip: 'Without --autoplay-policy=no-user-gesture-required a headless play() call rejects with NotAllowedError, which looks like a broken player rather than a blocked one. Combine these with the Media & Audio checks to assert playback actually produces sound.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: [
+        '--autoplay-policy=no-user-gesture-required', // let play() work headless
+        '--use-fake-ui-for-media-stream',   // auto accept the camera/mic prompt
+        '--use-fake-device-for-media-stream', // synthetic webcam and microphone
+        '--use-file-for-fake-audio-capture=./fixtures/speech.wav',
+        '--allow-file-access-from-files',
+      ],
+    },
+  },
+});
+
+// The fake audio file drives getUserMedia, so WebRTC totalAudioEnergy
+// rises predictably and a "is the caller audible" test becomes reliable.`,
+    },
+
+    {
+      name: 'launchOptions.args (proxy and security)',
+      level: 'advanced',
+      desc: 'Chromium switches for routing traffic through a proxy, pinning DNS, and relaxing certificate or origin restrictions in test environments.',
+      tip: 'Prefer the built-in proxy and ignoreHTTPSErrors options over the equivalent args, because they work across all three browsers and can be scoped per context. Never ship --disable-web-security to a suite that also tests CORS, it hides the bugs you are looking for.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// Prefer the cross-browser options where they exist
+export default defineConfig({
+  use: {
+    proxy: { server: 'http://proxy.internal:8080', bypass: '.localhost' },
+    ignoreHTTPSErrors: true,
+  },
+});
+
+// Chromium specific args when you need finer control
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: [
+        '--proxy-server=http://proxy.internal:8080',
+        '--proxy-bypass-list=*.localhost;127.0.0.1',
+        '--ignore-certificate-errors',   // self signed certs in staging
+        '--host-resolver-rules=MAP api.example.com 127.0.0.1',
+      ],
+    },
+  },
+});`,
+    },
+
+    {
+      name: 'launchOptions.args (performance)',
+      level: 'advanced',
+      desc: 'Chromium switches that cut startup cost and stop the browser throttling timers and rendering when a test window sits in the background.',
+      tip: 'Background throttling is the hidden cause of tests that pass alone but time out when run with workers > 1. Chromium slows timers in unfocused windows, so polling and animation waits silently stretch past their timeout.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: [
+        '--disable-background-timer-throttling',    // keep timers at full speed
+        '--disable-backgrounding-occluded-windows', // parallel workers overlap
+        '--disable-renderer-backgrounding',
+        '--disable-extensions',                     // nothing to load at startup
+        '--disable-ipc-flooding-protection',
+        '--js-flags=--max-old-space-size=4096',     // headroom for heavy apps
+      ],
+    },
+  },
+});`,
+    },
+
+    {
+      name: 'launchOptions.args (accessibility)',
+      level: 'advanced',
+      desc: 'Chromium switches that force the accessibility tree on and pin motion, contrast, and colour preferences at the browser level.',
+      tip: 'Use the reducedMotion, forcedColors, and colorScheme context options first, since they are cross-browser and can be overridden per test. Only fall back to args when you need the setting fixed before the first page loads.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// Preferred: per-context options, overridable inside a test
+export default defineConfig({
+  use: {
+    reducedMotion: 'reduce',
+    forcedColors: 'active',
+    colorScheme: 'dark',
+  },
+});
+
+// Browser level equivalents, fixed for the whole session
+export default defineConfig({
+  use: {
+    launchOptions: {
+      args: [
+        '--force-prefers-reduced-motion',  // kill animations before first paint
+        '--force-renderer-accessibility',  // always build the a11y tree
+        '--force-high-contrast',
+        '--force-color-profile=srgb',
+      ],
+    },
+  },
+});`,
+    },
+
+    {
+      name: 'launchOptions.args (mobile)',
+      level: 'advanced',
+      desc: 'Chromium switches for touch input, mobile viewport behaviour, and overlay scrollbars when emulating a phone.',
+      tip: 'The devices[] descriptors already set userAgent, viewport, deviceScaleFactor, isMobile, and hasTouch, so start there. These args only matter when you need a device profile Playwright does not ship or a touch behaviour the descriptor does not cover.',
+      docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
+      code: `// Preferred: a built-in device descriptor
+export default defineConfig({
+  projects: [{ name: 'iPhone 16', use: { ...devices['iPhone 16'] } }],
+});
+
+// Chromium args for a profile the descriptors do not cover
+export default defineConfig({
+  projects: [
+    {
+      name: 'custom-phone',
+      use: {
+        viewport: { width: 412, height: 915 },
+        isMobile: true,
+        hasTouch: true,
+        launchOptions: {
+          args: [
+            '--touch-events=enabled',            // dispatch real touch events
+            '--enable-viewport',                 // honour the meta viewport tag
+            '--enable-features=OverlayScrollbar', // mobile style scrollbars
+            '--force-device-scale-factor=2.6',
+          ],
+        },
+      },
+    },
+  ],
+});`,
+    },
   ],
 };

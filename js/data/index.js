@@ -16,6 +16,7 @@ import fixtures from './fixtures.js';
 import clock from './clock.js';
 import tracing from './tracing.js';
 import component from './component.js';
+import media from './media.js';
 import patterns from './patterns.js';
 import cli from './cli.js';
 
@@ -34,6 +35,7 @@ export const categories = [
   clock,
   tracing,
   component,
+  media,
   patterns,
   cli,
 ];

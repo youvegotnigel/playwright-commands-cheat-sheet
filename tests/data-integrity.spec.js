@@ -428,6 +428,7 @@ test.describe('Reorganized categories', () => {
     'Fixtures',
     'Tracing & Debugging',
     'Component Testing',
+    'Media & Audio',
   ];
 
   for (const cat of newCategories) {
@@ -534,6 +535,13 @@ test.describe('Reorganized categories', () => {
       'component.unmount()',
       'Asserting on a component',
     ],
+    'Media & Audio': [
+      'Assert audio is playing',
+      'audio.currentTime advances',
+      'Assert audio is muted',
+      'AnalyserNode peak amplitude',
+      'WebRTC audio via getStats()',
+    ],
   };
 
   for (const [cat, commands] of Object.entries(expectedCommands)) {
@@ -563,4 +571,157 @@ test.describe('Reorganized categories', () => {
     expect(wsCode).toContain('ws.send(');
     expect(serverCode).toContain('connectToServer()');
   });
+});
+
+test.describe('Media & Audio entries', () => {
+  // Helper: fetch one item out of the Media & Audio category by name.
+  const itemIn = (page, cat, name) =>
+    page.evaluate(
+      ([c, n]) => categories.find((x) => x.cat === c)?.items.find((i) => i.name === n) ?? null,
+      [cat, name]
+    );
+
+  const levels = [
+    ['Assert audio is playing', 'intermediate'],
+    ['audio.currentTime advances', 'intermediate'],
+    ['Assert audio is muted', 'intermediate'],
+    ['AnalyserNode peak amplitude', 'advanced'],
+    ['WebRTC audio via getStats()', 'advanced'],
+  ];
+
+  for (const [name, level] of levels) {
+    test(`"${name}" exists in Media & Audio at level ${level}`, async ({ page }) => {
+      const entry = await itemIn(page, 'Media & Audio', name);
+      expect(entry).not.toBeNull();
+      expect(entry.level).toBe(level);
+    });
+  }
+
+  test('playback check reads paused, ended and readyState together', async ({ page }) => {
+    const code = (await itemIn(page, 'Media & Audio', 'Assert audio is playing')).code;
+    // All three are needed: paused alone does not prove the media is progressing.
+    expect(code).toContain('paused');
+    expect(code).toContain('ended');
+    expect(code).toContain('readyState');
+  });
+
+  test('currentTime entry polls the playhead rather than sleeping', async ({ page }) => {
+    const code = (await itemIn(page, 'Media & Audio', 'audio.currentTime advances')).code;
+    expect(code).toContain('currentTime');
+    expect(code).toContain('.poll(');
+    expect(code).toContain('toBeGreaterThan');
+  });
+
+  test('muted entry distinguishes muted from volume', async ({ page }) => {
+    const entry = await itemIn(page, 'Media & Audio', 'Assert audio is muted');
+    expect(entry.code).toContain('muted');
+    expect(entry.code).toContain('volume');
+    // The tip must explain that the two properties are independent.
+    expect(entry.tip).toContain('volume');
+  });
+
+  test('AnalyserNode entry measures real output through the Web Audio graph', async ({ page }) => {
+    const entry = await itemIn(page, 'Media & Audio', 'AnalyserNode peak amplitude');
+    expect(entry.code).toContain('AudioContext');
+    expect(entry.code).toContain('createAnalyser');
+    expect(entry.code).toContain('getFloatTimeDomainData');
+    // Reconnecting to destination is the gotcha that keeps audio audible.
+    expect(entry.code).toContain('ctx.destination');
+  });
+
+  test('WebRTC entry reads totalAudioEnergy from inbound-rtp audio stats', async ({ page }) => {
+    const code = (await itemIn(page, 'Media & Audio', 'WebRTC audio via getStats()')).code;
+    expect(code).toContain('getStats()');
+    expect(code).toContain('inbound-rtp');
+    expect(code).toContain('totalAudioEnergy');
+  });
+
+  test('no Media & Audio example uses a hard wait', async ({ page }) => {
+    const offenders = await page.evaluate(() => {
+      // Strip // comments before scanning, otherwise a comment explaining why a
+      // hard wait is unnecessary counts as a hard wait. The [^:] guard keeps
+      // '://' in URLs from being treated as the start of a comment.
+      const stripComments = (code) => code.replace(/(^|[^:])\/\/.*$/gm, '$1');
+      const cat = categories.find((c) => c.cat === 'Media & Audio');
+      return (cat?.items ?? [])
+        .filter((i) => {
+          const src = stripComments(i.code);
+          return src.includes('waitForTimeout') || src.includes('sleep(');
+        })
+        .map((i) => i.name);
+    });
+    expect(offenders).toEqual([]);
+  });
+});
+
+test.describe('Chromium launchOptions entries', () => {
+  const configItem = (page, name) =>
+    page.evaluate(
+      (n) => categories.find((c) => c.cat === 'Config')?.items.find((i) => i.name === n) ?? null,
+      name
+    );
+
+  const groups = [
+    'container stability',
+    'visual determinism',
+    'media and autoplay',
+    'proxy and security',
+    'performance',
+    'accessibility',
+    'mobile',
+  ];
+
+  test('the launchOptions umbrella entry exists at level intermediate', async ({ page }) => {
+    const entry = await configItem(page, 'launchOptions');
+    expect(entry).not.toBeNull();
+    expect(entry.level).toBe('intermediate');
+    expect(entry.code).toContain('launchOptions');
+  });
+
+  for (const group of groups) {
+    const name = `launchOptions.args (${group})`;
+    test(`"${name}" exists in Config at level advanced`, async ({ page }) => {
+      const entry = await configItem(page, name);
+      expect(entry).not.toBeNull();
+      expect(entry.level).toBe('advanced');
+      // Every group must actually show an args array under launchOptions.
+      expect(entry.code).toContain('launchOptions');
+      expect(entry.code).toContain('args: [');
+    });
+  }
+
+  const switches = [
+    ['container stability', ['--no-sandbox', '--disable-dev-shm-usage']],
+    ['visual determinism', ['--force-device-scale-factor=1', '--font-render-hinting=none']],
+    [
+      'media and autoplay',
+      ['--autoplay-policy=no-user-gesture-required', '--use-fake-device-for-media-stream'],
+    ],
+    ['proxy and security', ['--proxy-server=', '--ignore-certificate-errors']],
+    ['performance', ['--disable-background-timer-throttling', '--disable-renderer-backgrounding']],
+    ['accessibility', ['--force-prefers-reduced-motion', '--force-renderer-accessibility']],
+    ['mobile', ['--touch-events=enabled', '--enable-viewport']],
+  ];
+
+  for (const [group, flags] of switches) {
+    test(`"${group}" documents its defining Chromium switches`, async ({ page }) => {
+      const code = (await configItem(page, `launchOptions.args (${group})`)).code;
+      for (const flag of flags) expect(code).toContain(flag);
+    });
+  }
+
+  // Where Playwright ships a cross-browser option, the entry must lead with it
+  // rather than sending people straight to a Chromium-only flag.
+  const prefersBuiltIn = [
+    ['proxy and security', ['proxy:', 'ignoreHTTPSErrors']],
+    ['accessibility', ['reducedMotion', 'forcedColors', 'colorScheme']],
+    ['mobile', ['devices[', 'hasTouch']],
+  ];
+
+  for (const [group, options] of prefersBuiltIn) {
+    test(`"${group}" shows the cross-browser option alongside the args`, async ({ page }) => {
+      const code = (await configItem(page, `launchOptions.args (${group})`)).code;
+      for (const option of options) expect(code).toContain(option);
+    });
+  }
 });
