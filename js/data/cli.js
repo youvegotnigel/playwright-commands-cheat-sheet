@@ -249,6 +249,19 @@ npx playwright test --reporter=dot
     },
 
     {
+      name: '--add-reporter',
+      level: 'intermediate',
+      desc: 'Adds a reporter on top of the reporters already configured in playwright.config.ts, instead of replacing them like --reporter does. Accepts a comma-separated list of built-in names or paths to custom reporters. Added in Playwright v1.63.',
+      tip: 'Use for a one-off run where you want an extra report without editing the config, such as appending a junit file for a single CI step while keeping the configured html reporter.',
+      docs: 'https://playwright.dev/docs/test-cli#reference',
+      code: `npx playwright test --add-reporter=junit
+# Keep the configured reporters and also emit a JUnit report
+
+npx playwright test --add-reporter=./my-reporter.js
+# Add a custom reporter for this run only`,
+    },
+
+    {
       name: '--quiet',
       level: 'intermediate',
       desc: 'Suppresses stdout and stderr output printed by tests. Test results are still reported; only test-produced output is hidden.',
@@ -327,13 +340,26 @@ npx playwright install --with-deps chromium
     },
 
     {
+      name: 'install --no-remove',
+      level: 'intermediate',
+      desc: 'Opts out of the automatic removal of browser versions that are no longer used by any installed Playwright version. By default, install deletes those stale binaries to save disk space. Added in Playwright v1.63.',
+      tip: "Useful when multiple projects on the same machine pin different Playwright versions and you want to keep every version's browsers around. Equivalent to setting the PLAYWRIGHT_SKIP_BROWSER_GC=1 environment variable.",
+      docs: 'https://playwright.dev/docs/browsers#stale-browser-removal',
+      code: `npx playwright install --no-remove
+# Keep browsers from other Playwright versions instead of removing them
+
+PLAYWRIGHT_SKIP_BROWSER_GC=1 npx playwright install
+# Same effect via environment variable`,
+    },
+
+    {
       name: '--version',
       level: 'beginner',
       desc: 'Prints the installed Playwright version to the terminal. Useful for confirming the version in use.',
       tip: 'Check this when debugging unexpected behaviour. The Playwright version and the browser binaries must be in sync.',
       docs: 'https://playwright.dev/docs/test-cli',
       code: `npx playwright --version
-# Prints the installed version, e.g. Version 1.62.1`,
+# Prints the installed version, e.g. Version 1.63.0`,
     },
 
     {
