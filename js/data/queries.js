@@ -143,6 +143,19 @@ await page.locator('.tooltip').filter({ visible: true }).click();`,
     },
 
     {
+      name: 'locator.visible()',
+      level: 'intermediate',
+      desc: 'Returns a locator that matches only elements currently visible in the DOM, ignoring the invisible ones. The recommended replacement for the :visible CSS pseudo-class. Added in Playwright v1.63.',
+      tip: 'Visibility is re-checked every time the locator is used, not just at the moment visible() is called. Prefer this shortcut over filter({ visible: true }) when you only need the visible-only condition, it reads more clearly at the call site.',
+      docs: 'https://playwright.dev/docs/api/class-locator#locator-visible',
+      code: `// Only the visible button is matched, then clicked
+await page.locator('button').visible().click();
+
+// Equivalent to filter({ visible: true }), but reads more directly
+await page.locator('.tooltip').visible().click();`,
+    },
+
+    {
       name: 'first() / last()',
       level: 'beginner',
       desc: 'Returns the first or last element from a set of matches. Cleaner aliases for .nth(0) and .nth(-1).',
