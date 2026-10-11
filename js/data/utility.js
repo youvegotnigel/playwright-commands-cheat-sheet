@@ -897,5 +897,25 @@ await page.addLocatorHandler(
 await page.goto('/products');
 await page.locator('.product-card').first().click();`,
     },
+
+    {
+      name: 'page.webmcp',
+      level: 'advanced',
+      desc: 'Lists and calls the tools a page registers through the experimental WebMCP browser API, so you can test them like any other part of your app. Added in Playwright v1.64.',
+      tip: 'WebMCP is experimental: Chromium needs the --enable-features=WebMCP launch argument and WebKit does not implement it. page.webmcp covers the main frame only, use frame.webmcp for child frames. Tool names and results come from the page, so treat them as untrusted input.',
+      docs: 'https://playwright.dev/docs/api/class-page#page-webmcp',
+      code: `// Chromium only enables WebMCP behind a flag
+test.use({ launchOptions: { args: ['--enable-features=WebMCP'] } });
+
+test('add tool works', async ({ page }) => {
+  await page.goto('/calculator');
+
+  const tools = await page.webmcp.tools();
+  expect(tools.map((t) => t.name)).toContain('add');
+
+  const result = await page.webmcp.callTool('add', { a: 2, b: 40 });
+  expect(result.content[0].text).toBe('42');
+});`,
+    },
   ],
 };

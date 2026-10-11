@@ -104,7 +104,7 @@ await page.keyboard.press('Enter');`,
       level: 'advanced',
       desc: 'Runs the axe-core accessibility engine against the page to detect WCAG violations. Requires the @axe-core/playwright package.',
       tip: 'Install with: npm install @axe-core/playwright. Axe catches broad WCAG issues automatically. Combine with specific assertions for full coverage.',
-      docs: 'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+      docs: 'https://playwright.dev/docs/accessibility-testing#example-accessibility-tests',
       code: `import AxeBuilder from '@axe-core/playwright';
 
 test('page has no accessibility violations', async ({ page }) => {
@@ -123,7 +123,7 @@ test('page has no accessibility violations', async ({ page }) => {
       level: 'advanced',
       desc: 'Scope an axe-core scan to specific components using .include(), or exclude noisy/irrelevant sections using .exclude().',
       tip: 'Use .include() to focus on the component under test. Use .exclude() to skip third-party widgets or known-broken sections you do not own.',
-      docs: 'https://playwright.dev/docs/accessibility-testing#scanning-a-subset-of-a-page',
+      docs: 'https://playwright.dev/docs/accessibility-testing#configuring-axe-to-scan-a-specific-part-of-a-page',
       code: `// Scan an entire page
 const results = await new AxeBuilder({ page })
   .analyze();
@@ -145,7 +145,7 @@ const results = await new AxeBuilder({ page })
       level: 'advanced',
       desc: 'Target a specific WCAG standard with .withTags(), or suppress known false-positives by disabling individual rule IDs with .disableRules().',
       tip: "Pass multiple tags like ['wcag2a','wcag2aa'] to broaden coverage. Get rule IDs from the axe violation output's .id field, then disable only what you intentionally accept.",
-      docs: 'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+      docs: 'https://playwright.dev/docs/accessibility-testing#scanning-for-wcag-violations',
       code: `// Scan against a specific WCAG standard
 const results = await new AxeBuilder({ page })
   .withTags(['wcag2a'])
@@ -162,7 +162,7 @@ const results = await new AxeBuilder({ page })
       level: 'advanced',
       desc: 'End-to-end axe scan with page setup, navigation, network-idle wait, violation assertion, and detailed console reporting.',
       tip: 'Always wait for networkidle before scanning dynamic pages, as axe runs synchronously on the DOM and elements must be fully rendered.',
-      docs: 'https://playwright.dev/docs/accessibility-testing#using-axe-playwright',
+      docs: 'https://playwright.dev/docs/accessibility-testing#scanning-an-entire-page',
       code: `test('Sample Accessibility Test', { tag: ['@unstable'] }, async ({ page }) => {
 
   // 1. Page set up (navigates to app and logs in)

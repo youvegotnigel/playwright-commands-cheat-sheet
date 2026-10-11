@@ -20,7 +20,7 @@ A static, single-page interactive web dashboard providing a quick reference for 
 | Frontend | Vanilla JavaScript (ES2022+ modules), HTML5, CSS3 |
 | Syntax highlighting | Custom dependency-free highlighter (`js/highlight.js`) |
 | Analytics backend | Supabase (PostgreSQL + Edge Functions on Deno) |
-| Testing | `@playwright/test` v1.63.0 |
+| Testing | `@playwright/test` v1.64.0 |
 | Linting | ESLint 9 flat config |
 | Formatting | Prettier 3 |
 | Dev server | `npx serve` on port 3000 |
@@ -56,7 +56,7 @@ playwright-commands-cheat-sheet/
 │       ├── fixtures.js           # Fixtures (test.extend(), scopes, auto, option fixtures)
 │       ├── clock.js              # Clock & Time (clock.install(), setFixedTime, fastForward…)
 │       ├── tracing.js            # Tracing & Debugging (trace, pause(), codegen, show-trace…)
-│       ├── component.js          # Component Testing (experimental-ct, mount(), props…)
+│       ├── component.js          # Component Testing (stories model, mount(), migration…)
 │       ├── media.js              # Media & Audio (HTMLMediaElement state, AnalyserNode, getStats…)
 │       ├── patterns.js           # Common patterns (auth, POM, popups, WebAuthn…)
 │       └── cli.js                # CLI commands (npx playwright, flags…)
@@ -80,7 +80,11 @@ playwright-commands-cheat-sheet/
 ├── .github/workflows/
 │   ├── test.yml                  # CI: run full test suite (chromium + 2 mobile) on push/PR
 │   ├── stamp-date.yml            # CI: auto-update js/meta.json on push to master
-│   └── cheatsheet-sync.yml       # CI: monthly agent run to sync with new Playwright releases
+│   └── cheatsheet-sync.yml       # CI: weekly drift check, agent sync PR on new Playwright releases
+├── .claude/skills/playwright-release-sync/
+│   ├── SKILL.md                  # How to sync js/data/ with a Playwright release (CI + local)
+│   ├── references/quality-bar.md # Entry writing rules, anchors, test template, report format
+│   └── scripts/                  # release-delta.mjs, check-docs-links.mjs (Node only, no deps)
 ├── playwright.config.js          # Test config: webServer port 3000, 3 projects
 ├── eslint.config.js              # Flat config: lints js/ only, per-block globals
 ├── .prettierrc                   # singleQuote, semi, tabWidth: 2, trailingComma: es5
@@ -108,6 +112,11 @@ npm run lint                      # ESLint on js/
 npm run lint:fix                  # ESLint with --fix
 npm run format                    # Prettier on js/ and tests/
 npm run format:check              # Prettier check (no write)
+
+# Playwright release sync (see .claude/skills/playwright-release-sync/)
+npm run release:delta             # Release notes between pinned and latest Playwright
+npm run release:delta -- --check  # One-line pinned/latest/behind summary
+npm run check:links               # Every docs URL and #anchor resolves on playwright.dev (network)
 ```
 
 ---
@@ -300,8 +309,10 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 
 ### `cheatsheet-sync.yml`
 
-- Triggers: monthly cron (06:00 UTC on the 1st, tracking the Playwright release cadence) plus manual `workflow_dispatch`
-- Runs an agent to add commands introduced by new Playwright releases
+- Triggers: weekly cron (06:00 UTC Mondays) plus manual `workflow_dispatch` (optional `dry_run`)
+- A deterministic "Detect drift" step runs `release:delta --check` and `check:links` first; the agent only runs when Playwright is behind, a docs link is broken, or the run is manual
+- The agent follows the `playwright-release-sync` skill and opens a PR (draft + `[CI FAILING]` if a gate fails); it never merges
+- To sync locally, ask Claude Code to "sync the cheat sheet to the latest Playwright"; the same skill applies
 
 ---
 
@@ -309,7 +320,7 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 
 - **No build step.** Never introduce a bundler, transpiler, or import from a CDN. The app must work by opening `index.html` directly with a static file server.
 - **`npm run lint` covers `js/` only.** `eslint.config.js` does define a `tests/**/*.js` block, but the `lint` script runs `eslint js/`, so test files are Prettier-formatted and never linted in practice. Pass `npx eslint tests/` explicitly if you want them checked.
-- **`js/meta.json` is auto-updated by CI.** Do not manually edit it; the `stamp-date.yml` workflow overwrites it on every push to master.
+- **`js/meta.json` is auto-updated by CI.** Do not manually edit it; the `stamp-date.yml` workflow overwrites it on every push to master. Those stamp commits land only on master, so a stale date on `develop` is expected, and editing the file there makes the PR conflict.
 - **Supabase URLs are public but RLS-protected.** The Supabase project URL and anon key are intentionally embedded in client-side JS. RLS policies ensure users can only increment counts, never read raw rows directly (aggregates only).
 - **`data-integrity.spec.js` is your schema enforcer.** Run it after any change to `js/data/`. It validates required fields, the level enum, docs URLs, global name uniqueness, and the dash ban. It checks `code` length only — it does **not** parse the snippet, so a syntax error in an example will ship silently. Read your example back before committing.
 - **Mobile tests use real device emulation.** The `playwright.config.js` uses `iPhone 16` and `Pixel 7` device descriptors. UI tests written for desktop may fail on mobile — check responsive behaviour.

@@ -44,7 +44,7 @@ export default {
       level: 'intermediate',
       desc: 'Trigger an action, wait for the API response, then assert the UI updated. Prevents flaky tests from asserting before data loads.',
       tip: 'Wrap the click and waitForResponse in Promise.all so they start at the same time, otherwise you might miss the response event.',
-      docs: 'https://playwright.dev/docs/network#waiting-for-response',
+      docs: 'https://playwright.dev/docs/api/class-page#page-wait-for-response',
       code: `test('loads user list', async ({ page }) => {
   await page.goto('/users');
 

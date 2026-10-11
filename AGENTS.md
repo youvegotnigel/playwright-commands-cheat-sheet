@@ -78,11 +78,16 @@ import and add it to the array in `js/data/index.js`. Add a matching tile-gradie
 rule `.<cls> { … }` and (if you want it in the modal token theme) nothing else is
 needed. Note the visible command count in the meta bar updates automatically.
 
-**Keeping commands accurate (use Context7):** when adding or revising a command,
-verify the API, signature, and `docs` URL against the **current** Playwright docs.
-Use the Context7 MCP (`resolve-library-id` → `query-docs` for `/microsoft/playwright`)
-rather than relying on memory — the API changes between versions. The `docs` link
-should point to the specific Playwright page for that command.
+**Keeping commands accurate:** when adding or revising a command, verify the API,
+signature, and `docs` URL against what the pinned Playwright release **shipped**,
+not memory. In order of authority: the installed `.d.ts` files
+(`node_modules/playwright-core/types/types.d.ts`, `node_modules/playwright/types/test.d.ts`),
+`npx playwright <cmd> --help`, and the release notes at the release tag
+(`npm run release:delta`). Context7 (`/microsoft/playwright`) is useful for discovery,
+but it indexes `main`, which can describe unreleased APIs. The `docs` link should point
+to the specific Playwright page for that command; `npm run check:links` proves every
+anchor exists. For a whole release, follow the `playwright-release-sync` skill in
+`.claude/skills/`.
 
 ## Syntax highlighting
 

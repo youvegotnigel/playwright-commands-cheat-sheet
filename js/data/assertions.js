@@ -8,7 +8,7 @@ export default {
       name: 'toBeVisible()',
       level: 'beginner',
       desc: 'Asserts that an element is present in the DOM and visible on screen (not hidden by CSS).',
-      tip: 'The most common assertion. Playwright retries until it passes or times out. Use .not.toBeVisible() for the inverse.',
+      tip: 'The most common assertion. Playwright retries until it passes or times out. Use .not.toBeVisible() for the inverse. Since v1.64 an element inside a hidden iframe, for example one with visibility: hidden, counts as hidden.',
       docs: 'https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-be-visible',
       code: `await expect(page.locator('#success-msg')).toBeVisible();
 
@@ -260,7 +260,7 @@ await expect(page.locator('.banner')).toBeInViewport({ ratio: 0.5 });`,
       name: 'toHaveScreenshot()',
       level: 'advanced',
       desc: 'Captures a screenshot of an element or page and compares it pixel-by-pixel against a stored baseline image. Fails if they differ.',
-      tip: 'Run with --update-snapshots to generate the baseline on first run. Commit the snapshots. Use threshold option to allow minor rendering differences.',
+      tip: "Run with --update-snapshots to generate the baseline on first run. Commit the snapshots. Use threshold option to allow minor rendering differences. Name a snapshot .webp to store it as lossless WebP (v1.62+), or set expect: { toHaveScreenshot: { type: 'webp' } } in the config to make WebP the default for unnamed snapshots (v1.64+).",
       docs: 'https://playwright.dev/docs/api/class-pageassertions#page-assertions-to-have-screenshot-1',
       code: `// Full page visual regression
 await expect(page).toHaveScreenshot('dashboard.png');
@@ -303,7 +303,7 @@ expect(isLoggedIn).toBe(true);`,
       level: 'beginner',
       desc: 'Generic assertion that checks a string contains a substring, or an array contains an item. Not to be confused with toContainText() which targets DOM elements.',
       tip: 'Use on JavaScript values, not locators. For DOM text matching use toContainText(). For matching objects inside arrays, use expect.arrayContaining().',
-      docs: 'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-contain',
+      docs: 'https://playwright.dev/docs/api/class-genericassertions#generic-assertions-to-contain-1',
       code: `// String contains substring
 const url = page.url();
 expect(url).toContain('/dashboard');

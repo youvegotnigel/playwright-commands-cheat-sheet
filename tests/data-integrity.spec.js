@@ -408,6 +408,137 @@ test.describe('Playwright 1.62 entries', () => {
   });
 });
 
+test.describe('Playwright 1.64 entries', () => {
+  const itemIn = (page, cat, name) =>
+    page.evaluate(
+      ([c, n]) => categories.find((x) => x.cat === c)?.items.find((i) => i.name === n) ?? null,
+      [cat, name]
+    );
+
+  const added = [
+    ['Query', 'locator.within()', 'intermediate'],
+    ['Query', 'page.getByRef()', 'advanced'],
+    ['API', 'request.addCookies() / cookies()', 'intermediate'],
+    ['Config', 'projects (default)', 'intermediate'],
+    ['Config', 'video options (fps, action styles)', 'advanced'],
+    ['CLI', '--shuffle', 'intermediate'],
+    ['Utility', 'page.webmcp', 'advanced'],
+  ];
+
+  for (const [cat, name, level] of added) {
+    test(`"${name}" exists in ${cat} at level ${level} and is tagged v1.64`, async ({ page }) => {
+      const entry = await itemIn(page, cat, name);
+      expect(entry).not.toBeNull();
+      expect(entry.level).toBe(level);
+      expect(`${entry.desc} ${entry.tip}`).toContain('v1.64');
+    });
+  }
+
+  test('locator.within() shows that nth() resolves per parent', async ({ page }) => {
+    const { code, tip } = await itemIn(page, 'Query', 'locator.within()');
+    expect(code).toContain('.within(');
+    expect(code).toContain('.nth(2).within(');
+    expect(tip).toContain('each parent');
+  });
+
+  test("page.getByRef() takes its ref from an 'ai' mode aria snapshot", async ({ page }) => {
+    const { code } = await itemIn(page, 'Query', 'page.getByRef()');
+    expect(code).toContain("ariaSnapshot({ mode: 'ai' })");
+    expect(code).toContain("getByRef('e2')");
+  });
+
+  test('request cookie entry covers add, read and clear', async ({ page }) => {
+    const { code } = await itemIn(page, 'API', 'request.addCookies() / cookies()');
+    expect(code).toContain('request.addCookies(');
+    expect(code).toContain('request.cookies(');
+    expect(code).toContain('request.clearCookies(');
+  });
+
+  test('projects (default) opts a project out and shows how to select it', async ({ page }) => {
+    const { code } = await itemIn(page, 'Config', 'projects (default)');
+    expect(code).toContain('default: false');
+    expect(code).toContain('--project=');
+  });
+
+  test('video options use style, not the deprecated fontSize option', async ({ page }) => {
+    const { code } = await itemIn(page, 'Config', 'video options (fps, action styles)');
+    expect(code).toContain('fps:');
+    expect(code).toContain('style: {');
+    expect(code).not.toMatch(/fontSize\s*:/);
+  });
+
+  test('--shuffle shows how to reproduce a run from its seed', async ({ page }) => {
+    const { code } = await itemIn(page, 'CLI', '--shuffle');
+    expect(code).toMatch(/--shuffle \d+/);
+  });
+
+  test('page.webmcp enables the Chromium flag and calls a tool', async ({ page }) => {
+    const { code } = await itemIn(page, 'Utility', 'page.webmcp');
+    expect(code).toContain('--enable-features=WebMCP');
+    expect(code).toContain('page.webmcp.tools()');
+    expect(code).toContain('page.webmcp.callTool(');
+  });
+
+  test('--update-snapshots documents the bare-flag default and the v1.64 missing mode', async ({
+    page,
+  }) => {
+    const entry = await itemIn(page, 'CLI', '--update-snapshots');
+    expect(entry.desc).toContain('changed');
+    expect(entry.code).toContain('--update-snapshots=missing');
+    expect(entry.tip).toContain('v1.64');
+  });
+
+  test('test() locks shows the v1.64 describe.configure({ lock }) form', async ({ page }) => {
+    const { code } = await itemIn(page, 'Setup', 'test() locks');
+    expect(code).toContain("test.describe.configure({ lock: 'user-settings' })");
+  });
+});
+
+test.describe('Component Testing uses the stories model', () => {
+  // The @playwright/experimental-ct-* packages are removed. Only the migration
+  // entry may still show them, as its "before" half.
+  const MIGRATION = 'Migrating from experimental-ct';
+
+  test('no entry outside the migration guide imports an experimental-ct package', async ({
+    page,
+  }) => {
+    const offenders = await page.evaluate(
+      (migration) =>
+        categories
+          .find((c) => c.cat === 'Component Testing')
+          .items.filter((i) => i.name !== migration && i.code.includes('experimental-ct'))
+          .map((i) => i.name),
+      MIGRATION
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  test('mount() and update() take a story id and plain props, never JSX', async ({ page }) => {
+    const offenders = await page.evaluate(
+      (migration) =>
+        categories
+          .find((c) => c.cat === 'Component Testing')
+          .items.filter((i) => i.name !== migration && /(mount|update)\(\s*</.test(i.code))
+          .map((i) => i.name),
+      MIGRATION
+    );
+    expect(offenders).toEqual([]);
+  });
+
+  test('the migration entry maps the old JSX mount to a story id', async ({ page }) => {
+    const code = await page.evaluate(
+      (migration) =>
+        categories
+          .find((c) => c.cat === 'Component Testing')
+          .items.find((i) => i.name === migration)?.code ?? '',
+      MIGRATION
+    );
+    expect(code).toContain("from '@playwright/experimental-ct-react'");
+    expect(code).toContain("from '@playwright/test'");
+    expect(code).toMatch(/mount\('components\/[^']+'/);
+  });
+});
+
 test.describe('Reorganized categories', () => {
   // Helper: return the list of category names that contain a command.
   const homesOf = (page, name) =>
@@ -476,9 +607,10 @@ test.describe('Reorganized categories', () => {
   }
 
   // Still an exhaustive list, so unrelated entries cannot drift back into this
-  // category. apiResponse.timing() was added deliberately for Playwright v1.62:
-  // it reads the response returned by these same request.* calls.
-  test('the API category holds the request.* commands plus apiResponse.timing()', async ({
+  // category. apiResponse.timing() was added deliberately for Playwright v1.62
+  // (it reads the response returned by these same request.* calls), and the
+  // request cookie jar for v1.64 (it feeds those same calls).
+  test('the API category holds the request.* commands plus timing and cookies', async ({
     page,
   }) => {
     const names = await namesIn(page, 'API');
@@ -489,6 +621,7 @@ test.describe('Reorganized categories', () => {
       'request.patch()',
       'request.delete()',
       'apiResponse.timing()',
+      'request.addCookies() / cookies()',
     ]);
   });
 
@@ -527,13 +660,16 @@ test.describe('Reorganized categories', () => {
       'tracing.startChunk()', // new
     ],
     'Component Testing': [
-      'Setup (experimental-ct)',
+      'Setup (stories model)',
+      'Writing a story',
       'mount()',
       'Passing props',
       'Component events',
       'component.update()',
       'component.unmount()',
       'Asserting on a component',
+      'Network mocking in component tests',
+      'Migrating from experimental-ct',
     ],
     'Media & Audio': [
       'Assert audio is playing',

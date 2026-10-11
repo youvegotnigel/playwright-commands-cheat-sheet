@@ -13,11 +13,13 @@
     "lint": "eslint js/",
     "lint:fix": "eslint js/ --fix",
     "format": "prettier --write js/ tests/",
-    "format:check": "prettier --check js/ tests/"
+    "format:check": "prettier --check js/ tests/",
+    "check:links": "node .claude/skills/playwright-release-sync/scripts/check-docs-links.mjs",
+    "release:delta": "node .claude/skills/playwright-release-sync/scripts/release-delta.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "@playwright/test": "^1.63.0",
+    "@playwright/test": "^1.64.0",
     "eslint": "^9.39.4",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.3",

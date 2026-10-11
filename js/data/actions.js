@@ -97,7 +97,7 @@ await page.getByRole('link', { name: 'Settings' }).click();`,
       level: 'intermediate',
       desc: 'Double-clicks an element. Used for actions like entering edit mode on a table cell or selecting a word in text.',
       tip: 'Only use when the feature explicitly requires a double-click. For regular interactions, use click().',
-      docs: 'https://playwright.dev/docs/api/class-locator#locator-dbl-click',
+      docs: 'https://playwright.dev/docs/api/class-locator#locator-dblclick',
       code: `// Double-click a cell to enter edit mode
 await page.locator('td.editable').dblclick();
 await page.locator('td.editable input').fill('new value');`,
