@@ -97,17 +97,16 @@ jobs:
           prompt: |
             Follow the instructions in .github/prompts/cheatsheet-sync.md exactly.
             The DRY_RUN environment variable controls whether you open a PR.
-          # Opus for the highest-quality sync. A release is a judgement-heavy
-          # task: reading every Announcement and Breaking change, rewriting the
-          # entries they affect, and finding real docs anchors. The 1.62 and
-          # 1.63 updates missed the component testing migration and 41 broken
-          # anchors. The drift gate above means this only runs when there is
-          # work. For a cheaper run, drop to claude-sonnet-5-5.
-          # --max-turns: 120 once stranded a finished branch before
-          # `gh pr create`. The skill now also checks links and pins tests, so
-          # 250 leaves real headroom.
+          # Haiku 4.5 keeps a run well under $0.50, and the drift gate above means
+          # a no-drift week costs nothing. The human PR review, the full test gate
+          # and the skill's scripted checks cover the lower model tier.
+          # Bump --model to claude-sonnet-5-5 (or claude-opus-5-5) for more quality.
+          # --max-turns was 40 and that was too low: the 2026-08-01 run read the
+          # ~20 mandated files, verified via Context7, edited, linted, committed
+          # and pushed, then hit the limit before `gh pr create` and failed the
+          # job with the work stranded on the branch. 120 leaves real headroom.
           claude_args: |
-            --model claude-opus-5-5
-            --max-turns 250
+            --model claude-haiku-4-5
+            --max-turns 120
             --mcp-config .github/cheatsheet-sync.mcp.json
             --allowedTools Read,Edit,Write,Bash,mcp__context7
