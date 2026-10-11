@@ -87,5 +87,23 @@ if (t.domainLookupEnd !== -1) {
   console.log('dns ms', t.domainLookupEnd - t.domainLookupStart);
 }`,
     },
+
+    {
+      name: 'request.addCookies() / cookies()',
+      level: 'intermediate',
+      desc: 'Manages the cookie jar of an API request context: addCookies() seeds cookies, cookies() reads them, and clearCookies() removes them. Mirrors the BrowserContext cookie methods. Added in Playwright v1.64.',
+      tip: 'Seed a session cookie once and every following request.* call sends it, with no hand-built Cookie header. clearCookies() takes the same name, domain and path filters as context.clearCookies().',
+      docs: 'https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-add-cookies',
+      code: `await request.addCookies([
+  { name: 'session-id', value: '42', url: 'https://example.com' },
+]);
+
+// Sent automatically with every request from this context
+const res = await request.get('https://example.com/api/me');
+await expect(res).toBeOK();
+
+console.log(await request.cookies('https://example.com'));
+await request.clearCookies({ name: 'session-id' });`,
+    },
   ],
 };

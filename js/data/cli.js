@@ -19,7 +19,7 @@ export default {
       level: 'beginner',
       desc: 'Points Playwright to a config file other than the default playwright.config.ts. Useful when a project has multiple configs for different environments.',
       tip: 'Keep a separate config for smoke tests, visual tests, or a staging environment and switch between them with this flag.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --config=playwright.staging.config.ts
 # Use a non-default config file
 
@@ -45,7 +45,7 @@ npx playwright test login checkout
       level: 'beginner',
       desc: 'Runs only tests whose title matches the given string or pattern. Great for targeting a single test without changing the file.',
       tip: 'The match is a substring search, so -g "login" runs every test whose name contains "login". Use quotes around names with spaces.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test -g "user can log in"
 # Run tests matching this name
 
@@ -58,7 +58,7 @@ npx playwright test -g "login"
       level: 'intermediate',
       desc: 'Re-runs only the tests that failed in the previous run. Reads the last test result to know which tests to target.',
       tip: 'Speeds up the fix-run-fix cycle significantly. No need to wait for passing tests while you iterate on a failure.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --last-failed
 # Only re-runs tests that failed last time`,
     },
@@ -68,7 +68,7 @@ npx playwright test -g "login"
       level: 'intermediate',
       desc: 'Runs only tests in files that have changed since the last git commit. Compares against HEAD by default, or a specified branch.',
       tip: 'Ideal for a fast pre-commit check or a feature-branch PR workflow. Pass a branch name to compare against it instead of HEAD.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --only-changed
 # Run tests in files changed since last git commit
 
@@ -81,7 +81,7 @@ npx playwright test --only-changed=main
       level: 'intermediate',
       desc: 'Runs tests against a specific browser project defined in playwright.config.ts, such as chromium, firefox, or webkit.',
       tip: 'Use during development to get fast feedback in one browser, then run all projects in CI for full coverage.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --project=chromium
 # Run on Chromium only
 
@@ -94,7 +94,7 @@ npx playwright test --project=firefox --project=webkit
       level: 'intermediate',
       desc: 'Skips running any dependent projects defined under projects[].dependencies in playwright.config.ts. Runs only the specified project.',
       tip: 'Use when the dependency setup (such as a global auth project) has already run and you want to skip it to save time.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --project=chromium --no-deps
 # Run Chromium tests without running its dependent projects first`,
     },
@@ -104,7 +104,7 @@ npx playwright test --project=firefox --project=webkit
       level: 'beginner',
       desc: 'Runs tests with a visible browser window instead of headless. Lets you watch the test execute in real time.',
       tip: 'Use when writing or debugging a test. Not suitable for CI. Always run headless in pipelines.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --headed
 # Opens a real browser window during the run`,
     },
@@ -127,7 +127,7 @@ npx playwright test --ui --headed --workers=1
       level: 'intermediate',
       desc: 'Sets the number of parallel worker processes used to run tests. Defaults to half the CPU cores available.',
       tip: 'Increase workers to speed up a large suite on a powerful machine. Set to 1 when debugging race conditions or shared state.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --workers=4
 # Run with 4 parallel workers
 
@@ -140,7 +140,7 @@ npx playwright test --workers=1
       level: 'intermediate',
       desc: 'Forces all tests to run in parallel, overriding the fullyParallel setting in playwright.config.ts.',
       tip: 'Not recommended if tests share state or write to the same files. Pair with --workers to control the level of parallelism.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --fully-parallel
 # Run all tests in parallel regardless of config
 
@@ -163,7 +163,7 @@ npx playwright test --fully-parallel --workers=4
       level: 'intermediate',
       desc: 'Runs every test a specified number of times in a single run. Useful for detecting flaky tests that fail intermittently.',
       tip: 'Use --workers=1 during flakiness runs. Parallel workers can mask race conditions between iterations. Once the test is stable, scale workers back up.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --repeat-each=10
 # Run every test 10 times
 
@@ -184,11 +184,24 @@ npx playwright test --repeat-each=10 --project=chromium path/to/your.spec.ts`,
     },
 
     {
+      name: '--shuffle',
+      level: 'intermediate',
+      desc: 'Schedules tests in a random order to expose tests that accidentally depend on each other. Test files are shuffled, and so are individual tests in parallel mode. Added in Playwright v1.64.',
+      tip: 'The seed is printed at the start of the run. Pass it back to reproduce the exact order of a failing run. Tests that must run together, such as a serial suite, keep their order.',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
+      code: `npx playwright test --shuffle
+# Running 42 tests using 4 workers, shuffle seed 271828182
+
+npx playwright test --shuffle 271828182
+# Reproduce the same order with the printed seed`,
+    },
+
+    {
       name: '--max-failures',
       level: 'intermediate',
       desc: 'Stops the test run after a specified number of failures. Use -x as a shorthand to stop on the very first failure.',
       tip: 'Useful in CI to fail fast and save pipeline time. Avoid in local runs where you want to see all failures at once.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --max-failures=5
 # Stop after 5 test failures
 
@@ -201,7 +214,7 @@ npx playwright test -x
       level: 'intermediate',
       desc: 'Marks the whole run as failed if any test passes only on retry (a flaky test). Without it, a test that fails then passes on retry counts as a pass.',
       tip: 'Added in Playwright v1.52. Enable in CI to surface flakiness instead of silently hiding it behind retries. Equivalent to setting failOnFlakyTests: true in playwright.config.ts.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --fail-on-flaky-tests
 # Fail the run if any test only passes on retry
 
@@ -227,7 +240,7 @@ npx playwright test --timeout=0
       level: 'intermediate',
       desc: 'Sets a maximum total time in milliseconds for the entire test suite run. If the suite exceeds this limit it is cancelled.',
       tip: 'Set this in CI to prevent a hung test from blocking a pipeline indefinitely. The default is no global timeout.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --global-timeout=300000
 # Cancel the entire run if it exceeds 5 minutes
 
@@ -253,7 +266,7 @@ npx playwright test --reporter=dot
       level: 'intermediate',
       desc: 'Adds a reporter on top of the reporters already configured in playwright.config.ts, instead of replacing them like --reporter does. Accepts a comma-separated list of built-in names or paths to custom reporters. Added in Playwright v1.63.',
       tip: 'Use for a one-off run where you want an extra report without editing the config, such as appending a junit file for a single CI step while keeping the configured html reporter.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --add-reporter=junit
 # Keep the configured reporters and also emit a JUnit report
 
@@ -266,7 +279,7 @@ npx playwright test --add-reporter=./my-reporter.js
       level: 'intermediate',
       desc: 'Suppresses stdout and stderr output printed by tests. Test results are still reported; only test-produced output is hidden.',
       tip: 'Use in CI when tests are verbose and you only care about pass or fail. Combine with --reporter=dot for minimal output.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --quiet
 # Suppress stdout and stderr from tests
 
@@ -279,7 +292,7 @@ npx playwright test --quiet --reporter=dot
       level: 'intermediate',
       desc: 'Sets the directory where test artifacts such as screenshots, videos, and traces are saved. Defaults to test-results.',
       tip: 'Override this in CI to place artifacts in a known location for upload or archiving after the run.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --output=artifacts
 # Save test artifacts to the artifacts/ folder
 
@@ -359,7 +372,7 @@ PLAYWRIGHT_SKIP_BROWSER_GC=1 npx playwright install
       tip: 'Check this when debugging unexpected behaviour. The Playwright version and the browser binaries must be in sync.',
       docs: 'https://playwright.dev/docs/test-cli',
       code: `npx playwright --version
-# Prints the installed version, e.g. Version 1.63.0`,
+# Prints the installed version, e.g. Version 1.64.0`,
     },
 
     {
@@ -378,14 +391,20 @@ npx playwright test --help
     {
       name: '--update-snapshots',
       level: 'intermediate',
-      desc: 'Regenerates all screenshot and snapshot baselines. New screenshots replace existing ones without failing the test.',
-      tip: 'Run this after intentional UI changes to accept the new look. Always review the diff before committing updated snapshots.',
-      docs: 'https://playwright.dev/docs/test-snapshots',
+      desc: 'Writes actual results into the snapshot baselines. With no mode it uses changed: mismatched snapshots are updated and missing ones created. Other modes are all, missing and none.',
+      tip: "Since v1.64 the missing mode passes the run, so one CI job can create new baselines and verify existing ones. Without the flag the mode is 'default': missing snapshots are written but the test fails. Always review the diff before committing updated snapshots.",
+      docs: 'https://playwright.dev/docs/api/class-testconfig#test-config-update-snapshots',
       code: `npx playwright test --update-snapshots
-# Regenerate all snapshot baselines
+# Same as =changed: update mismatches, create missing
+
+npx playwright test --update-snapshots=all
+# Rewrite every snapshot the run touches
+
+npx playwright test --update-snapshots=missing
+# Only create missing baselines, and pass (v1.64+)
 
 npx playwright test -u -g "header"
-# Short form, update snapshots only for tests matching "header"`,
+# Short form, only for tests matching "header"`,
     },
 
     {
@@ -393,7 +412,7 @@ npx playwright test -u -g "header"
       level: 'intermediate',
       desc: 'Skips all screenshot and snapshot assertions during the run. Tests pass even if snapshots are missing or outdated.',
       tip: 'Use when running tests in an environment where snapshots have not been generated yet, or to isolate functional failures from visual ones.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --ignore-snapshots
 # Skip all snapshot comparisons during the run
 
@@ -406,7 +425,7 @@ npx playwright test --ignore-snapshots --project=chromium
       level: 'intermediate',
       desc: 'Runs only tests whose title matches the given regex pattern. More powerful than -g, supports full regex syntax.',
       tip: 'Combine with --project to run a filtered set on a specific browser. Use --grep-invert to exclude tests by pattern.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --grep "checkout"
 # Run tests matching "checkout"
 
@@ -419,7 +438,7 @@ npx playwright test --grep "login|checkout"
       level: 'intermediate',
       desc: 'Runs only tests whose title does not match the given regex pattern. The inverse of --grep.',
       tip: 'Playwright v1.61 added -G as a shorthand for --grep-invert (mirroring -g for --grep). Useful for excluding slow or tagged tests. Combine with --grep to apply both include and exclude filters at once.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --grep-invert "slow"
 # Run all tests except those matching "slow"
 
@@ -435,7 +454,7 @@ npx playwright test --grep "checkout" --grep-invert "admin"
       level: 'beginner',
       desc: 'Lists all tests that would be run without actually executing them. Useful for auditing test coverage.',
       tip: 'Combine with --grep or --project to preview exactly which tests will run before committing to a full run.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --list
 # Print all discovered test names without running them
 
@@ -461,7 +480,7 @@ npx playwright test --shard=2/3
       level: 'intermediate',
       desc: 'Exits with a success code even if no tests are found. Prevents false failures when a shard or filter matches nothing.',
       tip: 'Add this to CI shard jobs where some shards may legitimately have no tests to run, avoiding unnecessary pipeline failures.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --pass-with-no-tests
 # Exit 0 even if no tests are discovered
 
@@ -474,7 +493,7 @@ npx playwright test --shard=3/3 --pass-with-no-tests
       level: 'intermediate',
       desc: 'Fails the test run immediately if any test.only() or test.describe.only() is found in the code.',
       tip: 'Always enable this in CI. It prevents a developer accidentally committing a test.only() that silently skips the rest of the suite.',
-      docs: 'https://playwright.dev/docs/test-cli#reference',
+      docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --forbid-only
 # Fails fast if test.only() is found anywhere in the suite
 

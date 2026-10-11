@@ -101,6 +101,19 @@ await expect(page.getByTitle('Settings')).toBeVisible();`,
     },
 
     {
+      name: 'page.getByRef()',
+      level: 'advanced',
+      desc: "Locates an element by its aria ref, such as e2, taken from page.ariaSnapshot({ mode: 'ai' }). The ref resolves against the latest snapshot taken in the element's frame. Added in Playwright v1.64.",
+      tip: 'Built for agent and tooling workflows that read an AI snapshot and then act on it. Refs change between snapshots, so take a fresh snapshot before using one. In hand-written tests prefer getByRole(), which survives DOM changes.',
+      docs: 'https://playwright.dev/docs/api/class-page#page-get-by-ref',
+      code: `// The 'ai' snapshot mode tags every element with a ref
+const snapshot = await page.ariaSnapshot({ mode: 'ai' });
+// - button "Sign in" [ref=e2]
+
+await page.getByRef('e2').click();`,
+    },
+
+    {
       name: 'frameLocator()',
       level: 'advanced',
       desc: 'Switches the locator context into an iframe so you can interact with elements inside it.',
@@ -153,6 +166,21 @@ await page.locator('button').visible().click();
 
 // Equivalent to filter({ visible: true }), but reads more directly
 await page.locator('.tooltip').visible().click();`,
+    },
+
+    {
+      name: 'locator.within()',
+      level: 'intermediate',
+      desc: 'Scopes a locator you already have inside another one, reading in natural order: "this button, within that dialog". Matches this locator\'s elements inside each element the parent locator matches. Added in Playwright v1.64.',
+      tip: 'Relative locators such as nth(), first() and last() are resolved inside each parent separately, so getByRole("cell").nth(2).within(rows) is the third cell of every row, not the third cell in the table. That makes column queries a one-liner.',
+      docs: 'https://playwright.dev/docs/api/class-locator#locator-within',
+      code: `const saveButton = page.getByRole('button', { name: 'Save' });
+const dialog = page.getByTestId('settings-dialog');
+await saveButton.within(dialog).click();
+
+// The third cell of every row, not the third cell in the table
+const thirdColumn = page.getByRole('cell').nth(2).within(page.getByRole('row'));
+await expect(thirdColumn).toHaveText(['Apple', 'Banana', 'Cherry']);`,
     },
 
     {

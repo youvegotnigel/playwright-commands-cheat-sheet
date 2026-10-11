@@ -9,7 +9,7 @@ export default {
       level: 'beginner',
       desc: 'Sets the base URL for all page.goto() calls. Lets you use relative paths like /login instead of the full URL.',
       tip: 'Set this in playwright.config.ts and never hardcode URLs in tests. Change environments by changing baseURL in one place.',
-      docs: 'https://playwright.dev/docs/test-configuration#baseurl',
+      docs: 'https://playwright.dev/docs/api/class-testoptions#test-options-base-url',
       code: `// playwright.config.ts
 export default defineConfig({
   use: {
@@ -26,7 +26,7 @@ await page.goto('/login');`,
       level: 'beginner',
       desc: 'Sets the directory where Playwright looks for test files. Defaults to the directory of the config file.',
       tip: 'Keep tests separate from source code. A common convention is a top-level tests/ or e2e/ folder.',
-      docs: 'https://playwright.dev/docs/test-configuration#testdir',
+      docs: 'https://playwright.dev/docs/api/class-testconfig#test-config-test-dir',
       code: `// playwright.config.ts
 export default defineConfig({
   testDir: './tests',
@@ -114,7 +114,7 @@ export default defineConfig({
       name: 'projects',
       level: 'intermediate',
       desc: 'Defines multiple named test projects, each with its own browser and configuration. Use for cross-browser testing.',
-      tip: 'Each project can override any use option. Run a specific project with --project=chromium during development.',
+      tip: 'Each project can override any use option. Run a specific project with --project=chromium during development. Since v1.64 spreading devices[...] also forwards the screen size, so window.screen and media queries see the emulated screen. Set screen: undefined after the spread to opt out.',
       docs: 'https://playwright.dev/docs/test-projects',
       code: `// playwright.config.ts
 export default defineConfig({
@@ -166,7 +166,7 @@ export default async function() {
       level: 'intermediate',
       desc: 'Controls when screenshots and videos are captured. Set to only-on-failure to automatically capture evidence when a test fails.',
       tip: 'Both default to off. Enable in CI so you always have visual evidence for failures without slowing down passing tests. Playwright v1.61 added retry-aware video modes: retain-on-failure-and-retries, retain-on-first-failure, and on-all-retries.',
-      docs: 'https://playwright.dev/docs/test-configuration#automatic-screenshots',
+      docs: 'https://playwright.dev/docs/test-use-options#recording-options',
       code: `// playwright.config.ts
 export default defineConfig({
   use: {
@@ -176,6 +176,33 @@ export default defineConfig({
     // v1.61 added: 'retain-on-failure-and-retries'
     //              'retain-on-first-failure' | 'on-all-retries'
     video: 'retain-on-failure-and-retries',
+  },
+});`,
+    },
+
+    {
+      name: 'video options (fps, action styles)',
+      level: 'advanced',
+      desc: 'The object form of video sets the recording size, a custom frame rate, and how action decorations look. The fps option and CSS-styled decorations were added in Playwright v1.64.',
+      tip: 'Firefox and WebKit currently capture at most 25 frames per second, and higher fps and sizes cost more CPU to encode. show.actions.style takes plain CSS for the point marker, the target highlight and the action title, and replaces the deprecated fontSize option. Videos are VP9 encoded since v1.64.',
+      docs: 'https://playwright.dev/docs/api/class-testoptions#test-options-video',
+      code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    video: {
+      mode: 'retain-on-failure',
+      size: { width: 1920, height: 1080 },
+      fps: 60,
+      show: {
+        actions: {
+          style: {
+            point: 'width: 20px; height: 20px; border-radius: 50%; background: red',
+            highlight: 'outline: 2px solid #333; background: rgba(0, 128, 255, .15)',
+            title: 'font-size: 16px', // replaces the deprecated fontSize
+          },
+        },
+      },
+    },
   },
 });`,
     },
@@ -197,7 +224,7 @@ export default defineConfig({
       level: 'intermediate',
       desc: 'Customizes the HTML attribute that getByTestId() looks for. Defaults to data-testid.',
       tip: 'Change this if your codebase uses a different attribute like data-cy (Cypress) or data-qa.',
-      docs: 'https://playwright.dev/docs/api/class-testconfig#test-config-test-id-attribute',
+      docs: 'https://playwright.dev/docs/api/class-testoptions#test-options-test-id-attribute',
       code: `// playwright.config.ts
 export default defineConfig({
   use: {
@@ -234,6 +261,26 @@ export default defineConfig({
     { name: 'cleanup', testMatch: /global\\.teardown\\.ts/ },
   ],
 });`,
+    },
+
+    {
+      name: 'projects (default)',
+      level: 'intermediate',
+      desc: 'Setting default: false keeps a project in the config without running it on a plain npx playwright test. It still runs when selected with --project. Added in Playwright v1.64.',
+      tip: 'Configure every browser you care about but run only your favourite one locally, then select them all on CI with --project="*". Global setup and reporters can read the selected projects from config.filteredProjects.',
+      docs: 'https://playwright.dev/docs/api/class-testproject#test-project-default',
+      code: `// playwright.config.ts
+export default defineConfig({
+  projects: [
+    { name: 'chromium', use: devices['Desktop Chrome'] },
+    { name: 'firefox', use: devices['Desktop Firefox'], default: false },
+    { name: 'webkit', use: devices['Desktop Safari'], default: false },
+  ],
+});
+
+// npx playwright test                    runs chromium only
+// npx playwright test --project=firefox  runs firefox
+// npx playwright test --project="*"      runs all three, e.g. on CI`,
     },
 
     {

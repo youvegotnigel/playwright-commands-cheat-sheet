@@ -319,7 +319,7 @@ test.describe.fixme('Legacy export', () => {
       name: 'test() locks',
       level: 'advanced',
       desc: 'Declares one or more named locks via the { lock } option. Tests sharing a lock name never run at the same time, even across files, worker processes, and projects, while every other test keeps running in parallel. Added in Playwright v1.63.',
-      tip: 'Use for tests that touch a shared resource that cannot handle concurrent access, such as a shared test account or a rate-limited external service. Prefer this over test.describe.configure({ mode: "serial" }), which only serializes within one file.',
+      tip: 'Use for tests that touch a shared resource that cannot handle concurrent access, such as a shared test account or a rate-limited external service. Prefer this over test.describe.configure({ mode: "serial" }), which only serializes within one file. Since v1.64 test.describe.configure({ lock }) applies a lock to every test in a file or group.',
       docs: 'https://playwright.dev/docs/test-parallel#test-locks',
       code: `// settings.spec.ts
 test('update user settings', { lock: 'user-settings' }, async ({ page }) => {
@@ -334,7 +334,10 @@ test('rename user', { lock: 'user-settings' }, async ({ page }) => {
 // Multiple locks on one test
 test('migrate account', { lock: ['user-settings', 'billing'] }, async ({ page }) => {
   // ...
-});`,
+});
+
+// Lock every test in this file or group (v1.64+)
+test.describe.configure({ lock: 'user-settings' });`,
     },
   ],
 };

@@ -39,7 +39,7 @@ test('user can log in', async ({ loginPage }) => {
       level: 'advanced',
       desc: 'Code before await use() runs as setup, code after it runs as teardown. The value passed to use() is what the test receives.',
       tip: 'Everything after use() runs even if the test fails, making it the right place to clean up resources like temp files, DB rows, or API-created entities.',
-      docs: 'https://playwright.dev/docs/test-fixtures#fixtures',
+      docs: 'https://playwright.dev/docs/test-fixtures#creating-a-fixture',
       code: `export const test = base.extend<{ user: User }>({
   user: async ({ request }, use) => {
     // Setup: create a user via API
@@ -107,7 +107,7 @@ test('user can log in', async ({ loginPage }) => {
       level: 'advanced',
       desc: 'Fixtures declared with { option: true } become configurable from playwright.config via the use block, letting projects set different values for the same fixture.',
       tip: 'Use option fixtures for per-project configuration like a default user role or feature flag. Set them under projects[].use in the config.',
-      docs: 'https://playwright.dev/docs/test-parametrize#parametrized-projects',
+      docs: 'https://playwright.dev/docs/test-parameterize#parameterized-projects',
       code: `// fixtures.ts
 export const test = base.extend<{ role: string }>({
   role: ['guest', { option: true }],
