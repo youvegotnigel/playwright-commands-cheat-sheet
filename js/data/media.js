@@ -2,7 +2,7 @@
 export default {
   cat: 'Media & Audio',
   cls: 'media',
-  color: '#f43f5e',
+  color: '#e2f07d',
   items: [
     {
       name: 'Assert audio is playing',

@@ -2,7 +2,7 @@
 export default {
   cat: 'Config',
   cls: 'config',
-  color: '#6366f1',
+  color: '#72a0f5',
   items: [
     {
       name: 'baseURL',

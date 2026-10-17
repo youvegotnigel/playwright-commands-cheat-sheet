@@ -2,7 +2,7 @@
 export default {
   cat: 'Fixtures',
   cls: 'fixture',
-  color: '#84cc16',
+  color: '#f0777a',
   items: [
     {
       name: 'test.extend()',

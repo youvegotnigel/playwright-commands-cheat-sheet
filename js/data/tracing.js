@@ -2,7 +2,7 @@
 export default {
   cat: 'Tracing & Debugging',
   cls: 'tracing',
-  color: '#64748b',
+  color: '#f4c43a',
   items: [
     {
       name: 'pause()',

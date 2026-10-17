@@ -2,7 +2,7 @@
 export default {
   cat: 'Component Testing',
   cls: 'component',
-  color: '#d946ef',
+  color: '#ffb5cd',
   items: [
     {
       name: 'Setup (stories model)',

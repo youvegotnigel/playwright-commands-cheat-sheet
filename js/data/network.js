@@ -2,7 +2,7 @@
 export default {
   cat: 'Network & Mocking',
   cls: 'network',
-  color: '#0d9488',
+  color: '#f4e886',
   items: [
     {
       name: 'route()',

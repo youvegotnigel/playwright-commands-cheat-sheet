@@ -2,7 +2,7 @@
 export default {
   cat: 'Utility',
   cls: 'utility',
-  color: '#a855f7',
+  color: '#84d987',
   items: [
     {
       name: 'goto()',

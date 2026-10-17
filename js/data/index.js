@@ -22,20 +22,26 @@ import cli from './cli.js';
 
 /** @type {Category[]} */
 export const categories = [
+  // Setup (blue)
   config,
   setup,
-  actions,
-  queries,
-  assertions,
-  utility,
-  network,
-  api,
-  accessibility,
-  fixtures,
-  clock,
-  tracing,
-  component,
-  media,
-  patterns,
   cli,
+  // Finding (cyan)
+  queries,
+  accessibility,
+  // Acting (green)
+  actions,
+  utility,
+  clock,
+  media,
+  // Debugging (yellow)
+  tracing,
+  network,
+  // Checking (orange)
+  assertions,
+  api,
+  // Structure (rose)
+  fixtures,
+  patterns,
+  component,
 ];

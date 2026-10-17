@@ -2,7 +2,7 @@
 export default {
   cat: 'Accessibility',
   cls: 'accessibility',
-  color: '#10b981',
+  color: '#75ecde',
   items: [
     {
       name: 'toMatchAriaSnapshot()',

@@ -2,7 +2,7 @@
 export default {
   cat: 'API',
   cls: 'api',
-  color: '#ef4444',
+  color: '#feb671',
   items: [
     {
       name: 'request.get()',

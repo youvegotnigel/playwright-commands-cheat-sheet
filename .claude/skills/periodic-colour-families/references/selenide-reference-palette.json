@@ -1,0 +1,12 @@
+{
+  "text": "#0f172a",
+  "families": [
+    { "name": "Setup", "fills": [["config", "#72a0f5"], ["navigation", "#76bafe"], ["remote", "#8ad1ff"], ["cli", "#a3e7ff"]] },
+    { "name": "Finding", "fills": [["selector", "#3bcddc"], ["collection", "#75ecde"]] },
+    { "name": "Acting", "fills": [["action", "#3ec87d"], ["window", "#84d987"], ["file", "#b8e688"], ["javascript", "#e2f07d"]] },
+    { "name": "Debugging", "fills": [["report", "#f4c43a"], ["network", "#f4e886"]] },
+    { "name": "Checking", "fills": [["condition", "#f98e52"], ["collection-condition", "#fca25f"], ["wait", "#feb671"]] },
+    { "name": "Structure", "fills": [["page-object", "#f0777a"], ["pattern", "#f996a9"], ["framework", "#ffb5cd"]] },
+    { "name": "Mobile", "fills": [["appium-setup", "#9e92f3"], ["mobile-selector", "#c79ff4"], ["mobile-gesture", "#e9aff2"], ["mobile-context", "#ffc2e9"]] }
+  ]
+}

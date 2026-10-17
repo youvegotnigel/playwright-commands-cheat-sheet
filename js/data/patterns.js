@@ -2,7 +2,7 @@
 export default {
   cat: 'Patterns',
   cls: 'pattern',
-  color: '#ec4899',
+  color: '#f996a9',
   items: [
     {
       name: 'Login flow',

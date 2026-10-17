@@ -1,0 +1,35 @@
+{
+  "text": "#0f172a",
+  "secondaryOpacity": 0.8,
+  "families": [
+    { "name": "Setup", "fills": [["config", "#72a0f5"], ["setup", "#76bafe"], ["cli", "#a3e7ff"]] },
+    { "name": "Finding", "fills": [["query", "#3bcddc"], ["accessibility", "#75ecde"]] },
+    { "name": "Acting", "fills": [["action", "#3ec87d"], ["utility", "#84d987"], ["clock", "#b8e688"], ["media", "#e2f07d"]] },
+    { "name": "Debugging", "fills": [["tracing", "#f4c43a"], ["network", "#f4e886"]] },
+    { "name": "Checking", "fills": [["assertion", "#f98e52"], ["api", "#feb671"]] },
+    { "name": "Structure", "fills": [["fixture", "#f0777a"], ["pattern", "#f996a9"], ["component", "#ffb5cd"]] }
+  ],
+  "pairs": [
+    ["#e2e8f0", "#0f172a", "body text on page"],
+    ["#e2e8f0", "#1e293b", "body text on modal / raised panel"],
+    ["#cbd5e1", "#0f172a", "filter pill label"],
+    ["#94a3b8", "#0f172a", "secondary text on page"],
+    ["#94a3b8", "#1e293b", "secondary text on modal (desc, tip, meta-badge key)"],
+    ["#94a3b8", "#020617", "secondary text on header / code block"],
+    ["#2ead33", "#020617", "header title"],
+    ["#72a0f5", "#0f172a", "darkest category colour as group-header text / filter dot"],
+    ["#f0777a", "#0f172a", "lowest-contrast category colour as group-header text"],
+    ["#38bdf8", "#0f172a", "accent: tip label, tip border"],
+    ["#000000", "#38bdf8", "Copy button label"],
+    ["#020617", "#a855f7", "meta-badge value (lowest of the four)"],
+    ["#4ade80", "#1e293b", "level badge: beginner"],
+    ["#fb923c", "#1e293b", "level badge: intermediate"],
+    ["#c084fc", "#1e293b", "level badge: advanced"],
+    ["#38bdf8", "#020617", "syntax: keyword"],
+    ["#4ade80", "#020617", "syntax: string"],
+    ["#c084fc", "#020617", "syntax: api"],
+    ["#fb923c", "#020617", "syntax: number"],
+    ["#fbbf24", "#020617", "syntax: function"],
+    ["#94a3b8", "#020617", "syntax: comment (raised from #64748b)"]
+  ]
+}
