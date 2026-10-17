@@ -120,15 +120,17 @@ function renderGrouped(items, container) {
 
 /* ── TILE ─────────────────────────────────────────────────────── */
 function levelDots(level) {
-  if (level === 'beginner') return '<span style="color:#4ade80">●</span>';
-  if (level === 'intermediate') return '<span style="color:#fb923c">●●</span>';
-  if (level === 'advanced') return '<span style="color:#c084fc">●●●</span>';
+  // Dots inherit the tile text colour; the count carries the level.
+  if (level === 'beginner') return '<span>●</span>';
+  if (level === 'intermediate') return '<span>●●</span>';
+  if (level === 'advanced') return '<span>●●●</span>';
   return '';
 }
 
 function makeTile(item, n) {
   const div = document.createElement('div');
   div.className = `tile ${item.cls}`;
+  div.tabIndex = 0;
   const popularBadge = popularCmds.isPopular(popularCmds.commandId(item))
     ? '<span class="tile-popular" title="Popular">🔥</span>'
     : '';
@@ -140,6 +142,12 @@ function makeTile(item, n) {
       <span class="tile-name">${item.name}</span>
     </div>`;
   div.addEventListener('click', () => openModal(item));
+  div.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openModal(item);
+    }
+  });
   return div;
 }
 

@@ -34,7 +34,7 @@ A static, single-page interactive web dashboard providing a quick reference for 
 ```
 playwright-commands-cheat-sheet/
 ├── index.html                    # Main markup: header, meta-bar, search, filters, grid, modal
-├── style.css                     # Single stylesheet: dark theme, category tile gradients
+├── style.css                     # Single stylesheet: dark theme, flat pastel category tile fills
 ├── js/
 │   ├── app.js                    # Primary logic: render, filter, search, modal, meta-bar (~350 lines)
 │   ├── highlight.js              # Dependency-free syntax highlighter (JS/TS + shell, ~130 lines)
@@ -142,8 +142,8 @@ Every command lives in a category module under `js/data/`. Each file exports a s
 /** @type {import('./index.js').Category} */
 export default {
   cat: 'Display Name',     // shown in filter buttons and tiles
-  cls: 'css-class',        // matches CSS class for tile gradient
-  color: '#hexcolor',      // 6-digit hex, validated by the test suite
+  cls: 'css-class',        // matches CSS class for the tile fill
+  color: '#hexcolor',      // 6-digit hex tile fill, validated by the test suite
   items: [
     {
       name: 'commandName()',                    // display name, globally unique
@@ -178,9 +178,18 @@ Because `code` is a template literal, escape any literal `${` as `\${` and any b
 1. Create `js/data/mycategory.js` with `export default { cat, cls, color, items }`
 2. In `js/data/index.js`, add **both** the `import` line and an entry in the exported
    `categories` array — array position controls display and filter-button order
-3. Add a gradient rule in `style.css` targeting `.mycategory` tiles, matching the
-   category's `color` as the gradient start
-4. Run `npm test` — `data-integrity.spec.js` will catch schema errors
+3. Add a flat fill rule `.mycategory { background: <color>; }` in `style.css`, under the
+   comment for its family, using the same hex as `color`
+4. Add `['mycategory', '<color>']` to `PALETTE` in `tests/tile-colours.spec.js` at its display
+   position
+5. Run `npm test` — `data-integrity.spec.js` and `tile-colours.spec.js` will catch errors
+
+**Colour families.** Categories are grouped into families (Setup blue, Finding cyan, Acting
+green, Debugging yellow, Checking orange, Structure rose). Put the new category in the right
+family and keep each family contiguous in `index.js`. Reuse a shade from the
+`periodic-colour-families` skill, or generate one with it. Every fill must have at least 4.5:1
+contrast against the tile text `#0f172a`. Tiles are flat (no gradients) and square, and all tile
+text is `#0f172a`. Families are colour and order only, not a data field.
 
 The filter button is built automatically from the `categories` array (`buildFilters()` in
 `app.js`), so no markup change is needed in `index.html`.

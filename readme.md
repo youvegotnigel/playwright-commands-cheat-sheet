@@ -96,7 +96,7 @@ Finally, add the corresponding CSS class in [style.css](style.css):
 
 ```css
 .category-css-class {
-  background: linear-gradient(135deg, #color1, #color2);
+  background: #color; /* flat pastel fill, at least 4.5:1 against #0f172a */
 }
 ```
 

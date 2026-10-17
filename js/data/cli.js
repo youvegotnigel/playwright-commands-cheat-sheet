@@ -2,7 +2,7 @@
 export default {
   cat: 'CLI',
   cls: 'cli',
-  color: '#f59e0b',
+  color: '#a3e7ff',
   items: [
     {
       name: 'npx playwright test',

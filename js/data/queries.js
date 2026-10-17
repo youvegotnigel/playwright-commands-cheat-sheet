@@ -2,7 +2,7 @@
 export default {
   cat: 'Query',
   cls: 'query',
-  color: '#3b82f6',
+  color: '#3bcddc',
   items: [
     {
       name: 'locator()',

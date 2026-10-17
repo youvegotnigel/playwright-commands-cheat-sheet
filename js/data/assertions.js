@@ -2,7 +2,7 @@
 export default {
   cat: 'Assertions',
   cls: 'assertion',
-  color: '#fb923c',
+  color: '#f98e52',
   items: [
     {
       name: 'toBeVisible()',

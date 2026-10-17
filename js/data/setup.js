@@ -2,7 +2,7 @@
 export default {
   cat: 'Setup',
   cls: 'setup',
-  color: '#06b6d4',
+  color: '#76bafe',
   items: [
     {
       name: 'test()',

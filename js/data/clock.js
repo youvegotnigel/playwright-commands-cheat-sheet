@@ -2,7 +2,7 @@
 export default {
   cat: 'Clock & Time',
   cls: 'clock',
-  color: '#38bdf8',
+  color: '#b8e688',
   items: [
     {
       name: 'clock.install()',

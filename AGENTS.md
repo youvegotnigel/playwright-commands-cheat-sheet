@@ -74,9 +74,11 @@ comma, or colon to break a sentence, and a hyphen `-` for ranges (e.g. `200-299`
 This is enforced by `data-integrity.spec.js`, so a stray dash fails the test suite.
 
 **To add a new category:** create `js/data/<name>.js` exporting a `Category`, then
-import and add it to the array in `js/data/index.js`. Add a matching tile-gradient
-rule `.<cls> { … }` and (if you want it in the modal token theme) nothing else is
-needed. Note the visible command count in the meta bar updates automatically.
+import and add it to the array in `js/data/index.js`. Add a matching flat tile-fill
+rule `.<cls> { background: <color>; }` under its family comment in `style.css`, and add
+`[cls, color]` to `PALETTE` in `tests/tile-colours.spec.js`. Keep each colour family
+contiguous in `index.js` and use a shade from the `periodic-colour-families` skill. Note the
+visible command count in the meta bar updates automatically.
 
 **Keeping commands accurate:** when adding or revising a command, verify the API,
 signature, and `docs` URL against what the pinned Playwright release **shipped**,

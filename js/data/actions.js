@@ -2,7 +2,7 @@
 export default {
   cat: 'Action',
   cls: 'action',
-  color: '#22c55e',
+  color: '#3ec87d',
   items: [
     {
       name: 'click()',
