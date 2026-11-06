@@ -494,6 +494,125 @@ test.describe('Playwright 1.64 entries', () => {
   });
 });
 
+test.describe('Playwright 1.65 entries', () => {
+  const itemIn = (page, cat, name) =>
+    page.evaluate(
+      ([c, n]) => categories.find((x) => x.cat === c)?.items.find((i) => i.name === n) ?? null,
+      [cat, name]
+    );
+
+  const added = [
+    ['Setup', 'test.fail()', 'intermediate'],
+    ['Setup', 'test() locks (-exclusive-)', 'advanced'],
+    ['Config', 'reporter (failures, onlyFailures)', 'intermediate'],
+    ['CLI', 'bunx --bun playwright test', 'advanced'],
+    ['CLI', 'clear-cache', 'intermediate'],
+    ['Utility', 'cdpSession.send()', 'advanced'],
+  ];
+
+  for (const [cat, name, level] of added) {
+    test(`"${name}" exists in ${cat} at level ${level} and is tagged v1.65`, async ({ page }) => {
+      const entry = await itemIn(page, cat, name);
+      expect(entry).not.toBeNull();
+      expect(entry.level).toBe(level);
+      expect(`${entry.desc} ${entry.tip}`).toContain('v1.65');
+    });
+  }
+
+  // v1.65 lets test.skip/fixme/fail/slow take a description alone.
+  const descriptionOnly = [
+    ['test.skip()', "test.skip('Not implemented yet')"],
+    ['test.fixme()', "test.fixme('Refunds crash"],
+    ['test.fail()', "test.fail('Contrast bug"],
+    ['test.slow()', "test.slow('Renders a 50 MB export')"],
+  ];
+
+  for (const [name, call] of descriptionOnly) {
+    test(`${name} shows the v1.65 description-only call`, async ({ page }) => {
+      const { code } = await itemIn(page, 'Setup', name);
+      expect(code).toContain(call);
+    });
+  }
+
+  test('the exclusive lock uses the built-in -exclusive- name', async ({ page }) => {
+    const { code } = await itemIn(page, 'Setup', 'test() locks (-exclusive-)');
+    expect(code).toContain("{ lock: '-exclusive-' }");
+  });
+
+  test('the failures reporter entry pairs it with onlyFailures', async ({ page }) => {
+    const { code } = await itemIn(page, 'Config', 'reporter (failures, onlyFailures)');
+    expect(code).toContain("['failures']");
+    expect(code).toContain("['html', { onlyFailures: true }]");
+  });
+
+  test('--reporter lists the failures reporter', async ({ page }) => {
+    const { code } = await itemIn(page, 'CLI', '--reporter');
+    expect(code).toContain('--reporter=failures');
+  });
+
+  test('the Bun entry keeps the required --bun flag', async ({ page }) => {
+    const { code, tip } = await itemIn(page, 'CLI', 'bunx --bun playwright test');
+    expect(code).toContain('bunx --bun playwright test');
+    expect(tip).toContain('still runs on Node.js');
+  });
+
+  test('clear-cache shows PLAYWRIGHT_TRANSFORM_CACHE_DIR', async ({ page }) => {
+    const { code } = await itemIn(page, 'CLI', 'clear-cache');
+    expect(code).toContain('npx playwright clear-cache');
+    expect(code).toContain('PLAYWRIGHT_TRANSFORM_CACHE_DIR=');
+  });
+
+  test('cdpSession.send() passes options as the third argument', async ({ page }) => {
+    const { code } = await itemIn(page, 'Utility', 'cdpSession.send()');
+    expect(code).toContain('newCDPSession(page)');
+    expect(code).toContain("send('Performance.enable', undefined, { timeout: 5000 })");
+    expect(code).toContain('signal: AbortSignal.timeout(');
+  });
+
+  test('Page Object Model assigns locators in the constructor', async ({ page }) => {
+    const { code, tip } = await itemIn(page, 'Patterns', 'Page Object Model');
+    expect(code).toContain("this.submit = page.getByRole('button'");
+    // A field initializer that reads this.page throws under useDefineForClassFields.
+    expect(code).not.toMatch(/^\s*(readonly\s+)?\w+\s*=\s*this\.page\./m);
+    expect(tip).toContain('useDefineForClassFields');
+  });
+
+  test('--pass-with-no-tests no longer says an empty shard needs the flag', async ({ page }) => {
+    const { code, tip } = await itemIn(page, 'CLI', '--pass-with-no-tests');
+    expect(code).not.toContain('Safe to use when the last shard might be empty');
+    expect(tip).toContain('an empty shard passes');
+  });
+
+  test('--shard points at the merge-reports command, not a flag', async ({ page }) => {
+    const { tip } = await itemIn(page, 'CLI', '--shard');
+    expect(tip).not.toContain('--merge-reports');
+    expect(tip).toContain('npx playwright merge-reports');
+  });
+
+  test('request.get() shows params appending to the existing query', async ({ page }) => {
+    const { code } = await itemIn(page, 'API', 'request.get()');
+    expect(code).toContain("request.get('/api/users?role=admin', { params: 'page=2' })");
+    expect(code).toContain('/api/users?role=admin&page=2');
+  });
+
+  // Actions that wait for "not inert" since v1.65, per playwright.dev/docs/actionability.
+  for (const name of [
+    'click()',
+    'dblclick()',
+    'check()',
+    'uncheck()',
+    'tap()',
+    'fill()',
+    'clear()',
+    'selectOption()',
+  ]) {
+    test(`${name} tip notes the v1.65 not-inert wait`, async ({ page }) => {
+      const { tip } = await itemIn(page, 'Action', name);
+      expect(tip).toMatch(/Since v1\.65 .*not inert/);
+    });
+  }
+});
+
 test.describe('Component Testing uses the stories model', () => {
   // The @playwright/experimental-ct-* packages are removed. Only the migration
   // entry may still show them, as its "before" half.

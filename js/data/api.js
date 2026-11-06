@@ -8,13 +8,17 @@ export default {
       name: 'request.get()',
       level: 'beginner',
       desc: 'Sends an HTTP GET request from within the test. Returns a response object you can assert against.',
-      tip: 'Use to verify API behaviour directly, or to fetch data before asserting on it without going through the UI.',
+      tip: 'Use to verify API behaviour directly, or to fetch data before asserting on it without going through the UI. Since v1.65 a string or URLSearchParams params value is appended to the query the URL already has, instead of replacing it.',
       docs: 'https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-get',
       code: `const res = await request.get('/api/users');
 expect(res.status()).toBe(200);
 
 const body = await res.json();
-expect(body).toHaveLength(10);`,
+expect(body).toHaveLength(10);
+
+// Query params append to the URL's own query (v1.65+)
+await request.get('/api/users?role=admin', { params: 'page=2' });
+// GET /api/users?role=admin&page=2`,
     },
 
     {
@@ -92,7 +96,7 @@ if (t.domainLookupEnd !== -1) {
       name: 'request.addCookies() / cookies()',
       level: 'intermediate',
       desc: 'Manages the cookie jar of an API request context: addCookies() seeds cookies, cookies() reads them, and clearCookies() removes them. Mirrors the BrowserContext cookie methods. Added in Playwright v1.64.',
-      tip: 'Seed a session cookie once and every following request.* call sends it, with no hand-built Cookie header. clearCookies() takes the same name, domain and path filters as context.clearCookies().',
+      tip: 'Seed a session cookie once and every following request.* call sends it, with no hand-built Cookie header. clearCookies() takes the same name, domain and path filters as context.clearCookies(). Since v1.65 cookies(url) matches by RFC 6265: host-only cookies are not returned for subdomains, and a Path=/api cookie does not match /apiv2.',
       docs: 'https://playwright.dev/docs/api/class-apirequestcontext#api-request-context-add-cookies',
       code: `await request.addCookies([
   { name: 'session-id', value: '42', url: 'https://example.com' },

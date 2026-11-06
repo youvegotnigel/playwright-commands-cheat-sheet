@@ -8,7 +8,7 @@ export default {
       name: 'toMatchAriaSnapshot()',
       level: 'intermediate',
       desc: 'Asserts the ARIA structure of an element matches a YAML snapshot. Captures roles, names, and states in a human-readable format.',
-      tip: 'Run with --update-snapshots to generate the baseline. Commit the snapshot files. Great for catching unintended ARIA regressions. Added in v1.50.',
+      tip: 'Run with --update-snapshots to generate the baseline. Commit the snapshot files. Great for catching unintended ARIA regressions. Added in v1.50. Since v1.65 text the browser does not render (unslotted text, text directly inside a closed <details>) is left out of names and snapshots, so update baselines that captured it.',
       docs: 'https://playwright.dev/docs/aria-snapshots',
       code: `// Generate snapshot on first run: npx playwright test --update-snapshots
 await expect(page.locator('nav')).toMatchAriaSnapshot(\`
@@ -69,7 +69,7 @@ await expect(page.locator('.alert')).toHaveRole('alert');`,
       name: 'locator.ariaSnapshot()',
       level: 'advanced',
       desc: 'Returns the ARIA structure of an element as a YAML string. Use to inspect the accessibility tree during test development.',
-      tip: 'Call this when authoring a toMatchAriaSnapshot() test to copy the output as your baseline. Shows what screen readers see.',
+      tip: 'Call this when authoring a toMatchAriaSnapshot() test to copy the output as your baseline. Shows what screen readers see. Since v1.65 it leaves out text the browser does not render, such as text directly inside a closed <details>.',
       docs: 'https://playwright.dev/docs/aria-snapshots#generating-snapshots',
       code: `// Print the ARIA tree of the navigation to the console
 const snapshot = await page.locator('nav').ariaSnapshot();

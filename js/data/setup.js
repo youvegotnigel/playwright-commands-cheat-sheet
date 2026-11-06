@@ -148,7 +148,7 @@ test.describe.only('Login', () => {
       name: 'test.skip()',
       level: 'beginner',
       desc: 'Skips a test unconditionally or based on a condition. Skipped tests appear in the report but are not executed.',
-      tip: 'Use conditionally to skip tests that only apply to certain browsers or environments. Works on describe blocks too.',
+      tip: 'Use conditionally to skip tests that only apply to certain browsers or environments. Works on describe blocks too. Since v1.65 test.skip(description) inside a test skips it with just a reason, recorded in the test annotation.',
       docs: 'https://playwright.dev/docs/api/class-test#test-skip',
       code: `// Unconditional skip
 test.skip('not ready yet', async ({ page }) => { /* ... */ });
@@ -157,6 +157,11 @@ test.skip('not ready yet', async ({ page }) => { /* ... */ });
 test('safari only', async ({ page, browserName }) => {
   test.skip(browserName !== 'webkit', 'Only runs on Safari');
   await page.goto('/');
+});
+
+// Skip from inside the body with only a reason (v1.65+)
+test('upload a file', async ({ page }) => {
+  test.skip('Not implemented yet');
 });`,
     },
 
@@ -164,11 +169,41 @@ test('safari only', async ({ page, browserName }) => {
       name: 'test.fixme()',
       level: 'intermediate',
       desc: 'Marks a test as broken and expected to fail. Playwright skips it and shows it in the report as a known issue.',
-      tip: 'Use instead of test.skip() when the test is intentionally failing due to a known bug. Makes it clear the failure is tracked.',
+      tip: 'Use instead of test.skip() when the test is intentionally failing due to a known bug. Makes it clear the failure is tracked. Since v1.65 test.fixme(description) inside a test takes the reason alone.',
       docs: 'https://playwright.dev/docs/api/class-test#test-fixme',
       code: `test.fixme('checkout flow is broken, see JIRA-1234', async ({ page }) => {
   await page.goto('/checkout');
   // This test is known to fail and is skipped until fixed
+});
+
+// Or from inside the body, with only a reason (v1.65+)
+test('refund flow', async ({ page }) => {
+  test.fixme('Refunds crash the payment stub, see JIRA-1300');
+});`,
+    },
+
+    {
+      name: 'test.fail()',
+      level: 'intermediate',
+      desc: 'Marks a test as "should fail". Playwright runs it and checks that it actually fails, so the test documents functionality that is broken until it is fixed.',
+      tip: 'Unlike test.fixme(), the test still runs, and Playwright fails it once it starts passing, so you notice when the bug is fixed. Since v1.65 test.fail(description) inside a test takes the reason alone, recorded in the test annotation.',
+      docs: 'https://playwright.dev/docs/api/class-test#test-fail',
+      code: `// Known bug: this assertion fails until the fix ships
+test.fail('totals include tax', async ({ page }) => {
+  await page.goto('/cart');
+  await expect(page.getByTestId('total')).toHaveText('$10.80');
+});
+
+// Only fails on some browsers
+test('dark mode colours', async ({ page, browserName }) => {
+  test.fail(browserName === 'webkit', 'WebKit ignores color-scheme');
+  // ...
+});
+
+// From inside the body, with only a reason (v1.65+)
+test('contrast ratio', async ({ page }) => {
+  test.fail('Contrast bug, see JIRA-1301');
+  // ...
 });`,
     },
 
@@ -191,10 +226,10 @@ test('safari only', async ({ page, browserName }) => {
       name: 'test.slow()',
       level: 'intermediate',
       desc: 'Triples the default timeout for a test that is legitimately slow (e.g. file processing, video rendering, email polling).',
-      tip: 'Use sparingly. If many tests need this, increase the global timeout in playwright.config.ts instead.',
+      tip: 'Use sparingly. If many tests need this, increase the global timeout in playwright.config.ts instead. Since v1.65 test.slow(description) records why the test is slow in its annotation.',
       docs: 'https://playwright.dev/docs/api/class-test#test-slow',
       code: `test('processes large CSV export', async ({ page }) => {
-  test.slow(); // triples the timeout for this test only
+  test.slow('Renders a 50 MB export'); // triples the timeout, reason needs v1.65+
   await page.goto('/export');
   await page.getByRole('button', { name: 'Export' }).click();
   await expect(page.getByText('Export complete')).toBeVisible();
@@ -338,6 +373,22 @@ test('migrate account', { lock: ['user-settings', 'billing'] }, async ({ page })
 
 // Lock every test in this file or group (v1.64+)
 test.describe.configure({ lock: 'user-settings' });`,
+    },
+
+    {
+      name: 'test() locks (-exclusive-)',
+      level: 'advanced',
+      desc: 'The built-in -exclusive- lock runs a test only when no other test is running, in any worker or project. Every other test keeps running in parallel with the rest. Added in Playwright v1.65.',
+      tip: 'Use for a test that disturbs the whole environment, such as restarting the server or resetting the database. A named lock only keeps out tests that share the name, while -exclusive- keeps out every test, so the run has no parallelism while it runs. Keep exclusive tests few and short.',
+      docs: 'https://playwright.dev/docs/test-parallel#test-locks',
+      code: `test('restart the server', { lock: '-exclusive-' }, async ({ request }) => {
+  // No other test runs while this one is running
+  await request.post('/admin/restart');
+  await expect.poll(async () => (await request.get('/health')).status()).toBe(200);
+});
+
+// Or for every test in a file or group
+test.describe.configure({ lock: '-exclusive-' });`,
     },
   ],
 };

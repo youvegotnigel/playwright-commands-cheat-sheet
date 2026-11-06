@@ -917,5 +917,28 @@ test('add tool works', async ({ page }) => {
   expect(result.content[0].text).toBe('42');
 });`,
     },
+
+    {
+      name: 'cdpSession.send()',
+      level: 'advanced',
+      desc: 'Sends a raw Chrome DevTools Protocol command through a session from context.newCDPSession(page), for browser features Playwright has no API for, such as network throttling. Its timeout and signal options were added in Playwright v1.65.',
+      tip: 'CDP sessions work on Chromium-based browsers only. timeout defaults to 0, which waits forever for a response, so set it when a protocol call could hang. Pass an AbortSignal as signal to cancel the call yourself.',
+      docs: 'https://playwright.dev/docs/api/class-cdpsession#cdp-session-send',
+      code: `const client = await page.context().newCDPSession(page);
+
+// Throttle the network to a slow connection
+await client.send('Network.emulateNetworkConditions', {
+  offline: false,
+  latency: 400,
+  downloadThroughput: 50 * 1024,
+  uploadThroughput: 20 * 1024,
+});
+
+// Fail after 5 seconds instead of waiting forever (v1.65+)
+await client.send('Performance.enable', undefined, { timeout: 5000 });
+const { metrics } = await client.send('Performance.getMetrics', undefined, {
+  signal: AbortSignal.timeout(5000),
+});`,
+    },
   ],
 };
