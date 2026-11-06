@@ -8,7 +8,7 @@ export default {
       name: 'click()',
       level: 'beginner',
       desc: 'Clicks an element. Playwright automatically scrolls it into view and waits for it to be actionable before clicking.',
-      tip: "No need to manually scroll or wait. Playwright handles it. For double-click use dblclick(). For right-click, pass { button: 'right' }.",
+      tip: "No need to manually scroll or wait. Playwright handles it. For double-click use dblclick(). For right-click, pass { button: 'right' }. Since v1.65 actionable includes not inert: on an element with the inert attribute, or inside one, the click times out until inert is removed.",
       docs: 'https://playwright.dev/docs/api/class-locator#locator-click',
       code: `await page.locator('#login').click();
 
@@ -23,7 +23,7 @@ await page.locator('#item').click({ modifiers: ['Control'] });`,
       name: 'fill()',
       level: 'beginner',
       desc: 'Sets the value of an input, textarea, or content editable element instantly. Clears any existing content first.',
-      tip: 'Preferred over type() for most cases. It is faster and more reliable. Use type() only when testing keystroke-by-keystroke behaviour like autocomplete.',
+      tip: 'Preferred over type() for most cases. It is faster and more reliable. Use type() only when testing keystroke-by-keystroke behaviour like autocomplete. Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-fill',
       code: `await page.getByLabel('Email').fill('test@mail.com');
 
@@ -49,7 +49,7 @@ await page.locator('#email').press('Tab');`,
       name: 'check()',
       level: 'beginner',
       desc: 'Checks a checkbox or radio button. Does nothing if it is already checked.',
-      tip: 'More semantic than click() for checkboxes. It guarantees the element ends up checked regardless of its current state.',
+      tip: 'More semantic than click() for checkboxes. It guarantees the element ends up checked regardless of its current state. Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-check',
       code: `await page.locator('#terms').check();
 await page.getByLabel('Subscribe to newsletter').check();`,
@@ -59,7 +59,7 @@ await page.getByLabel('Subscribe to newsletter').check();`,
       name: 'uncheck()',
       level: 'beginner',
       desc: 'Unchecks a checkbox. Does nothing if it is already unchecked.',
-      tip: 'Use instead of click() to ensure the checkbox ends up unchecked. Safe to call even if already unchecked.',
+      tip: 'Use instead of click() to ensure the checkbox ends up unchecked. Safe to call even if already unchecked. Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-uncheck',
       code: `await page.locator('#newsletter').uncheck();
 await page.getByLabel('Remember me').uncheck();`,
@@ -69,7 +69,7 @@ await page.getByLabel('Remember me').uncheck();`,
       name: 'selectOption()',
       level: 'beginner',
       desc: 'Selects one or more options in a select dropdown by value, visible label text, or index.',
-      tip: 'Can select by value, visible text (label), or index. Pass an array for multi-select dropdowns.',
+      tip: 'Can select by value, visible text (label), or index. Pass an array for multi-select dropdowns. Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-select-option',
       code: `// By value attribute
 await page.locator('select#country').selectOption('ca');
@@ -96,7 +96,7 @@ await page.getByRole('link', { name: 'Settings' }).click();`,
       name: 'dblclick()',
       level: 'intermediate',
       desc: 'Double-clicks an element. Used for actions like entering edit mode on a table cell or selecting a word in text.',
-      tip: 'Only use when the feature explicitly requires a double-click. For regular interactions, use click().',
+      tip: 'Only use when the feature explicitly requires a double-click. For regular interactions, use click(). Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-dblclick',
       code: `// Double-click a cell to enter edit mode
 await page.locator('td.editable').dblclick();
@@ -118,7 +118,7 @@ await page.getByRole('option', { name: 'Playwright' }).click();`,
       name: 'clear()',
       level: 'beginner',
       desc: 'Clears the current value of an input or textarea.',
-      tip: 'fill() clears automatically before typing. Use clear() when you want to empty a field without immediately filling it with new content.',
+      tip: 'fill() clears automatically before typing. Use clear() when you want to empty a field without immediately filling it with new content. Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-clear',
       code: `await page.locator('#search').clear();
 
@@ -193,7 +193,7 @@ await page.keyboard.press('Escape');     // Close modal`,
       name: 'tap()',
       level: 'intermediate',
       desc: 'Simulates a touch tap on an element. Use when testing mobile viewport sizes or touch-enabled interactions.',
-      tip: 'Requires the browser context to be created with hasTouch: true, or set via use: { hasTouch: true } in playwright.config.ts.',
+      tip: 'Requires the browser context to be created with hasTouch: true, or set via use: { hasTouch: true } in playwright.config.ts. Since v1.65 it also waits until the element is not inert.',
       docs: 'https://playwright.dev/docs/api/class-locator#locator-tap',
       code: `// Enable touch in config: use: { hasTouch: true }
 await page.goto('/mobile-menu');

@@ -126,16 +126,25 @@ export default {
       name: 'Page Object Model',
       level: 'intermediate',
       desc: "Encapsulates a page's selectors and actions into a reusable class. Keeps tests readable and centralizes locator maintenance.",
-      tip: 'If a locator changes, fix it in one place, not in every test. The biggest maintainability win in large test suites.',
+      tip: 'If a locator changes, fix it in one place, not in every test. Since v1.65 TypeScript class fields follow useDefineForClassFields from tsconfig.json, so a field initializer such as readonly submit = this.page.getByRole(...) runs before the page parameter property is set and throws. Assign locators in the constructor.',
       docs: 'https://playwright.dev/docs/pom',
       code: `// pages/LoginPage.ts
 export class LoginPage {
-  constructor(private page: Page) {}
+  readonly email: Locator;
+  readonly password: Locator;
+  readonly submit: Locator;
+
+  constructor(readonly page: Page) {
+    // Assign here, not in field initializers (breaks in v1.65+)
+    this.email = page.getByLabel('Email');
+    this.password = page.getByLabel('Password');
+    this.submit = page.getByRole('button', { name: 'Log in' });
+  }
 
   async login(email: string, password: string) {
-    await this.page.getByLabel('Email').fill(email);
-    await this.page.getByLabel('Password').fill(password);
-    await this.page.getByRole('button', { name: 'Log in' }).click();
+    await this.email.fill(email);
+    await this.password.fill(password);
+    await this.submit.click();
   }
 }
 

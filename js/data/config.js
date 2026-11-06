@@ -144,6 +144,22 @@ export default defineConfig({
     },
 
     {
+      name: 'reporter (failures, onlyFailures)',
+      level: 'intermediate',
+      desc: 'The failures reporter prints failures and successful retries as they happen, then a summary, with no progress output. The onlyFailures option of the html, json and junit reporters keeps only unexpected outcomes, flaky tests and interrupted tests. Added in Playwright v1.65.',
+      tip: 'A good CI pairing: failures keeps the log short, and onlyFailures keeps a large suite report small. Flaky tests stay in the report even when they pass on retry. Try it for one run with --reporter=failures.',
+      docs: 'https://playwright.dev/docs/test-reporters#failures-reporter',
+      code: `// playwright.config.ts
+export default defineConfig({
+  reporter: [
+    ['failures'],
+    ['html', { onlyFailures: true }],
+    ['junit', { outputFile: 'results.xml', onlyFailures: true }],
+  ],
+});`,
+    },
+
+    {
       name: 'globalSetup / globalTeardown',
       level: 'advanced',
       desc: 'Runs a script once before all tests start (globalSetup) and once after all tests finish (globalTeardown).',
@@ -385,7 +401,7 @@ export default defineConfig({
       name: 'launchOptions.args (proxy and security)',
       level: 'advanced',
       desc: 'Chromium switches for routing traffic through a proxy, pinning DNS, and relaxing certificate or origin restrictions in test environments.',
-      tip: 'Prefer the built-in proxy and ignoreHTTPSErrors options over the equivalent args, because they work across all three browsers and can be scoped per context. Never ship --disable-web-security to a suite that also tests CORS, it hides the bugs you are looking for.',
+      tip: 'Prefer the built-in proxy and ignoreHTTPSErrors options over the equivalent args, because they work across all three browsers and can be scoped per context. Never ship --disable-web-security to a suite that also tests CORS, it hides the bugs you are looking for. Since v1.65 proxy username and password answer only proxy challenges and are never sent to websites, so log in to a site with httpCredentials instead.',
       docs: 'https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-args',
       code: `// Prefer the cross-browser options where they exist
 export default defineConfig({

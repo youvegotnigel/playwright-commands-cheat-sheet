@@ -24,7 +24,7 @@ await page.locator('//button[text()="Submit"]').click();`,
       name: 'getByRole()',
       level: 'beginner',
       desc: 'Finds an element by its ARIA role (button, heading, textbox, etc.) and optional accessible name. The most recommended selector.',
-      tip: "The #1 recommended way to select elements. It mirrors how assistive technologies see the page and is resilient to style changes. Playwright v1.60 added a description option to also match an element's accessible description (aria-describedby text), useful when several elements share the same name.",
+      tip: "The #1 recommended way to select elements. It mirrors how assistive technologies see the page and is resilient to style changes. Playwright v1.60 added a description option to also match an element's accessible description (aria-describedby text), useful when several elements share the same name. Since v1.65 text the browser does not render, such as unslotted text or text directly inside a closed <details>, is no longer part of the name.",
       docs: 'https://playwright.dev/docs/api/class-page#page-get-by-role',
       code: `await page.getByRole('button', { name: 'Submit' }).click();
 await page.getByRole('textbox', { name: 'Email' }).fill('test@mail.com');

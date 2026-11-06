@@ -15,6 +15,19 @@ export default {
     },
 
     {
+      name: 'bunx --bun playwright test',
+      level: 'advanced',
+      desc: 'Runs the test runner under Bun instead of Node.js. Bun transpiles TypeScript test files itself, so Playwright skips Babel and its compilation cache. Added in Playwright v1.65.',
+      tip: 'The --bun flag is required: plain bunx playwright test still runs on Node.js. Under Bun there is no watch mode, --tsconfig and tsconfig JSX options are ignored, custom ESM loaders are unsupported, and step titles show click instead of locator.click.',
+      docs: 'https://playwright.dev/docs/release-notes#version-165',
+      code: `bunx --bun playwright test
+# Run the suite on Bun
+
+bunx playwright test
+# Without --bun this still runs on Node.js`,
+    },
+
+    {
       name: '--config',
       level: 'beginner',
       desc: 'Points Playwright to a config file other than the default playwright.config.ts. Useful when a project has multiple configs for different environments.',
@@ -251,14 +264,17 @@ npx playwright test --global-timeout=600000 --workers=4
     {
       name: '--reporter',
       level: 'intermediate',
-      desc: 'Specifies the output format for test results. Options include html, dot, list, json, junit, and github.',
-      tip: 'Use html locally to get a rich report with screenshots and traces. Use junit or github in CI pipelines.',
+      desc: 'Specifies the output format for test results. Options include html, dot, list, failures, json, junit, and github.',
+      tip: 'Use html locally to get a rich report with screenshots and traces. Use junit or github in CI pipelines. Since v1.65 failures prints only failures and successful retries, then a summary.',
       docs: 'https://playwright.dev/docs/test-reporters',
       code: `npx playwright test --reporter=html
 # Generate an interactive HTML report
 
 npx playwright test --reporter=dot
-# Minimal dot-style output and fast to read in CI`,
+# Minimal dot-style output and fast to read in CI
+
+npx playwright test --reporter=failures
+# Only failures and successful retries, no progress (v1.65+)`,
     },
 
     {
@@ -317,13 +333,29 @@ npx playwright show-report my-report/
       name: 'merge-reports',
       level: 'advanced',
       desc: 'Merges multiple blob reporter output folders from sharded CI runs into a single unified report. The companion command to --shard.',
-      tip: 'In CI, collect the blob-report folder as an artifact from each shard, then run merge-reports once in a final job to combine them.',
+      tip: 'In CI, collect the blob-report folder as an artifact from each shard, then run merge-reports once in a final job to combine them. Since v1.65 the blob reporter empties its output directory before it writes, so copy a report out before the next run on the same machine.',
       docs: 'https://playwright.dev/docs/test-sharding#merging-reports-from-multiple-shards',
       code: `npx playwright merge-reports --reporter=html ./blob-reports
 # Merge all blob reports into one HTML report
 
 npx playwright merge-reports --reporter=junit ./blob-reports > results.xml
 # Merge into a JUnit XML report for CI integration`,
+    },
+
+    {
+      name: 'clear-cache',
+      level: 'intermediate',
+      desc: 'Deletes the cache of transpiled test files, which Playwright keeps in the system temporary directory. The PLAYWRIGHT_TRANSFORM_CACHE_DIR environment variable, added in Playwright v1.65, moves that cache to a directory you choose.',
+      tip: 'Set PLAYWRIGHT_TRANSFORM_CACHE_DIR on a Linux machine shared with other users, so each user keeps the cache in their own directory. clear-cache deletes whichever directory the variable points to, so set it for both commands.',
+      docs: 'https://playwright.dev/docs/test-cli#clear-cache',
+      code: `npx playwright clear-cache
+# Delete the transpiled test file cache
+
+PLAYWRIGHT_TRANSFORM_CACHE_DIR=~/.cache/playwright-transform npx playwright test
+# Keep transpiled test files in your own directory (v1.65+)
+
+PLAYWRIGHT_TRANSFORM_CACHE_DIR=~/.cache/playwright-transform npx playwright clear-cache
+# Clear that same directory`,
     },
 
     {
@@ -372,7 +404,7 @@ PLAYWRIGHT_SKIP_BROWSER_GC=1 npx playwright install
       tip: 'Check this when debugging unexpected behaviour. The Playwright version and the browser binaries must be in sync.',
       docs: 'https://playwright.dev/docs/test-cli',
       code: `npx playwright --version
-# Prints the installed version, e.g. Version 1.64.0`,
+# Prints the installed version, e.g. Version 1.65.0`,
     },
 
     {
@@ -466,7 +498,7 @@ npx playwright test --list --grep "login"
       name: '--shard',
       level: 'advanced',
       desc: 'Splits the test suite across multiple CI machines. Each shard runs a portion of the total tests.',
-      tip: 'Use with a CI matrix to reduce total pipeline time. Merge the reports afterward with --merge-reports.',
+      tip: 'Use with a CI matrix to reduce total pipeline time. Merge the reports afterward with npx playwright merge-reports. Since v1.65 a sharded run fails with "No tests found" when no test matches across all shards, and --pass-with-no-tests allows that.',
       docs: 'https://playwright.dev/docs/test-sharding',
       code: `npx playwright test --shard=1/3
 # Run the first third of tests (machine 1 of 3)
@@ -478,14 +510,14 @@ npx playwright test --shard=2/3
     {
       name: '--pass-with-no-tests',
       level: 'intermediate',
-      desc: 'Exits with a success code even if no tests are found. Prevents false failures when a shard or filter matches nothing.',
-      tip: 'Add this to CI shard jobs where some shards may legitimately have no tests to run, avoiding unnecessary pipeline failures.',
+      desc: 'Exits with a success code even if no tests are found. Prevents false failures when a filter matches nothing.',
+      tip: 'Since v1.65 an empty shard passes on its own when other shards have tests, but a sharded run fails with "No tests found" when nothing matches across all shards. Add this flag to CI jobs whose --grep may legitimately match no tests.',
       docs: 'https://playwright.dev/docs/test-cli#all-options',
       code: `npx playwright test --pass-with-no-tests
 # Exit 0 even if no tests are discovered
 
-npx playwright test --shard=3/3 --pass-with-no-tests
-# Safe to use when the last shard might be empty`,
+npx playwright test --shard=1/3 --grep @smoke --pass-with-no-tests
+# Pass even when no test in any shard is tagged @smoke (v1.65+)`,
     },
 
     {
