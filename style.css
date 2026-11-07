@@ -215,7 +215,7 @@ pre {
   padding: 60px 20px; color: #94a3b8; font-size: 15px;
 }
 
-/* Page switch: Commands / Waiting guide. Same pill look as .filter-btn. */
+/* Page switch: Commands / Waits / Selectors. Same pill look as .filter-btn. */
 .page-switch { display: flex; justify-content: center; gap: 8px; padding: 14px 16px 0; }
 .page-tab {
   display: inline-flex; align-items: center; gap: 6px;
@@ -225,8 +225,39 @@ pre {
   transition: background 0.15s;
 }
 .page-tab:hover { background: rgba(255,255,255,0.12); }
-/* Fixed-width icon slot so the two tab icons take the same space whatever the emoji font */
-.tab-icon { display: inline-block; width: 1.25em; text-align: center; line-height: 1; }
+/* Custom line icons: lines in the tab's text colour, one detail in the page's accent */
+.tab-icon {
+  width: 1.25em; height: 1.25em; flex: none;
+  fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+}
+.tab-icon .accent { stroke: var(--accent); }
+.tab-icon .accent.solid { fill: var(--accent); }
+.icon-commands { --accent: #4ade80; }
+.icon-waiting  { --accent: #38bdf8; }
+.icon-locators { --accent: #c084fc; }
+
+/* Tab click: the icon plays once on the page it opens (js/page-tabs.js).
+   Motion only when the user has not asked for less of it. */
+.tab-icon * { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  /* Commands: the tiles pop in one after another */
+  .tab-icon.play rect { animation: tile-pop 0.45s cubic-bezier(.3,1.6,.5,1) backwards; }
+  .tab-icon.play rect:nth-of-type(2) { animation-delay: 0.08s; }
+  .tab-icon.play rect:nth-of-type(3) { animation-delay: 0.16s; }
+  .tab-icon.play rect:nth-of-type(4) { animation-delay: 0.24s; }
+  /* Waiting: the retry loop spins once while the clock hand ticks round */
+  .tab-icon.play .loop { transform-box: view-box; animation: spin-back 0.8s ease-in-out; }
+  .tab-icon.play .accent:not(.solid) {
+    transform-box: view-box; transform-origin: 10px 10px; animation: spin-back 0.8s steps(4);
+  }
+  /* Locators: the picker frame snaps onto the cursor, which presses */
+  .tab-icon.play .frame { animation: frame-snap 0.4s cubic-bezier(.3,1.5,.5,1); }
+  .tab-icon.play .cursor { animation: cursor-press 0.3s ease-in-out 0.35s; }
+}
+@keyframes tile-pop { from { transform: scale(0); opacity: 0; } }
+@keyframes spin-back { from { transform: rotate(-360deg); } }
+@keyframes frame-snap { from { transform: scale(1.35); opacity: 0; } }
+@keyframes cursor-press { 50% { transform: scale(0.7); } }
 .page-tab[aria-current="page"] {
   background: rgba(255,255,255,0.18); color: #fff;
   outline: 2px solid rgba(255,255,255,0.25);
@@ -234,7 +265,7 @@ pre {
 .page-tab:focus-visible { outline: 3px solid #f8fafc; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .page-tab { transition: none; } }
 
-/* Waiting guide. Everything is scoped under .guide: the global `pre` rule and
+/* Guide pages. Everything is scoped under .guide: the global `pre` rule and
    generic class names would otherwise collide with the dashboard. */
 .guide h1 { font-size: 30px; line-height: 1.15; margin: 8px 0 12px; color: #e2e8f0; }
 .guide .lede { color: #94a3b8; max-width: 70ch; margin: 0 0 14px; line-height: 1.6; }
@@ -243,6 +274,8 @@ pre {
   font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
   background: rgba(22,163,74,0.2); color: #4ade80;
 }
+/* The last rung of the locator ladder, in the warning tag colours */
+.guide .pill.warn { background: rgba(234,88,12,0.2); color: #fb923c; }
 @media (max-width: 760px) { .guide h1 { font-size: 25px; } }
 
 .guide #toc { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; margin-bottom: 28px; }
@@ -309,9 +342,12 @@ pre {
   }
   .guide td:first-child { box-shadow: none; }
   .guide tr.flag { box-shadow: inset 3px 0 0 #fb923c; }
-  .page-tab { flex: 1; justify-content: center; }
-  .page-switch { padding-left: 16px; padding-right: 16px; }
+  /* Three equal tabs: a zero basis shares the row evenly, tight padding keeps 15px text */
+  .page-tab { flex: 1 1 0; min-width: 0; justify-content: center; padding: 6px 4px; gap: 4px; }
+  .page-switch { padding-left: 16px; padding-right: 16px; gap: 6px; }
 }
+/* Small phones (360px): the smaller label lets three tabs fit one row */
+@media (max-width: 380px) { .page-tab { font-size: 13px; } }
 .guide pre {
   /* The top band holds the Copy button, so no line of code can ever run underneath it */
   margin: 0; background: #020617; color: #e2e8f0; border-radius: 8px; padding: 36px 14px 12px;

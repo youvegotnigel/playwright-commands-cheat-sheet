@@ -18,7 +18,11 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
-- Waiting guide page (⏱️ **Waiting guide** tab, next to ⌨️ **Commands**): auto-waiting, explicit waits, timeouts and pitfalls, with copyable examples and links back to the commands
+- Two guide pages, reached from the **Commands / Waits / Selectors** tabs at the top of every page:
+  - **Waits** (the waiting guide): auto-waiting, explicit waits, timeouts and pitfalls
+  - **Selectors** (the locator guide): the locator priority ladder, precise role locators, scoping and filtering, lists and tables, frames and shadow DOM, strict mode, and fragile vs robust locators
+
+  Both have copyable examples and links back to the matching commands.
 
 ## Categories
 Config, Setup, CLI, Query, Accessibility, Action, Utility, Clock & Time, Media & Audio, Tracing & Debugging, Network & Mocking, Assertions, API, Fixtures, Patterns, Component Testing
@@ -41,7 +45,10 @@ playwright-commands-cheat-sheet/
 ├── js/
 │   ├── app.js
 │   ├── meta-bar.js
-│   ├── waiting.js      # Waiting guide content and rendering
+│   ├── guide.js        # Shared guide renderer (tables, chips, Copy, links back)
+│   ├── waiting.js      # Waiting guide content
+│   ├── locators.js     # Locator guide content
+│   ├── page-tabs.js    # Page tab icon animation on click
 │   └── data/
 │       ├── index.js        # imports each category and exports `categories`
 │       ├── config.js
@@ -57,9 +64,11 @@ playwright-commands-cheat-sheet/
 ├── tests/
 │   ├── cheatsheet.spec.js
 │   ├── data-integrity.spec.js
-│   └── waiting-guide.spec.js
+│   ├── waiting-guide.spec.js
+│   └── locator-guide.spec.js
 ├── index.html
 ├── waiting.html
+├── locators.html
 ├── playwright.config.js
 ├── style.css
 ├── package.json

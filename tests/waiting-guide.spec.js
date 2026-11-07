@@ -69,51 +69,72 @@ test.describe('Waiting guide: page shell', () => {
 
 /* ── PAGE SWITCH ───────────────────────────────────────────────── */
 test.describe('Waiting guide: page switch', () => {
-  test('is on both pages with aria-current on the current one', async ({ page }) => {
+  test('is on all three pages with aria-current on the current one', async ({ page }) => {
     for (const [path, current] of [
-      ['/waiting.html', 'Waiting guide'],
+      ['/waiting.html', 'Waits'],
       ['/', 'Commands'],
+      ['/locators.html', 'Selectors'],
     ]) {
       await page.goto(path);
       const nav = page.getByRole('navigation', { name: 'Pages' });
       const links = nav.getByRole('link');
-      await expect(links).toHaveCount(2);
+      await expect(links).toHaveCount(3);
       await expect(links.nth(0)).toHaveAccessibleName('Commands');
-      await expect(links.nth(1)).toHaveAccessibleName('Waiting guide');
+      await expect(links.nth(1)).toHaveAccessibleName('Waits');
+      await expect(links.nth(2)).toHaveAccessibleName('Selectors');
       await expect(nav.locator('[aria-current="page"]')).toHaveAccessibleName(current);
     }
   });
 
-  // Emoji presentation (U+FE0F) so both icons render as full-colour emoji on every OS,
-  // matching the ⭐ / 🔥 filter pills, instead of a font-dependent text glyph
-  const KEYBOARD = '⌨️';
-  const STOPWATCH = '⏱️';
+  // Custom line icons, one per page: a tile grid (the dashboard), a clock in a retry loop
+  // (auto-waiting) and a picker frame around a cursor (Pick locator). The lines take the
+  // tab's text colour; one detail takes the page's accent from the palette.
+  const ACCENTS = ['rgb(74, 222, 128)', 'rgb(56, 189, 248)', 'rgb(192, 132, 252)'];
 
-  test('each tab has a decorative emoji icon: keyboard for Commands, stopwatch for the guide', async ({
+  test('each tab has its own decorative SVG icon with a page accent, and no emoji', async ({
     page,
   }) => {
-    for (const path of ['/waiting.html', '/']) {
+    for (const path of ['/waiting.html', '/', '/locators.html']) {
       await page.goto(path);
-      const icons = page.locator('.page-switch .page-tab .tab-icon');
-      await expect(icons).toHaveText([KEYBOARD, STOPWATCH]);
-      for (const icon of await icons.all()) {
-        await expect(icon).toHaveAttribute('aria-hidden', 'true');
-      }
+      const tabs = page.locator('.page-switch .page-tab');
+      await expect(tabs).toHaveText(['Commands', 'Waits', 'Selectors']);
+
+      const icons = await page.locator('.page-tab svg.tab-icon').evaluateAll((svgs) =>
+        svgs.map((svg) => ({
+          hidden: svg.getAttribute('aria-hidden'),
+          focusable: svg.getAttribute('focusable'),
+          markup: svg.innerHTML,
+          line: getComputedStyle(svg).stroke,
+          text: getComputedStyle(svg.closest('.page-tab')).color,
+          accent: getComputedStyle(svg.querySelector('.accent')).stroke,
+        }))
+      );
+      expect(icons, path).toHaveLength(3);
+      expect(new Set(icons.map((i) => i.markup)).size, path).toBe(3);
+      icons.forEach((icon, i) => {
+        expect(icon.hidden, path).toBe('true');
+        expect(icon.focusable, path).toBe('false');
+        expect(icon.line, path).toBe(icon.text);
+        expect(icon.accent, path).toBe(ACCENTS[i]);
+      });
     }
   });
 
-  test('tab icons take the same space, so the pair looks balanced', async ({ page }) => {
+  test('tab icons take the same space, so the tabs look balanced', async ({ page }) => {
     await page.goto('/waiting.html');
     const boxes = await page
       .locator('.page-tab .tab-icon')
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect()));
-    expect(Math.abs(boxes[0].width - boxes[1].width)).toBeLessThanOrEqual(1);
-    expect(Math.abs(boxes[0].height - boxes[1].height)).toBeLessThanOrEqual(1);
+    expect(boxes).toHaveLength(3);
+    for (const box of boxes) {
+      expect(Math.abs(boxes[0].width - box.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(boxes[0].height - box.height)).toBeLessThanOrEqual(1);
+    }
 
     const tabs = await page
       .locator('.page-tab')
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
-    expect(Math.abs(tabs[0] - tabs[1])).toBeLessThanOrEqual(1);
+    for (const height of tabs) expect(Math.abs(tabs[0] - height)).toBeLessThanOrEqual(1);
   });
 
   test('navigates both ways', async ({ page }) => {
@@ -122,7 +143,7 @@ test.describe('Waiting guide: page switch', () => {
     await expect(page).toHaveURL(/\/(index\.html)?$/);
     await expect(page.locator('#grid')).toBeVisible();
 
-    await page.getByRole('navigation', { name: 'Pages' }).getByText('Waiting guide').click();
+    await page.getByRole('navigation', { name: 'Pages' }).getByText('Waits').click();
     await expect(page).toHaveURL(/waiting/);
     await expect(page.locator('h1')).toHaveText('Playwright Waiting Cheat Sheet');
   });
@@ -581,7 +602,8 @@ test.describe('Waiting guide: layout', () => {
     const widths = await page
       .locator('.page-tab')
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-    expect(Math.abs(widths[0] - widths[1])).toBeLessThanOrEqual(1);
+    expect(widths).toHaveLength(3);
+    for (const width of widths) expect(Math.abs(widths[0] - width)).toBeLessThanOrEqual(1);
   });
 });
 
