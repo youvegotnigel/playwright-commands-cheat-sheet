@@ -71,7 +71,7 @@ test.describe('Waiting guide: page shell', () => {
 test.describe('Waiting guide: page switch', () => {
   test('is on all three pages with aria-current on the current one', async ({ page }) => {
     for (const [path, current] of [
-      ['/waiting.html', 'Waiting'],
+      ['/waiting.html', 'Waits'],
       ['/', 'Commands'],
       ['/locators.html', 'Selectors'],
     ]) {
@@ -80,7 +80,7 @@ test.describe('Waiting guide: page switch', () => {
       const links = nav.getByRole('link');
       await expect(links).toHaveCount(3);
       await expect(links.nth(0)).toHaveAccessibleName('Commands');
-      await expect(links.nth(1)).toHaveAccessibleName('Waiting');
+      await expect(links.nth(1)).toHaveAccessibleName('Waits');
       await expect(links.nth(2)).toHaveAccessibleName('Selectors');
       await expect(nav.locator('[aria-current="page"]')).toHaveAccessibleName(current);
     }
@@ -97,7 +97,7 @@ test.describe('Waiting guide: page switch', () => {
     for (const path of ['/waiting.html', '/', '/locators.html']) {
       await page.goto(path);
       const tabs = page.locator('.page-switch .page-tab');
-      await expect(tabs).toHaveText(['Commands', 'Waiting', 'Selectors']);
+      await expect(tabs).toHaveText(['Commands', 'Waits', 'Selectors']);
 
       const icons = await page.locator('.page-tab svg.tab-icon').evaluateAll((svgs) =>
         svgs.map((svg) => ({
@@ -143,7 +143,7 @@ test.describe('Waiting guide: page switch', () => {
     await expect(page).toHaveURL(/\/(index\.html)?$/);
     await expect(page.locator('#grid')).toBeVisible();
 
-    await page.getByRole('navigation', { name: 'Pages' }).getByText('Waiting').click();
+    await page.getByRole('navigation', { name: 'Pages' }).getByText('Waits').click();
     await expect(page).toHaveURL(/waiting/);
     await expect(page.locator('h1')).toHaveText('Playwright Waiting Cheat Sheet');
   });

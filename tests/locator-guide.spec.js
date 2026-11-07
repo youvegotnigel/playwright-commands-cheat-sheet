@@ -713,10 +713,10 @@ test.describe('Page tabs: icon animation on click', () => {
     expect(await icon(page, 'commands')).toEqual(STILL);
 
     for (const [label, name] of [
-      ['Waiting', 'waiting'],
+      ['Waits', 'waiting'],
       ['Selectors', 'locators'],
-      ['Waiting', 'waiting'], // clicked before: plays again
-      ['Waiting', 'waiting'], // the current tab: reloads and plays
+      ['Waits', 'waiting'], // clicked before: plays again
+      ['Waits', 'waiting'], // the current tab: reloads and plays
       ['Commands', 'commands'],
     ]) {
       await tab(page, label).click();
