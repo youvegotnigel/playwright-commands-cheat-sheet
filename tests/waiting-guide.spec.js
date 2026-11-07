@@ -265,6 +265,34 @@ test.describe('Waiting guide: links to the dashboard', () => {
     await expect(chip.locator('a')).toHaveCount(0);
   });
 
+  test('linked chips look like plain chips, with no default link colours', async ({ page }) => {
+    const style = (sel) =>
+      page
+        .locator(sel)
+        .first()
+        .evaluate((el) => {
+          const cs = getComputedStyle(el);
+          return { color: cs.color, background: cs.backgroundColor, display: cs.display };
+        });
+    const link = await style('#actions a.inl');
+    const plain = await style('#actions code.inl');
+    expect(link).toEqual(plain);
+    expect(link.color).toBe('rgb(226, 232, 240)');
+    expect(link.background).toBe('rgb(2, 6, 23)');
+
+    // Punctuation inside a link (the brackets) must not pick up the browser link colour
+    const bracket = await page
+      .locator('#actions a.inl')
+      .first()
+      .evaluate((el) => {
+        const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+        for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+          if (n.textContent.includes('(')) return getComputedStyle(n.parentElement).color;
+        }
+      });
+    expect(bracket).toBe('rgb(226, 232, 240)');
+  });
+
   test('chips outside the linked columns are never links', async ({ page }) => {
     for (const id of ['timeouts', 'tips', 'summary']) {
       await expect(page.locator(`#${id} a.inl`)).toHaveCount(0);
@@ -328,6 +356,19 @@ test.describe('Waiting guide: copy buttons', () => {
     expect(copied).toEqual(expected);
     expect(copied[0]).toContain('res.url().includes');
     expect(copied[1]).toContain('/\\/dashboard/');
+  });
+
+  test('code never runs underneath the copy button', async ({ page }) => {
+    await page.goto('/waiting.html');
+    const pad = await page
+      .locator('.guide pre')
+      .first()
+      .evaluate((el) => parseFloat(getComputedStyle(el).paddingRight));
+    const buttonWidth = await page
+      .locator('.guide-copy')
+      .first()
+      .evaluate((el) => el.getBoundingClientRect().width);
+    expect(pad).toBeGreaterThanOrEqual(buttonWidth + 6);
   });
 
   test('shows feedback, then resets', async ({ page }) => {

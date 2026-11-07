@@ -272,12 +272,12 @@ pre {
   border-radius: 4px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px;
 }
 
-.guide code.inl {
+.guide code.inl, .guide a.inl {
   font: 12.5px ui-monospace, Menlo, Consolas, monospace; background: #020617; color: #e2e8f0;
   padding: 1px 6px; border-radius: 4px; white-space: nowrap; display: inline-block; margin: 1px 0;
 }
-.guide a.inl { text-decoration: none; border: 1px solid transparent; transition: border-color 0.15s; }
-.guide a.inl:hover, .guide a.inl:focus-visible { border-color: #38bdf8; }
+.guide a.inl { text-decoration: none; transition: box-shadow 0.15s; }
+.guide a.inl:hover, .guide a.inl:focus-visible { box-shadow: 0 0 0 1px #38bdf8; }
 .guide .block { position: relative; }
 .guide-copy {
   position: absolute; top: 6px; right: 6px;
@@ -290,7 +290,7 @@ pre {
 .guide-copy:focus-visible { outline: 3px solid #f8fafc; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .guide a.inl, .guide-copy { transition: none; } }
 .guide pre {
-  margin: 0; background: #020617; border-radius: 8px; padding: 12px 14px;
+  margin: 0; background: #020617; border-radius: 8px; padding: 12px 70px 12px 14px;
   font: 12.8px/1.6 ui-monospace, Menlo, Consolas, monospace; tab-size: 2;
   white-space: pre; word-break: normal; overflow-x: auto;
 }
