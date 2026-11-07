@@ -289,6 +289,24 @@ pre {
 .guide-copy.copied { background: #4ade80; }
 .guide-copy:focus-visible { outline: 3px solid #f8fafc; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .guide a.inl, .guide-copy { transition: none; } }
+
+/* Phones: each table row becomes a stacked card, cells captioned by their column name */
+@media (max-width: 760px) {
+  .guide table, .guide tbody, .guide tr, .guide td { display: block; width: 100%; }
+  .guide thead, .guide colgroup { display: none; }
+  .guide tr { border-bottom: 1px solid #334155; padding: 6px 0; }
+  .guide tr:last-child { border-bottom: 0; }
+  .guide td { border: 0; padding: 6px 14px; }
+  .guide td::before {
+    content: attr(data-label); display: block; margin-bottom: 3px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #94a3b8;
+  }
+  .guide td:first-child { box-shadow: none; }
+  .guide tr.flag { box-shadow: inset 3px 0 0 #fb923c; }
+  .page-tab { flex: 1; text-align: center; }
+  .page-switch { padding-left: 16px; padding-right: 16px; }
+}
 .guide pre {
   margin: 0; background: #020617; border-radius: 8px; padding: 12px 70px 12px 14px;
   font: 12.8px/1.6 ui-monospace, Menlo, Consolas, monospace; tab-size: 2;

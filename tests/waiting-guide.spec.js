@@ -393,3 +393,71 @@ test.describe('Waiting guide: copy buttons', () => {
     await expect(button).toHaveText('Copy', { timeout: 4000 });
   });
 });
+
+/* ── LAYOUT ────────────────────────────────────────────────────── */
+test.describe('Waiting guide: layout', () => {
+  const noSideScroll = (page) =>
+    page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
+
+  test('has no horizontal page scroll on this device', async ({ page }) => {
+    await page.goto('/waiting.html');
+    expect(await noSideScroll(page)).toBe(true);
+  });
+
+  test('phone layout stacks rows with labelled cells', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/waiting.html');
+
+    await expect(page.locator('#actions thead')).toBeHidden();
+    const cells = page.locator('#actions tbody tr').first().locator('td');
+    expect(await cells.evaluateAll((els) => els.map((el) => getComputedStyle(el).display))).toEqual(
+      ['block', 'block', 'block']
+    );
+    const labels = await cells.evaluateAll((els) =>
+      els.map((el) => ({
+        label: el.dataset.label,
+        content: getComputedStyle(el, '::before').content,
+      }))
+    );
+    expect(labels.map((l) => l.label)).toEqual([
+      'Method',
+      'Checks performed',
+      'Real-world example',
+    ]);
+    for (const { label, content } of labels) expect(content).toBe(`"${label}"`);
+    expect(await noSideScroll(page)).toBe(true);
+  });
+
+  test('desktop layout shows the table header', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/waiting.html');
+
+    await expect(page.locator('#actions thead')).toBeVisible();
+    await expect(page.locator('#actions th')).toHaveCount(3);
+  });
+
+  test('code scrolls inside its block instead of widening the page', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/waiting.html');
+
+    const style = await page
+      .locator('.guide pre')
+      .first()
+      .evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return { overflowX: cs.overflowX, whiteSpace: cs.whiteSpace };
+      });
+    expect(style).toEqual({ overflowX: 'auto', whiteSpace: 'pre' });
+    expect(await noSideScroll(page)).toBe(true);
+  });
+
+  test('page tabs share the width on phones', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/waiting.html');
+
+    const widths = await page
+      .locator('.page-tab')
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
+    expect(Math.abs(widths[0] - widths[1])).toBeLessThanOrEqual(1);
+  });
+});
