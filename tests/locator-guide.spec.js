@@ -574,6 +574,34 @@ test.describe('Locator guide: content', () => {
     expect(check(await page.evaluate(() => window.waitingSections))).toEqual([]);
   });
 
+  test('ElementHandles are faulted for the right reason', async ({ page }) => {
+    // handle.click() does wait for actionability; what a handle lacks is re-querying
+    const [, why] = (await sections(page))
+      .find((s) => s.id === 'fragile')
+      .rows.find((r) => r[0].includes('page.$()'));
+    expect(why).not.toMatch(/auto-wait/);
+    expect(why).toMatch(/doesn't wait for the element to exist/);
+    expect(why).toMatch(/re-quer/);
+  });
+
+  test('strict mode applies to actions and single-element assertions only', async ({ page }) => {
+    // toHaveCount() and toHaveText([...]) on many elements are fine, and the Lists section uses them
+    await expect(page.locator('#strictness .note')).toContainText(
+      'Actions and single-element assertions'
+    );
+  });
+
+  test('count examples never count a table header row by accident', async ({ page }) => {
+    // getByRole('row') includes the header; a hasNotText filter keeps it in the count
+    for (const s of await sections(page)) {
+      for (const [label, , code] of s.rows) {
+        if (/toHaveCount/.test(code ?? '')) {
+          expect(code, `${s.id}: ${label}`).not.toMatch(/getByRole\('row'\)\.filter\(\{ hasNot/);
+        }
+      }
+    }
+  });
+
   test('content follows the project text rules: no dashes, real code examples', async ({
     page,
   }) => {

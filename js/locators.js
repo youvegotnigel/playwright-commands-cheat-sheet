@@ -147,7 +147,7 @@ await expect(urgent).toHaveCount(3);`,
       [
         '`filter({ hasNot })`, `filter({ hasNotText })`',
         'Excluding items: rows without a badge, appointments that are not cancelled.',
-        `const active = page.getByRole('row').filter({ hasNotText: 'Cancelled' });
+        `const active = page.getByRole('listitem').filter({ hasNotText: 'Cancelled' });
 await expect(active).toHaveCount(4);`,
       ],
       [
@@ -294,7 +294,7 @@ await expect(letter.getByRole('heading', { name: 'Discharge summary' })).toBeVis
   {
     id: 'strictness',
     title: 'Strict mode and readable failures',
-    note: 'Actions and assertions need exactly one element. Treat a strict mode error as a question about your locator.',
+    note: "Actions and single-element assertions, such as toBeVisible() or toHaveText('Saved'), need exactly one element. Treat a strict mode error as a question about your locator.",
     cols: ['Situation', 'What to do', 'Example'],
     rows: [
       [
@@ -389,7 +389,7 @@ await expect(page.getByText(/You have \\d+ appointments/)).toBeVisible();`,
       ],
       [
         '`page.$()` and ElementHandles',
-        "A handle points at one DOM node and goes stale when the page re-renders. It doesn't auto-wait or retry.",
+        "`page.$()` doesn't wait for the element to exist, and a handle never re-queries, so it goes stale when the page re-renders and web-first assertions can't retry it.",
         `// Fragile
 const button = await page.$('#submit');
 await button.click();
