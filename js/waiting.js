@@ -4,6 +4,7 @@
 // Code is highlighted with the dashboard's own highlighter.
 // =============================================================
 
+import { categories } from './data/index.js';
 import { highlight } from './highlight.js';
 import { loadMetaBadges } from './meta-bar.js';
 
@@ -421,12 +422,38 @@ window.waitingSections = SECTIONS;
 /* ── MARKUP ───────────────────────────────────────────────────── */
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-// Inline markup: `code` becomes a highlighted chip, <tag>X</tag> a warning tag
-function inline(text) {
+// Column that holds method names, per section: those chips link back to the dashboard
+const LINK_COLUMN = { actions: 0, navigation: 0, explicit: 0, 'not-waits': 0, assertions: 1 };
+
+// Dashboard search term for a chip: the last identifier followed by "(", else the whole text.
+// page.waitForURL(url) -> waitForURL, expect(fn).toPass() -> toPass, toBeVisible -> toBeVisible
+function linkKey(chip) {
+  const calls = [...chip.matchAll(/([A-Za-z_$][\w$]*)\s*\(/g)];
+  return calls.length ? calls[calls.length - 1][1] : chip.trim();
+}
+
+// Only link when the dashboard has a matching item, so a link never lands on an empty grid
+function hasDashboardMatch(key) {
+  const k = key.toLowerCase();
+  return categories.some((c) => c.items.some((i) => i.name.toLowerCase().includes(k)));
+}
+
+// Inline markup: `code` becomes a highlighted chip (a link when `link` is set and the
+// dashboard knows the method), <tag>X</tag> a warning tag
+function inline(text, link = false) {
   return text
     .split(/(`[^`]+`|<tag>[^<]+<\/tag>)/)
     .map((part) => {
-      if (part.startsWith('`')) return `<code class="inl">${highlight(part.slice(1, -1))}</code>`;
+      if (part.startsWith('`')) {
+        const chip = part.slice(1, -1);
+        const html = highlight(chip);
+        const key = link ? linkKey(chip) : '';
+        if (key && hasDashboardMatch(key)) {
+          const href = `index.html#search=${encodeURIComponent(key)}`;
+          return `<a class="inl" href="${href}" title="Open in the commands dashboard">${html}</a>`;
+        }
+        return `<code class="inl">${html}</code>`;
+      }
       if (part.startsWith('<tag>')) return `<span class="tag">${esc(part.slice(5, -6))}</span>`;
       return esc(part);
     })
@@ -439,14 +466,16 @@ function renderGuide() {
   SECTIONS.forEach((s, n) => {
     const num = String(n + 1).padStart(2, '0');
     toc.insertAdjacentHTML('beforeend', `<a href="#${s.id}">${num} ${esc(s.title)}</a>`);
+    const linkCol = LINK_COLUMN[s.id];
     const rows = s.rows
-      .map((r) => {
+      .map((r, row) => {
         const third = s.text
           ? inline(r[2])
-          : `<div class="block"><pre><code>${highlight(r[2])}</code></pre></div>`;
+          : `<div class="block"><pre><code>${highlight(r[2])}</code></pre>
+            <button class="guide-copy" type="button" data-section="${n}" data-row="${row}">Copy</button></div>`;
         return `<tr class="${r[3] ? 'flag' : ''}">
-          <td data-label="${esc(s.cols[0])}">${inline(r[0])}</td>
-          <td data-label="${esc(s.cols[1])}">${inline(r[1])}</td>
+          <td data-label="${esc(s.cols[0])}">${inline(r[0], linkCol === 0)}</td>
+          <td data-label="${esc(s.cols[1])}">${inline(r[1], linkCol === 1)}</td>
           <td data-label="${esc(s.cols[2])}">${third}</td></tr>`;
       })
       .join('');
@@ -464,6 +493,25 @@ function renderGuide() {
     );
   });
 }
+
+/* ── COPY ─────────────────────────────────────────────────────── */
+// Copies the snippet's source string from SECTIONS, so the text is exactly the original
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.guide-copy');
+  if (!btn) return;
+  const code = SECTIONS[btn.dataset.section].rows[btn.dataset.row][2];
+  try {
+    await navigator.clipboard.writeText(code);
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+  } catch {
+    btn.textContent = 'Select and copy';
+  }
+  setTimeout(() => {
+    btn.textContent = 'Copy';
+    btn.classList.remove('copied');
+  }, 2000);
+});
 
 renderGuide();
 loadMetaBadges();

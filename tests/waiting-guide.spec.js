@@ -217,3 +217,138 @@ test.describe('Waiting guide: sections', () => {
     await expect(page.locator('.legend')).toHaveCount(0);
   });
 });
+
+/* ── LINKS BACK TO THE DASHBOARD ───────────────────────────────── */
+test.describe('Waiting guide: links to the dashboard', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/waiting.html');
+  });
+
+  test('every linked chip leads to at least one dashboard item', async ({ page }) => {
+    const hrefs = await page
+      .locator('.guide a.inl')
+      .evaluateAll((els) => els.map((el) => el.getAttribute('href')));
+    expect(hrefs.length).toBeGreaterThanOrEqual(20);
+    for (const href of hrefs) expect(href).toMatch(/^index\.html#search=/);
+
+    const keys = hrefs.map((h) => decodeURIComponent(h.split('#search=')[1]));
+    // `categories` is only a global on the dashboard, so load the data module directly
+    const dead = await page.evaluate(async (ks) => {
+      const { categories } = await import('./js/data/index.js');
+      return ks.filter(
+        (k) =>
+          !categories.some((c) =>
+            c.items.some((i) => i.name.toLowerCase().includes(k.toLowerCase()))
+          )
+      );
+    }, keys);
+    expect(dead).toEqual([]);
+  });
+
+  test('known chips link with the right search key', async ({ page }) => {
+    const href = (name) => page.locator('.guide a.inl', { hasText: name }).first();
+    await expect(href('page.waitForURL(url)')).toHaveAttribute(
+      'href',
+      'index.html#search=waitForURL'
+    );
+    await expect(href('expect(fn).toPass()')).toHaveAttribute('href', 'index.html#search=toPass');
+    await expect(
+      page.locator('#assertions a.inl', { hasText: /^toBeVisible$/ }).first()
+    ).toHaveAttribute('href', 'index.html#search=toBeVisible');
+  });
+
+  test('chips with no dashboard match are plain chips', async ({ page }) => {
+    const chip = page.locator('#actions tbody td:first-child', {
+      hasText: 'scrollIntoViewIfNeeded',
+    });
+    await expect(chip.locator('code.inl')).toHaveText('scrollIntoViewIfNeeded()');
+    await expect(chip.locator('a')).toHaveCount(0);
+  });
+
+  test('chips outside the linked columns are never links', async ({ page }) => {
+    for (const id of ['timeouts', 'tips', 'summary']) {
+      await expect(page.locator(`#${id} a.inl`)).toHaveCount(0);
+    }
+  });
+
+  test('clicking a link opens the dashboard with that search', async ({ page }) => {
+    await page.locator('#explicit a.inl', { hasText: 'page.waitForURL(url)' }).click();
+
+    await expect(page).toHaveURL(/index\.html#search=waitForURL$|\/#search=waitForURL$/);
+    await expect(page.locator('#search-input')).toHaveValue('waitForURL');
+    await expect(page.locator('.tile').first()).toBeVisible();
+
+    await page.goBack();
+    await expect(page).toHaveURL(/waiting/);
+  });
+});
+
+/* ── COPY BUTTONS ──────────────────────────────────────────────── */
+test.describe('Waiting guide: copy buttons', () => {
+  async function stubClipboard(page, { reject = false } = {}) {
+    await page.addInitScript((shouldReject) => {
+      window.__copied = [];
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: {
+          writeText: (text) => {
+            window.__copied.push(text);
+            return shouldReject ? Promise.reject(new Error('denied')) : Promise.resolve();
+          },
+        },
+      });
+    }, reject);
+  }
+
+  test('there is one copy button per code row', async ({ page }) => {
+    await page.goto('/waiting.html');
+    await expect(page.locator('.guide-copy')).toHaveCount(51);
+  });
+
+  test('copies the exact source text', async ({ page }) => {
+    await stubClipboard(page);
+    await page.goto('/waiting.html');
+
+    const rowButton = (sectionId, firstCell) =>
+      page.locator(`#${sectionId} tbody tr`, { hasText: firstCell }).first().locator('.guide-copy');
+
+    await rowButton('explicit', 'page.waitForResponse(pred)').click();
+    await rowButton('assertions', 'toHaveURL').click();
+
+    const { copied, expected } = await page.evaluate(() => {
+      const find = (id, needle) =>
+        window.waitingSections
+          .find((s) => s.id === id)
+          .rows.find((r) => r[1].includes(needle) || r[0].includes(needle))[2];
+      return {
+        copied: window.__copied,
+        expected: [find('explicit', 'page.waitForResponse(pred)'), find('assertions', 'toHaveURL')],
+      };
+    });
+    expect(copied).toEqual(expected);
+    expect(copied[0]).toContain('res.url().includes');
+    expect(copied[1]).toContain('/\\/dashboard/');
+  });
+
+  test('shows feedback, then resets', async ({ page }) => {
+    await stubClipboard(page);
+    await page.goto('/waiting.html');
+
+    const button = page.locator('.guide-copy').first();
+    await button.click();
+    await expect(button).toHaveText('✓ Copied!');
+    await expect(button).toHaveClass(/copied/);
+    await expect(button).toHaveText('Copy', { timeout: 4000 });
+    await expect(button).not.toHaveClass(/copied/);
+  });
+
+  test('says Select and copy when the clipboard write is rejected', async ({ page }) => {
+    await stubClipboard(page, { reject: true });
+    await page.goto('/waiting.html');
+
+    const button = page.locator('.guide-copy').first();
+    await button.click();
+    await expect(button).toHaveText('Select and copy');
+    await expect(button).toHaveText('Copy', { timeout: 4000 });
+  });
+});
