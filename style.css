@@ -314,7 +314,7 @@ pre {
 }
 .guide pre {
   /* The top band holds the Copy button, so no line of code can ever run underneath it */
-  margin: 0; background: #020617; border-radius: 8px; padding: 36px 14px 12px;
+  margin: 0; background: #020617; color: #e2e8f0; border-radius: 8px; padding: 36px 14px 12px;
   font: 12.8px/1.6 ui-monospace, Menlo, Consolas, monospace; tab-size: 2;
   white-space: pre; word-break: normal; overflow-x: auto;
 }

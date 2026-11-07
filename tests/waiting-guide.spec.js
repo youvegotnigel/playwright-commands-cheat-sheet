@@ -584,3 +584,415 @@ test.describe('Waiting guide: layout', () => {
     expect(Math.abs(widths[0] - widths[1])).toBeLessThanOrEqual(1);
   });
 });
+
+/* ── CONTENT CORRECTNESS ───────────────────────────────────────── */
+// Strip the data's inline markup the way a reader sees it: `code` -> code, <tag>X</tag> -> X
+const plain = (text) => text.replace(/`([^`]+)`/g, '$1').replace(/<tag>([^<]+)<\/tag>/g, '$1');
+
+test.describe('Waiting guide: content', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/waiting.html');
+  });
+
+  const sections = (page) => page.evaluate(() => window.waitingSections);
+  const row = (secs, id, needle) =>
+    secs.find((s) => s.id === id).rows.find((r) => r[0].includes(needle));
+
+  test('section titles and column headers are exact', async ({ page }) => {
+    const expected = {
+      actions: ['Auto-waiting: actions', ['Method', 'Checks performed', 'Real-world example']],
+      assertions: [
+        'Auto-waiting: web-first assertions',
+        ['Assertion group', 'Matchers', 'Real-world example'],
+      ],
+      navigation: ['Auto-waiting: navigation', ['Method', 'Default wait', 'Real-world example']],
+      explicit: ['Explicit waits', ['Method', 'Use it when', 'Real-world example']],
+      'not-waits': [
+        'Methods that look like waits but are not',
+        ['Method', 'Behaviour', 'Flaky vs correct'],
+      ],
+      timeouts: [
+        'Timeout settings (playwright.config.ts)',
+        ['Setting', 'Controls', 'Real-world example'],
+      ],
+      tips: ['Pro tips and pitfalls', ['Tip', 'Why', 'Real-world example']],
+      summary: ['Summary', ['Category', 'Methods', 'Rule of thumb']],
+    };
+    for (const [id, [title, cols]] of Object.entries(expected)) {
+      await expect(page.locator(`#${id} h2`)).toHaveText(
+        new RegExp(`${title.replace(/[()]/g, '\\$&')}$`)
+      );
+      await expect(page.locator(`#${id} th`)).toHaveText(cols);
+    }
+  });
+
+  test('every rendered cell shows exactly its data', async ({ page }) => {
+    const secs = await sections(page);
+    const rendered = await page.locator('.guide section').evaluateAll((els) =>
+      els.map((sec) =>
+        [...sec.querySelectorAll('tbody tr')].map((tr) => {
+          const tds = tr.querySelectorAll('td');
+          const pre = tds[2].querySelector('pre');
+          return [
+            tds[0].textContent,
+            tds[1].textContent,
+            pre ? pre.textContent : tds[2].textContent,
+          ];
+        })
+      )
+    );
+    secs.forEach((s, i) => {
+      const expected = s.rows.map((r) => [plain(r[0]), plain(r[1]), s.text ? plain(r[2]) : r[2]]);
+      expect(rendered[i], s.id).toEqual(expected);
+    });
+  });
+
+  test('actionability checks per action match the Playwright docs', async ({ page }) => {
+    const secs = await sections(page);
+    const checks = (needle) => row(secs, 'actions', needle)[1];
+    const ALL4 = 'Visible, Stable, Receives Events, Enabled';
+    expect(checks('`click()`')).toBe(ALL4);
+    expect(checks('`check()`')).toBe(ALL4);
+    expect(checks('`hover()`')).toBe('Visible, Stable, Receives Events');
+    expect(checks('`fill()`')).toBe('Visible, Enabled, Editable');
+    expect(checks('`selectOption()`')).toBe('Visible, Enabled');
+    expect(checks('`selectText()`')).toBe('Visible');
+    expect(checks('`screenshot()`')).toBe('Visible, Stable');
+    expect(checks('`scrollIntoViewIfNeeded()`')).toBe('Stable');
+    expect(checks('`press()`')).toMatch(/^No actionability checks/);
+  });
+
+  test('every check named in the actions table is one of the five pills', async ({ page }) => {
+    const pills = await page.locator('.guide .pill').allTextContents();
+    const named = (await sections(page))
+      .find((s) => s.id === 'actions')
+      .rows.filter((r) => !r[1].startsWith('No actionability'))
+      .flatMap((r) => r[1].split(', '));
+    expect(named.length).toBeGreaterThan(0);
+    for (const check of named) expect(pills).toContain(check);
+  });
+
+  test('warning tags sit on the right rows, and those rows are flagged', async ({ page }) => {
+    for (const [method, tag] of [
+      ['page.waitForTimeout(ms)', 'Avoid'],
+      ['page.waitForSelector()', 'Legacy'],
+      ['page.waitForNavigation()', 'Deprecated'],
+    ]) {
+      const tr = page.locator('#explicit tbody tr', { hasText: method });
+      await expect(tr.locator('.tag')).toHaveText(tag);
+      await expect(tr).toHaveClass(/\bflag\b/);
+    }
+  });
+
+  test('flagged rows are exactly the rows flagged in the data', async ({ page }) => {
+    const fromData = (await sections(page)).map((s) => s.rows.map((r) => r[3] === true));
+    const fromDom = await page
+      .locator('.guide section')
+      .evaluateAll((els) =>
+        els.map((sec) =>
+          [...sec.querySelectorAll('tbody tr')].map((tr) => tr.classList.contains('flag'))
+        )
+      );
+    expect(fromDom).toEqual(fromData);
+  });
+
+  test('explicit waits register the wait before the action that triggers it', async ({ page }) => {
+    const rows = (await sections(page))
+      .find((s) => s.id === 'explicit')
+      .rows.filter((r) => /Promise = /.test(r[2]));
+    expect(rows.length).toBeGreaterThanOrEqual(6);
+    for (const [method, , code] of rows) {
+      const register = code.indexOf('Promise = ');
+      const trigger = code.search(/\.click\(|saveButton\.click\(/);
+      const resolve = code.search(/await \w+Promise/);
+      expect(register, method).toBeLessThan(trigger);
+      expect(trigger, method).toBeLessThan(resolve);
+    }
+  });
+
+  test('every flaky example is followed by a web-first correct one', async ({ page }) => {
+    for (const [method, , code] of (await sections(page)).find((s) => s.id === 'not-waits').rows) {
+      const [flaky, correct] = code.split('// Correct');
+      expect(flaky, method).toMatch(/^\/\/ Flaky/);
+      expect(flaky, method).not.toContain('await expect(');
+      expect(correct, method).toContain('await expect(');
+    }
+  });
+
+  test('discouraged APIs appear in code only on flagged rows', async ({ page }) => {
+    for (const s of await sections(page)) {
+      for (const [method, , code, flag] of s.rows) {
+        if (/waitForTimeout\(|waitForSelector\(|waitForNavigation\(|force: true/.test(code)) {
+          expect(flag, `${s.id}: ${method}`).toBe(true);
+        }
+      }
+    }
+  });
+
+  test('timeout settings and defaults are stated correctly', async ({ page }) => {
+    await expect(page.locator('#assertions .note')).toContainText('5 seconds by default');
+    await expect(page.locator('#timeouts tbody td:first-child')).toHaveText([
+      'timeout',
+      'expect.timeout',
+      'use.actionTimeout',
+      'use.navigationTimeout',
+      'Per-call override',
+    ]);
+    await expect(page.locator('#summary tbody td:first-child')).toHaveText([
+      'Auto-waiting',
+      'Explicit waiting',
+      'No waiting',
+      'Hard sleeps',
+    ]);
+  });
+
+  test('content follows the project text rules: no dashes, real code examples', async ({
+    page,
+  }) => {
+    for (const s of await sections(page)) {
+      for (const text of [
+        s.title,
+        s.note ?? '',
+        ...s.cols,
+        ...s.rows.flat().filter((c) => typeof c === 'string'),
+      ]) {
+        expect(text, s.id).not.toMatch(/[–—]/);
+      }
+      if (!s.text)
+        for (const r of s.rows) expect(r[2].trim().length, r[0]).toBeGreaterThanOrEqual(20);
+    }
+  });
+
+  test('the meta-bar fallbacks match the dashboard, so a release bump cannot miss one page', async ({
+    page,
+  }) => {
+    const fallbacks = async (path) => {
+      const html = await (await page.request.get(path)).text();
+      const value = (id) => html.match(new RegExp(`id="${id}">([^<]+)<`))[1];
+      return { version: value('pw-version'), date: value('last-updated') };
+    };
+    expect(await fallbacks('/waiting.html')).toEqual(await fallbacks('/index.html'));
+  });
+
+  test('failed fetches leave the exact fallback values in place', async ({ page }) => {
+    const html = await (await page.request.get('/waiting.html')).text();
+    const fallback = (id) => html.match(new RegExp(`id="${id}">([^<]+)<`))[1];
+    await page.route('**/js/meta.json**', (route) => route.abort());
+    await page.route('**/package.json**', (route) => route.abort());
+    await page.goto('/waiting.html');
+    await expect(page.locator('#pw-version')).toHaveText(fallback('pw-version'));
+    await expect(page.locator('#last-updated')).toHaveText(fallback('last-updated'));
+  });
+});
+
+/* ── COLOURS ───────────────────────────────────────────────────── */
+// The dashboard palette (see the colour list in docs/superpowers/specs/2026-11-07-waiting-guide-design.md)
+const PALETTE = [
+  ['body', 'backgroundColor', 'rgb(15, 23, 42)'],
+  ['.guide h1', 'color', 'rgb(226, 232, 240)'],
+  ['.guide .lede', 'color', 'rgb(148, 163, 184)'],
+  ['.guide .pill', 'color', 'rgb(74, 222, 128)'],
+  ['.guide .pill', 'backgroundColor', 'rgba(22, 163, 74, 0.2)'],
+  ['.guide #toc a', 'color', 'rgb(148, 163, 184)'],
+  ['.guide h2', 'color', 'rgb(226, 232, 240)'],
+  ['.guide h2 .num', 'color', 'rgb(46, 173, 51)'],
+  ['.guide .note', 'color', 'rgb(148, 163, 184)'],
+  ['.guide .table-card', 'backgroundColor', 'rgb(30, 41, 59)'],
+  ['.guide .table-card', 'borderTopColor', 'rgb(51, 65, 85)'],
+  ['.guide .table-card', 'borderTopLeftRadius', '12px'],
+  ['.guide th', 'color', 'rgb(148, 163, 184)'],
+  ['.guide td', 'color', 'rgb(203, 213, 225)'],
+  ['.guide .tag', 'color', 'rgb(251, 146, 60)'],
+  ['.guide .tag', 'backgroundColor', 'rgba(234, 88, 12, 0.2)'],
+  ['.guide pre', 'backgroundColor', 'rgb(2, 6, 23)'],
+  ['.guide pre', 'color', 'rgb(226, 232, 240)'],
+  ['.guide code.inl', 'backgroundColor', 'rgb(2, 6, 23)'],
+  ['.guide code.inl', 'color', 'rgb(226, 232, 240)'],
+  ['.guide-copy', 'backgroundColor', 'rgb(56, 189, 248)'],
+  ['.guide-copy', 'color', 'rgb(0, 0, 0)'],
+  ['.guide pre .tok-keyword', 'color', 'rgb(56, 189, 248)'],
+  ['.guide pre .tok-string', 'color', 'rgb(74, 222, 128)'],
+  ['.guide pre .tok-api', 'color', 'rgb(192, 132, 252)'],
+  ['.guide pre .tok-number', 'color', 'rgb(251, 146, 60)'],
+  ['.guide pre .tok-comment', 'color', 'rgb(148, 163, 184)'],
+  ['.guide pre .tok-comment', 'fontStyle', 'italic'],
+  ['.guide pre .tok-fn', 'color', 'rgb(251, 191, 36)'],
+];
+
+// Contrast ratio of an element's text against what is actually painted behind it
+// (semi-transparent backgrounds composited over their ancestors), per WCAG 2.x
+async function contrastOf(page, selector) {
+  return page
+    .locator(selector)
+    .first()
+    .evaluate((el) => {
+      const parse = (c) => {
+        const [r, g, b, a = 1] = c.match(/[\d.]+/g).map(Number);
+        return { r, g, b, a };
+      };
+      const over = (top, under) => ({
+        r: top.r * top.a + under.r * (1 - top.a),
+        g: top.g * top.a + under.g * (1 - top.a),
+        b: top.b * top.a + under.b * (1 - top.a),
+        a: 1,
+      });
+      const layers = [];
+      for (let n = el; n; n = n.parentElement)
+        layers.push(parse(getComputedStyle(n).backgroundColor));
+      const bg = layers
+        .reverse()
+        .reduce((under, top) => over(top, under), { r: 255, g: 255, b: 255, a: 1 });
+      const fg = over(parse(getComputedStyle(el).color), bg);
+      const lum = ({ r, g, b }) => {
+        const ch = (v) => ((v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+        return 0.2126 * ch(r) + 0.7152 * ch(g) + 0.0722 * ch(b);
+      };
+      const [hi, lo] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+      return (hi + 0.05) / (lo + 0.05);
+    });
+}
+
+test.describe('Waiting guide: colours', () => {
+  test('every guide element uses the dashboard palette', async ({ page }) => {
+    await page.goto('/waiting.html');
+    for (const [selector, prop, value] of PALETTE) {
+      const actual = await page
+        .locator(selector)
+        .first()
+        .evaluate((el, p) => getComputedStyle(el)[p], prop);
+      expect(actual, `${selector} ${prop}`).toBe(value);
+    }
+  });
+
+  test('all guide text meets WCAG AA contrast (4.5:1)', async ({ page }) => {
+    await page.goto('/waiting.html');
+    for (const selector of [
+      '.guide h1',
+      '.guide .lede',
+      '.guide .pill',
+      '.guide #toc a',
+      '.guide h2 .num',
+      '.guide .note',
+      '.guide th',
+      '.guide td',
+      '.guide .tag',
+      '.guide code.inl',
+      '.guide-copy',
+      '.page-tab:not([aria-current])',
+      '.page-tab[aria-current]',
+      '.guide pre code',
+      '.guide pre .tok-keyword',
+      '.guide pre .tok-string',
+      '.guide pre .tok-api',
+      '.guide pre .tok-number',
+      '.guide pre .tok-comment',
+      '.guide pre .tok-fn',
+    ]) {
+      expect(await contrastOf(page, selector), selector).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+
+  test('code tokens are the same colours as in the dashboard modal', async ({ page }) => {
+    const tokenColours = (scope) =>
+      page.evaluate((sc) => {
+        const out = {};
+        for (const cls of ['keyword', 'string', 'api', 'number', 'comment', 'fn']) {
+          const el = document.querySelector(`${sc} .tok-${cls}`);
+          if (el) out[cls] = getComputedStyle(el).color;
+        }
+        return out;
+      }, scope);
+
+    await page.goto('/waiting.html');
+    const guide = await tokenColours('.guide pre');
+
+    await page.goto('/#search=waitForResponse()');
+    await page.locator('#grid .tile').first().click();
+    const modal = await tokenColours('#m-code');
+
+    const shared = Object.keys(modal).filter((k) => k in guide);
+    expect(shared.length).toBeGreaterThanOrEqual(3);
+    for (const k of shared) expect(guide[k], `tok-${k}`).toBe(modal[k]);
+  });
+
+  test('the shared header and meta-bar look identical on both pages', async ({ page }) => {
+    const look = () =>
+      page.evaluate(() => ({
+        header: document.querySelector('header').outerHTML,
+        headerBg: getComputedStyle(document.querySelector('header')).backgroundColor,
+        barBg: getComputedStyle(document.querySelector('.meta-bar')).backgroundColor,
+        version: getComputedStyle(document.getElementById('pw-version')).backgroundColor,
+        date: getComputedStyle(document.getElementById('last-updated')).backgroundColor,
+      }));
+    await page.goto('/waiting.html');
+    const guide = await look();
+    await page.goto('/');
+    expect(guide).toEqual(await look());
+    expect(guide.version).toBe('rgb(34, 197, 94)');
+    expect(guide.date).toBe('rgb(56, 189, 248)');
+  });
+
+  test('page tabs look exactly like the dashboard filter pills', async ({ page }) => {
+    await page.goto('/');
+    const look = (sel) =>
+      page
+        .locator(sel)
+        .first()
+        .evaluate((el) => {
+          const cs = getComputedStyle(el);
+          return {
+            background: cs.backgroundColor,
+            color: cs.color,
+            radius: cs.borderTopLeftRadius,
+            weight: cs.fontWeight,
+            size: cs.fontSize,
+            outline: `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor}`,
+          };
+        });
+    expect(await look('.page-tab:not([aria-current])')).toEqual(
+      await look('.filter-btn:not(.active)')
+    );
+    expect(await look('.page-tab[aria-current]')).toEqual(await look('.filter-btn.active'));
+  });
+
+  test('copied feedback turns the button green', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value: { writeText: () => Promise.resolve() },
+      });
+    });
+    await page.goto('/waiting.html');
+    const button = page.locator('.guide-copy').first();
+    await button.click();
+    await expect(button).toHaveCSS('background-color', 'rgb(74, 222, 128)');
+  });
+
+  test('keyboard focus shows the white focus ring on tabs, chips and copy buttons', async ({
+    page,
+    browserName,
+  }) => {
+    test.skip(browserName === 'webkit', 'WebKit does not move Tab focus to links by default');
+    await page.goto('/waiting.html');
+    const ring = () =>
+      page.evaluate(() => {
+        const cs = getComputedStyle(document.activeElement);
+        return {
+          tag: document.activeElement.className,
+          ring: `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor}`,
+        };
+      });
+    await page.keyboard.press('Tab');
+    expect(await ring()).toEqual({ tag: 'page-tab', ring: 'solid 3px rgb(248, 250, 252)' });
+
+    await page.locator('#actions a.inl').first().focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    expect((await ring()).ring).toBe('solid 3px rgb(248, 250, 252)');
+
+    await page.locator('.guide-copy').first().focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    expect(await ring()).toEqual({ tag: 'guide-copy', ring: 'solid 3px rgb(248, 250, 252)' });
+  });
+});
