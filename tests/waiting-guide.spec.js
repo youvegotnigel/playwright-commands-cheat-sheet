@@ -114,3 +114,106 @@ test.describe('Waiting guide: visitor counter', () => {
     await expect.poll(() => state.posts).toBe(1);
   });
 });
+
+/* ── SECTIONS ──────────────────────────────────────────────────── */
+const SECTION_IDS = [
+  'actions',
+  'assertions',
+  'navigation',
+  'explicit',
+  'not-waits',
+  'timeouts',
+  'tips',
+  'summary',
+];
+const ROW_COUNTS = [9, 9, 2, 15, 4, 5, 7, 4];
+
+test.describe('Waiting guide: sections', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/waiting.html');
+  });
+
+  test('renders the eight sections in order', async ({ page }) => {
+    const sections = page.locator('.guide section');
+    await expect(sections).toHaveCount(8);
+    const ids = await sections.evaluateAll((els) => els.map((el) => el.id));
+    expect(ids).toEqual(SECTION_IDS);
+
+    const titles = await page.evaluate(() => window.waitingSections.map((s) => s.title));
+    for (const [i, id] of SECTION_IDS.entries()) {
+      const h2 = page.locator(`#${id} h2`);
+      await expect(h2).toContainText(titles[i]);
+      await expect(h2.locator('.num')).toHaveText(String(i + 1).padStart(2, '0'));
+    }
+  });
+
+  test('section index has eight working anchors', async ({ page }) => {
+    const links = page.locator('#toc a');
+    await expect(links).toHaveCount(8);
+    await expect(links.first()).toHaveText('01 Auto-waiting: actions');
+
+    await links.last().click();
+    await expect(page.locator('#summary h2')).toBeInViewport();
+  });
+
+  test('row counts match the data', async ({ page }) => {
+    for (const [i, id] of SECTION_IDS.entries()) {
+      await expect(page.locator(`#${id} tbody tr`)).toHaveCount(ROW_COUNTS[i]);
+    }
+    const dataCounts = await page.evaluate(() => window.waitingSections.map((s) => s.rows.length));
+    expect(dataCounts).toEqual(ROW_COUNTS);
+  });
+
+  test('flagged rows and tags', async ({ page }) => {
+    await expect(page.locator('.guide tr.flag')).toHaveCount(10);
+    await expect(page.locator('.guide .tag')).toHaveText(['Avoid', 'Legacy', 'Deprecated']);
+  });
+
+  test('summary third column is prose, not code', async ({ page }) => {
+    await expect(page.locator('#summary pre')).toHaveCount(0);
+    for (const id of SECTION_IDS.slice(0, 7)) {
+      await expect(page.locator(`#${id} tbody tr`).first().locator('pre')).toHaveCount(1);
+    }
+  });
+
+  test('tables use column headers', async ({ page }) => {
+    const scopes = await page
+      .locator('.guide th')
+      .evaluateAll((els) => els.map((el) => el.getAttribute('scope')));
+    expect(scopes.length).toBe(24);
+    expect(new Set(scopes)).toEqual(new Set(['col']));
+    await expect(page.locator('#actions th')).toHaveText([
+      'Method',
+      'Checks performed',
+      'Real-world example',
+    ]);
+  });
+
+  test('code is highlighted with the dashboard palette', async ({ page }) => {
+    const colour = (sel) =>
+      page
+        .locator(sel)
+        .first()
+        .evaluate((el) => getComputedStyle(el).color);
+    expect(await colour('.guide pre .tok-keyword')).toBe('rgb(56, 189, 248)');
+    expect(await colour('.guide pre .tok-string')).toBe('rgb(74, 222, 128)');
+  });
+
+  test('flagged rows show the orange edge', async ({ page }) => {
+    const shadow = await page
+      .locator('.guide tr.flag td')
+      .first()
+      .evaluate((el) => getComputedStyle(el).boxShadow);
+    expect(shadow).toContain('rgb(251, 146, 60)');
+  });
+
+  test('escapes angle brackets in code', async ({ page }) => {
+    const pre = page.locator('#tips tbody tr', { hasText: 'intent-named' }).locator('pre');
+    await expect(pre).toContainText('Promise<void>');
+    expect(await pre.locator('void').count()).toBe(0);
+  });
+
+  test('has no syntax legend', async ({ page }) => {
+    await expect(page.locator('.legend')).toHaveCount(0);
+  });
+});
