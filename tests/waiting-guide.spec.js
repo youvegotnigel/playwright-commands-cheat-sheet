@@ -69,51 +69,55 @@ test.describe('Waiting guide: page shell', () => {
 
 /* ── PAGE SWITCH ───────────────────────────────────────────────── */
 test.describe('Waiting guide: page switch', () => {
-  test('is on both pages with aria-current on the current one', async ({ page }) => {
+  test('is on all three pages with aria-current on the current one', async ({ page }) => {
     for (const [path, current] of [
-      ['/waiting.html', 'Waiting guide'],
+      ['/waiting.html', 'Waiting'],
       ['/', 'Commands'],
+      ['/locators.html', 'Locators'],
     ]) {
       await page.goto(path);
       const nav = page.getByRole('navigation', { name: 'Pages' });
       const links = nav.getByRole('link');
-      await expect(links).toHaveCount(2);
+      await expect(links).toHaveCount(3);
       await expect(links.nth(0)).toHaveAccessibleName('Commands');
-      await expect(links.nth(1)).toHaveAccessibleName('Waiting guide');
+      await expect(links.nth(1)).toHaveAccessibleName('Waiting');
+      await expect(links.nth(2)).toHaveAccessibleName('Locators');
       await expect(nav.locator('[aria-current="page"]')).toHaveAccessibleName(current);
     }
   });
 
-  // Emoji presentation (U+FE0F) so both icons render as full-colour emoji on every OS,
+  // Emoji presentation (U+FE0F) so the icons render as full-colour emoji on every OS,
   // matching the ⭐ / 🔥 filter pills, instead of a font-dependent text glyph
   const KEYBOARD = '⌨️';
   const STOPWATCH = '⏱️';
+  const TARGET = '🎯';
 
-  test('each tab has a decorative emoji icon: keyboard for Commands, stopwatch for the guide', async ({
-    page,
-  }) => {
-    for (const path of ['/waiting.html', '/']) {
+  test('each tab has a decorative emoji icon: keyboard, stopwatch and target', async ({ page }) => {
+    for (const path of ['/waiting.html', '/', '/locators.html']) {
       await page.goto(path);
       const icons = page.locator('.page-switch .page-tab .tab-icon');
-      await expect(icons).toHaveText([KEYBOARD, STOPWATCH]);
+      await expect(icons).toHaveText([KEYBOARD, STOPWATCH, TARGET]);
       for (const icon of await icons.all()) {
         await expect(icon).toHaveAttribute('aria-hidden', 'true');
       }
     }
   });
 
-  test('tab icons take the same space, so the pair looks balanced', async ({ page }) => {
+  test('tab icons take the same space, so the tabs look balanced', async ({ page }) => {
     await page.goto('/waiting.html');
     const boxes = await page
       .locator('.page-tab .tab-icon')
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect()));
-    expect(Math.abs(boxes[0].width - boxes[1].width)).toBeLessThanOrEqual(1);
-    expect(Math.abs(boxes[0].height - boxes[1].height)).toBeLessThanOrEqual(1);
+    expect(boxes).toHaveLength(3);
+    for (const box of boxes) {
+      expect(Math.abs(boxes[0].width - box.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(boxes[0].height - box.height)).toBeLessThanOrEqual(1);
+    }
 
     const tabs = await page
       .locator('.page-tab')
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
-    expect(Math.abs(tabs[0] - tabs[1])).toBeLessThanOrEqual(1);
+    for (const height of tabs) expect(Math.abs(tabs[0] - height)).toBeLessThanOrEqual(1);
   });
 
   test('navigates both ways', async ({ page }) => {
@@ -122,7 +126,7 @@ test.describe('Waiting guide: page switch', () => {
     await expect(page).toHaveURL(/\/(index\.html)?$/);
     await expect(page.locator('#grid')).toBeVisible();
 
-    await page.getByRole('navigation', { name: 'Pages' }).getByText('Waiting guide').click();
+    await page.getByRole('navigation', { name: 'Pages' }).getByText('Waiting').click();
     await expect(page).toHaveURL(/waiting/);
     await expect(page.locator('h1')).toHaveText('Playwright Waiting Cheat Sheet');
   });
@@ -581,7 +585,8 @@ test.describe('Waiting guide: layout', () => {
     const widths = await page
       .locator('.page-tab')
       .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-    expect(Math.abs(widths[0] - widths[1])).toBeLessThanOrEqual(1);
+    expect(widths).toHaveLength(3);
+    for (const width of widths) expect(Math.abs(widths[0] - width)).toBeLessThanOrEqual(1);
   });
 });
 
