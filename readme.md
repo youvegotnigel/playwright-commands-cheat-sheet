@@ -18,7 +18,7 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
-- Waiting guide page (⏱ **Waiting guide** tab): auto-waiting, explicit waits, timeouts and pitfalls, with copyable examples and links back to the commands
+- Waiting guide page (⏱️ **Waiting guide** tab, next to ⌨️ **Commands**): auto-waiting, explicit waits, timeouts and pitfalls, with copyable examples and links back to the commands
 
 ## Categories
 Config, Setup, CLI, Query, Accessibility, Action, Utility, Clock & Time, Media & Audio, Tracing & Debugging, Network & Mocking, Assertions, API, Fixtures, Patterns, Component Testing

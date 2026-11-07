@@ -218,12 +218,15 @@ pre {
 /* Page switch: Commands / Waiting guide. Same pill look as .filter-btn. */
 .page-switch { display: flex; justify-content: center; gap: 8px; padding: 14px 16px 0; }
 .page-tab {
+  display: inline-flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: 999px;
   background: rgba(255,255,255,0.06); color: #cbd5e1;
   font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap;
   transition: background 0.15s;
 }
 .page-tab:hover { background: rgba(255,255,255,0.12); }
+/* Fixed-width icon slot so the two tab icons take the same space whatever the emoji font */
+.tab-icon { display: inline-block; width: 1.25em; text-align: center; line-height: 1; }
 .page-tab[aria-current="page"] {
   background: rgba(255,255,255,0.18); color: #fff;
   outline: 2px solid rgba(255,255,255,0.25);
@@ -304,7 +307,7 @@ pre {
   }
   .guide td:first-child { box-shadow: none; }
   .guide tr.flag { box-shadow: inset 3px 0 0 #fb923c; }
-  .page-tab { flex: 1; text-align: center; }
+  .page-tab { flex: 1; justify-content: center; }
   .page-switch { padding-left: 16px; padding-right: 16px; }
 }
 .guide pre {

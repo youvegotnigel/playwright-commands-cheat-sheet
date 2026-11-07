@@ -70,14 +70,50 @@ test.describe('Waiting guide: page shell', () => {
 /* ── PAGE SWITCH ───────────────────────────────────────────────── */
 test.describe('Waiting guide: page switch', () => {
   test('is on both pages with aria-current on the current one', async ({ page }) => {
-    await page.goto('/waiting.html');
-    const nav = page.getByRole('navigation', { name: 'Pages' });
-    await expect(nav.getByRole('link')).toHaveText(['Commands', '⏱ Waiting guide']);
-    await expect(nav.locator('[aria-current="page"]')).toHaveText('⏱ Waiting guide');
+    for (const [path, current] of [
+      ['/waiting.html', 'Waiting guide'],
+      ['/', 'Commands'],
+    ]) {
+      await page.goto(path);
+      const nav = page.getByRole('navigation', { name: 'Pages' });
+      const links = nav.getByRole('link');
+      await expect(links).toHaveCount(2);
+      await expect(links.nth(0)).toHaveAccessibleName('Commands');
+      await expect(links.nth(1)).toHaveAccessibleName('Waiting guide');
+      await expect(nav.locator('[aria-current="page"]')).toHaveAccessibleName(current);
+    }
+  });
 
-    await page.goto('/');
-    await expect(nav.getByRole('link')).toHaveText(['Commands', '⏱ Waiting guide']);
-    await expect(nav.locator('[aria-current="page"]')).toHaveText('Commands');
+  // Emoji presentation (U+FE0F) so both icons render as full-colour emoji on every OS,
+  // matching the ⭐ / 🔥 filter pills, instead of a font-dependent text glyph
+  const KEYBOARD = '⌨️';
+  const STOPWATCH = '⏱️';
+
+  test('each tab has a decorative emoji icon: keyboard for Commands, stopwatch for the guide', async ({
+    page,
+  }) => {
+    for (const path of ['/waiting.html', '/']) {
+      await page.goto(path);
+      const icons = page.locator('.page-switch .page-tab .tab-icon');
+      await expect(icons).toHaveText([KEYBOARD, STOPWATCH]);
+      for (const icon of await icons.all()) {
+        await expect(icon).toHaveAttribute('aria-hidden', 'true');
+      }
+    }
+  });
+
+  test('tab icons take the same space, so the pair looks balanced', async ({ page }) => {
+    await page.goto('/waiting.html');
+    const boxes = await page
+      .locator('.page-tab .tab-icon')
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect()));
+    expect(Math.abs(boxes[0].width - boxes[1].width)).toBeLessThanOrEqual(1);
+    expect(Math.abs(boxes[0].height - boxes[1].height)).toBeLessThanOrEqual(1);
+
+    const tabs = await page
+      .locator('.page-tab')
+      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().height));
+    expect(Math.abs(tabs[0] - tabs[1])).toBeLessThanOrEqual(1);
   });
 
   test('navigates both ways', async ({ page }) => {
