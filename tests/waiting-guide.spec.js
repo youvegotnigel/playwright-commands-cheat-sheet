@@ -260,45 +260,74 @@ test.describe('Waiting guide: links to the dashboard', () => {
     await page.goto('/waiting.html');
   });
 
-  test('every linked chip leads to at least one dashboard item', async ({ page }) => {
+  test('every link opens a dashboard search that shows at least one tile', async ({ page }) => {
     const hrefs = await page
       .locator('.guide a.inl')
       .evaluateAll((els) => els.map((el) => el.getAttribute('href')));
-    expect(hrefs.length).toBeGreaterThanOrEqual(20);
+    expect(hrefs.length).toBeGreaterThanOrEqual(60);
     for (const href of hrefs) expect(href).toMatch(/^index\.html#search=/);
 
-    const keys = hrefs.map((h) => decodeURIComponent(h.split('#search=')[1]));
-    // `categories` is only a global on the dashboard, so load the data module directly
-    const dead = await page.evaluate(async (ks) => {
-      const { categories } = await import('./js/data/index.js');
-      return ks.filter(
-        (k) =>
-          !categories.some((c) =>
-            c.items.some((i) => i.name.toLowerCase().includes(k.toLowerCase()))
-          )
-      );
-    }, keys);
-    expect(dead).toEqual([]);
+    // Run every search on the real dashboard: set each hash and count the rendered tiles
+    await page.goto('/');
+    const empty = await page.evaluate(
+      async (hs) => {
+        const misses = [];
+        for (const h of hs) {
+          const hash = h.slice(h.indexOf('#'));
+          const changed = new Promise((r) =>
+            window.addEventListener('hashchange', r, { once: true })
+          );
+          location.hash = hash;
+          await changed;
+          if (!document.querySelectorAll('#grid .tile').length) misses.push(hash);
+        }
+        return misses;
+      },
+      [...new Set(hrefs)]
+    ); // de-duplicated: re-setting the current hash fires no hashchange
+    expect(empty).toEqual([]);
   });
 
-  test('known chips link with the right search key', async ({ page }) => {
-    const href = (name) => page.locator('.guide a.inl', { hasText: name }).first();
-    await expect(href('page.waitForURL(url)')).toHaveAttribute(
-      'href',
-      'index.html#search=waitForURL'
-    );
-    await expect(href('expect(fn).toPass()')).toHaveAttribute('href', 'index.html#search=toPass');
-    await expect(
-      page.locator('#assertions a.inl', { hasText: /^toBeVisible$/ }).first()
-    ).toHaveAttribute('href', 'index.html#search=toBeVisible');
+  test('links search for the full command name, so the tile is easy to find', async ({ page }) => {
+    const href = (scope, text) =>
+      page.locator(`${scope} a.inl`, { hasText: text }).first().getAttribute('href');
+    const expected = [
+      ['#explicit', 'page.waitForURL(url)', 'waitForURL()'],
+      ['#explicit', 'expect(fn).toPass()', 'expect().toPass()'],
+      ['#explicit', "page.waitForEvent('popup')", 'page.waitForEvent()'],
+      ['#explicit', "context.waitForEvent('page')", 'context.waitForEvent()'],
+      ['#explicit', 'locator.waitFor({ state })', 'locator.waitFor()'],
+      ['#navigation', 'page.goto(url)', 'goto()'],
+      ['#not-waits', /^all\(\)$/, 'locator.all()'],
+      ['#assertions', /^toBe$/, 'toBe()'],
+      ['#assertions', /^toBeVisible$/, 'toBeVisible()'],
+    ];
+    for (const [scope, text, name] of expected) {
+      expect(await href(scope, text)).toBe(`index.html#search=${encodeURIComponent(name)}`);
+    }
+  });
+
+  test('a broad method lands on a short list that contains its tile', async ({ page }) => {
+    // all() used to search the bare word "all", which matched about 167 of 305 tiles
+    await page.locator('#not-waits a.inl', { hasText: /^all\(\)$/ }).click();
+    await expect(page.locator('#grid .tile-name', { hasText: /^locator\.all\(\)$/ })).toBeVisible();
+    expect(await page.locator('#grid .tile').count()).toBeLessThanOrEqual(10);
   });
 
   test('chips with no dashboard match are plain chips', async ({ page }) => {
-    const chip = page.locator('#actions tbody td:first-child', {
-      hasText: 'scrollIntoViewIfNeeded',
-    });
-    await expect(chip.locator('code.inl')).toHaveText('scrollIntoViewIfNeeded()');
-    await expect(chip.locator('a')).toHaveCount(0);
+    // These four action methods have no tile on the dashboard, so they must not link
+    const plain = page.locator('#actions tbody td:first-child code.inl');
+    await expect(plain).toHaveText([
+      'setChecked()',
+      'selectText()',
+      'scrollIntoViewIfNeeded()',
+      'blur()',
+    ]);
+    await expect(
+      page
+        .locator('#actions tbody td:first-child', { hasText: 'scrollIntoViewIfNeeded' })
+        .locator('a')
+    ).toHaveCount(0);
   });
 
   test('linked chips look like plain chips, with no default link colours', async ({ page }) => {
@@ -338,8 +367,9 @@ test.describe('Waiting guide: links to the dashboard', () => {
   test('clicking a link opens the dashboard with that search', async ({ page }) => {
     await page.locator('#explicit a.inl', { hasText: 'page.waitForURL(url)' }).click();
 
-    await expect(page).toHaveURL(/index\.html#search=waitForURL$|\/#search=waitForURL$/);
-    await expect(page.locator('#search-input')).toHaveValue('waitForURL');
+    await expect(page).toHaveURL(/#search=waitForURL\(\)$/);
+    await expect(page.locator('#search-input')).toHaveValue('waitForURL()');
+    await expect(page.locator('#grid .tile-name', { hasText: /^waitForURL\(\)$/ })).toBeVisible();
     await expect(page.locator('.tile').first()).toBeVisible();
 
     await page.goBack();
@@ -394,18 +424,24 @@ test.describe('Waiting guide: copy buttons', () => {
     expect(copied[1]).toContain('/\\/dashboard/');
   });
 
-  test('code never runs underneath the copy button', async ({ page }) => {
-    await page.goto('/waiting.html');
-    const pad = await page
-      .locator('.guide pre')
-      .first()
-      .evaluate((el) => parseFloat(getComputedStyle(el).paddingRight));
-    const buttonWidth = await page
-      .locator('.guide-copy')
-      .first()
-      .evaluate((el) => el.getBoundingClientRect().width);
-    expect(pad).toBeGreaterThanOrEqual(buttonWidth + 6);
-  });
+  for (const width of [1280, 390]) {
+    test(`the copy button never covers code at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/waiting.html');
+      // The button sits in a band above the first line of code, so no line (however long or
+      // however far scrolled) can run underneath it, whatever its label says
+      const covering = await page.locator('.guide .block').evaluateAll((blocks) =>
+        blocks
+          .filter((b) => {
+            const btn = b.querySelector('.guide-copy').getBoundingClientRect();
+            const code = b.querySelector('pre code').getBoundingClientRect();
+            return btn.bottom > code.top + 0.5;
+          })
+          .map((b) => b.querySelector('pre').textContent.split('\n')[0])
+      );
+      expect(covering).toEqual([]);
+    });
+  }
 
   test('shows feedback, then resets', async ({ page }) => {
     await stubClipboard(page);
@@ -485,6 +521,57 @@ test.describe('Waiting guide: layout', () => {
       });
     expect(style).toEqual({ overflowX: 'auto', whiteSpace: 'pre' });
     expect(await noSideScroll(page)).toBe(true);
+  });
+
+  for (const width of [1280, 800, 390]) {
+    test(`method chips stay inside their cell at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/waiting.html');
+      const spilling = await page.locator('.guide td .inl').evaluateAll((chips) =>
+        chips
+          .filter((chip) => {
+            const td = chip.closest('td');
+            const edge =
+              td.getBoundingClientRect().right - parseFloat(getComputedStyle(td).paddingRight);
+            return chip.getBoundingClientRect().right > edge + 0.5;
+          })
+          .map((chip) => chip.textContent)
+      );
+      expect(spilling).toEqual([]);
+    });
+  }
+
+  for (const width of [800, 390]) {
+    test(`a wrapping chip breaks between tokens, not inside a word, at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/waiting.html');
+      const chip = page.locator('#explicit .inl', { hasText: "'websocket'" });
+      // Each string token ('dialog', 'console', ...) must sit on one line: one client rect each
+      const split = await chip
+        .locator('.tok-string')
+        .evaluateAll((els) =>
+          els.filter((el) => el.getClientRects().length > 1).map((el) => el.textContent)
+        );
+      expect(split).toEqual([]);
+      // The break hints must not leak into the text a reader selects and copies
+      await expect(chip).toHaveText(
+        "page.waitForEvent('dialog' / 'console' / 'filechooser' / 'websocket')"
+      );
+    });
+  }
+
+  test('code blocks and chips use the same monospace font stack', async ({ page }) => {
+    await page.goto('/waiting.html');
+    const font = (sel) =>
+      page
+        .locator(sel)
+        .first()
+        .evaluate((el) => getComputedStyle(el).fontFamily);
+    const block = await font('.guide pre code');
+    expect(block).toBe(await font('.guide td .inl'));
+    expect(block).toContain('ui-monospace');
   });
 
   test('page tabs share the width on phones', async ({ page }) => {

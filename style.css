@@ -277,7 +277,9 @@ pre {
 
 .guide code.inl, .guide a.inl {
   font: 12.5px ui-monospace, Menlo, Consolas, monospace; background: #020617; color: #e2e8f0;
-  padding: 1px 6px; border-radius: 4px; white-space: nowrap; display: inline-block; margin: 1px 0;
+  padding: 1px 6px; border-radius: 4px; display: inline-block; margin: 1px 0;
+  /* Long chips wrap inside their cell instead of spilling over the next column */
+  max-width: 100%; white-space: normal; overflow-wrap: anywhere;
 }
 .guide a.inl { text-decoration: none; transition: box-shadow 0.15s; }
 .guide a.inl:hover, .guide a.inl:focus-visible { box-shadow: 0 0 0 1px #38bdf8; }
@@ -311,7 +313,9 @@ pre {
   .page-switch { padding-left: 16px; padding-right: 16px; }
 }
 .guide pre {
-  margin: 0; background: #020617; border-radius: 8px; padding: 12px 70px 12px 14px;
+  /* The top band holds the Copy button, so no line of code can ever run underneath it */
+  margin: 0; background: #020617; border-radius: 8px; padding: 36px 14px 12px;
   font: 12.8px/1.6 ui-monospace, Menlo, Consolas, monospace; tab-size: 2;
   white-space: pre; word-break: normal; overflow-x: auto;
 }
+.guide pre code { font: inherit; }

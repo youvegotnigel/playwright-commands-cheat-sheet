@@ -425,17 +425,31 @@ const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, 
 // Column that holds method names, per section: those chips link back to the dashboard
 const LINK_COLUMN = { actions: 0, navigation: 0, explicit: 0, 'not-waits': 0, assertions: 1 };
 
-// Dashboard search term for a chip: the last identifier followed by "(", else the whole text.
-// page.waitForURL(url) -> waitForURL, expect(fn).toPass() -> toPass, toBeVisible -> toBeVisible
-function linkKey(chip) {
-  const calls = [...chip.matchAll(/([A-Za-z_$][\w$]*)\s*\(/g)];
-  return calls.length ? calls[calls.length - 1][1] : chip.trim();
+// The method a chip names: its last call (and that call's receiver), else the whole text.
+// page.waitForURL(url) -> page / waitForURL, expect(fn).toPass() -> toPass, toBeVisible -> toBeVisible
+function chipMethod(chip) {
+  const calls = [...chip.matchAll(/(?:([A-Za-z_$][\w$]*)\.)?([A-Za-z_$][\w$]*)\s*\(/g)];
+  if (!calls.length) return { receiver: '', key: chip.trim() };
+  const [, receiver = '', key] = calls[calls.length - 1];
+  return { receiver, key };
 }
 
-// Only link when the dashboard has a matching item, so a link never lands on an empty grid
-function hasDashboardMatch(key) {
+const COMMAND_NAMES = categories.flatMap((c) => c.items.map((i) => i.name));
+
+// Dashboard search for a chip. Prefer the matching command's full name (receiver.key(), then
+// key(), then any obj.key()) so the link lands on a short list holding that tile, not on every
+// mention of a common word like "all". Fall back to the bare method name, and return null when
+// no command name mentions it, so a link never lands on an empty grid.
+function searchTerm(chip) {
+  const { receiver, key } = chipMethod(chip);
   const k = key.toLowerCase();
-  return categories.some((c) => c.items.some((i) => i.name.toLowerCase().includes(k)));
+  const named = (name) => COMMAND_NAMES.find((n) => n.toLowerCase() === name.toLowerCase());
+  return (
+    (receiver && named(`${receiver}.${key}()`)) ||
+    named(`${key}()`) ||
+    COMMAND_NAMES.find((n) => n.toLowerCase().endsWith(`.${k}()`)) ||
+    (COMMAND_NAMES.some((n) => n.toLowerCase().includes(k)) ? key : null)
+  );
 }
 
 // Inline markup: `code` becomes a highlighted chip (a link when `link` is set and the
@@ -446,10 +460,12 @@ function inline(text, link = false) {
     .map((part) => {
       if (part.startsWith('`')) {
         const chip = part.slice(1, -1);
-        const html = highlight(chip);
-        const key = link ? linkKey(chip) : '';
-        if (key && hasDashboardMatch(key)) {
-          const href = `index.html#search=${encodeURIComponent(key)}`;
+        // <wbr> after "." and "(" lets a long chip wrap between tokens instead of mid-word,
+        // without adding characters to the text a reader selects
+        const html = highlight(chip).replace(/([.(])/g, '$1<wbr>');
+        const term = link ? searchTerm(chip) : null;
+        if (term) {
+          const href = `index.html#search=${encodeURIComponent(term)}`;
           return `<a class="inl" href="${href}" title="Open in the commands dashboard">${html}</a>`;
         }
         return `<code class="inl">${html}</code>`;
