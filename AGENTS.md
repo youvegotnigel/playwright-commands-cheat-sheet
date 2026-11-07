@@ -25,12 +25,16 @@ command's description, syntax-highlighted code, a tip, and a docs link.
 ```
 index.html              # markup: header, meta bar, page switch, filters, grid, modal
 waiting.html            # Waiting guide page (sister page, same header and meta bar)
+locators.html           # Locator guide page (same shell as waiting.html)
 style.css               # all styles (single file)
 js/
   app.js                # UI logic: render tiles, filter/search, modal, meta bar
   highlight.js          # dependency-free syntax highlighter (JS/TS + shell)
-  meta-bar.js           # loadMetaBadges(): version + last-updated badges, both pages
-  waiting.js            # Waiting guide: SECTIONS content + render, copy, links back
+  meta-bar.js           # loadMetaBadges(): version + last-updated badges, every page
+  guide.js              # renderGuide(): shared guide renderer, copy, links back
+  waiting.js            # Waiting guide content (SECTIONS)
+  locators.js           # Locator guide content (SECTIONS)
+  page-tabs.js          # page tab icon animation on click
   visitor-counter.js    # increments the Supabase visitor count (once per session)
   visitor-display.js    # reads + displays the live count (polls, caches)
   meta.json             # { "lastUpdated": "YYYY-MM-DD" } — stamped by CI
@@ -119,25 +123,57 @@ scoped to `#m-code` in `style.css`.
 
 The badges under the header are populated at load (`initMetaBar` in `js/app.js`; the
 version and date fetches live in `loadMetaBadges()` in `js/meta-bar.js`, which
-`waiting.html` also uses):
+the guide pages also use):
 - **playwright version** — read from `package.json` (`@playwright/test`, range prefix stripped).
 - **last updated** — read from `js/meta.json`, which the `stamp-date.yml` workflow
   writes on every push to `master` (committer date). Don't hand-edit `meta.json`.
 - **commands** — count derived from the data.
 - **visitors** — see below.
 
-All fetches fail gracefully, falling back to the hardcoded values in `index.html` and
-`waiting.html` (the guide shows only the version and last-updated badges).
+All fetches fail gracefully, falling back to the hardcoded values in `index.html`,
+`waiting.html` and `locators.html` (the guides show only the version and last-updated badges).
 
-## Waiting guide
+## Guide pages
 
-`waiting.html` is a restyled port of the standalone Waiting Cheat Sheet, reached through the
-**Commands / Waiting guide** page switch on both pages. Edit its content in the `SECTIONS`
-array in `js/waiting.js` (row = `[col1, col2, col3, flag?]`). Keep its CSS scoped under
-`.guide`, keep it dark and CDN-free, and use `highlight()` for code. Method chips link to
-`index.html#search=<full command name>` (e.g. `locator.all()`), and only when the dashboard has a
-matching item. On this page
-`categories` is not a window global: import `./js/data/index.js` in the page instead.
+`waiting.html` and `locators.html` are guide pages next to the dashboard, reached through the
+**Commands / Waiting / Locators** page switch on all three pages. Each guide is a data module
+plus one HTML page; `js/guide.js` renders them all:
+
+- `renderGuide(sections, { linkColumns })` draws the TOC and section tables, wires the Copy
+  buttons (they copy the source string from `sections`, not the DOM) and fills the meta bar.
+- A section is `{ id, title, note?, text?, cols, rows }`; a row is `[col1, col2, col3, flag?]`.
+  A trailing `true` flags the row (orange edge). Backticks make a code chip and
+  `<tag>X</tag>` a warning tag. `text: true` makes the third column prose instead of code.
+- `linkColumns` maps a section id to the column (0 or 1) whose chips link to
+  `index.html#search=<full command name>` (e.g. `locator.all()`), only when the dashboard has a
+  matching item. A chip with no match is a plain chip, so a link never lands on an empty grid.
+
+Keep guide CSS scoped under `.guide`, keep it dark and CDN-free, and use `highlight()` for code.
+On the guides `categories` is not a window global: import `./js/data/index.js` instead.
+
+**Locator guide content rules** (`tests/locator-guide.spec.js` enforces them): discouraged
+patterns (`page.$(`, `nth-child`, absolute XPath, `text=`, `>>`, `:visible`) appear in code only
+on flagged rows; `nth()` / `first()` / `last()` likewise, except in the `lists` section; every
+`fragile` row shows `// Fragile` then `// Robust`; version notes like "(v1.64+)" never exceed the
+pinned `@playwright/test`; every example has balanced brackets and quotes.
+
+**Page tabs** carry custom inline SVG icons (`.tab-icon`, `aria-hidden`, `focusable="false"`):
+lines in `currentColor`, one `.accent` detail in the page's colour (`--accent` on `.icon-*`).
+`js/page-tabs.js` plays the landing page's icon animation after every tab click (a
+`sessionStorage` flag set on click), and the CSS motion sits inside
+`@media (prefers-reduced-motion: no-preference)`. The nav markup is identical on every page
+except `aria-current`.
+
+### Adding a guide
+
+1. Create `js/<name>.js` with `SECTIONS`, a `LINK_COLUMN` map, `window.<name>Sections =
+   SECTIONS` (for tests) and `renderGuide(SECTIONS, { linkColumns: LINK_COLUMN })`.
+2. Copy `locators.html`'s shell (header, meta bar, nav, `main.guide.container` with `h1`, lede,
+   pills, `#toc`, `#content`) and point its module script at the new file.
+3. Add a tab, with its own SVG icon and animation, to the nav on **every** page, and check that
+   all tabs still fit one row on a 360px phone.
+4. Add a spec mirroring `tests/locator-guide.spec.js`, and add the page to the cross-page checks.
+5. The page holds meta-bar fallbacks: bump them with the others on each release.
 
 ## Visitor counter (Supabase)
 
@@ -201,7 +237,9 @@ Playwright, configured in `playwright.config.js`. Projects: `chromium`,
   pattern.
 - Existing specs: `cheatsheet.spec.js` (UI), `data-integrity.spec.js` (data shape),
   `meta-bar.spec.js` (meta bar + visitor counter), `highlight.spec.js` (highlighter),
-  `waiting-guide.spec.js` (waiting guide page).
+  `waiting-guide.spec.js` (waiting guide page), `locator-guide.spec.js` (locator guide,
+  cross-page checks and the page tab animation). `tests/helpers/guide.js` holds the guide
+  specs' shared helpers (backend mocks, contrast, bracket balance).
 
 ## Lint / format
 

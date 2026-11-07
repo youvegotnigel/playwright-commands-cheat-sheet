@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import fs from 'node:fs';
 import { MOCK_DATE, mockBackends, contrastOf, plain, unbalanced } from './helpers/guide.js';
 
 test.beforeEach(async ({ page }) => {
@@ -441,9 +440,6 @@ test.describe('Locator guide: layout', () => {
 // where order is the point and within()'s column example needs nth().
 const DISCOURAGED = /page\.\$\(|nth-child|\/html\/|['"]text=|>>|:visible/;
 const POSITIONAL = /\.nth\(|\.first\(\)|\.last\(\)/;
-const PINNED = fs
-  .readFileSync('package.json', 'utf8')
-  .match(/"@playwright\/test": "\^?([\d.]+)"/)[1];
 
 test.describe('Locator guide: content', () => {
   test.beforeEach(async ({ page }) => {
@@ -551,10 +547,13 @@ test.describe('Locator guide: content', () => {
     }
   });
 
-  test(`version notes never name a version above the pinned Playwright (${PINNED})`, async ({
-    page,
-  }) => {
-    const [maj, min] = PINNED.split('.').map(Number);
+  test('version notes never name a version above the pinned Playwright', async ({ page }) => {
+    // Read through the server, as the page does: specs never touch the filesystem
+    const pkg = await (await page.request.get('/package.json')).json();
+    const [maj, min] = pkg.devDependencies['@playwright/test']
+      .replace(/^\D+/, '')
+      .split('.')
+      .map(Number);
     const cells = (await sections(page)).flatMap((s) => [s.title, s.note ?? '', ...s.rows.flat()]);
     const versions = cells
       .filter((c) => typeof c === 'string')
