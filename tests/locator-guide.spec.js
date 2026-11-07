@@ -103,10 +103,10 @@ test.describe('Locator guide: page switch', () => {
       });
     const ring = 'solid 3px rgb(248, 250, 252)';
     await page.keyboard.press('Tab');
-    expect(await focused()).toEqual({ cls: 'page-tab', name: '⌨️Commands', ring });
+    expect(await focused()).toEqual({ cls: 'page-tab', name: 'Commands', ring });
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
-    expect(await focused()).toEqual({ cls: 'page-tab', name: '🎯Locators', ring });
+    expect(await focused()).toEqual({ cls: 'page-tab', name: 'Locators', ring });
   });
 
   test('the Locators tab opens the guide from the other two pages', async ({ page }) => {
@@ -660,5 +660,74 @@ test.describe('Locator guide: colours', () => {
     ]) {
       expect(await contrastOf(page, selector), selector).toBeGreaterThanOrEqual(4.5);
     }
+  });
+});
+
+/* ── PAGE TAB ANIMATION ────────────────────────────────────────── */
+// A tab click navigates away at once, so the icon plays on arrival: the landing page's
+// current tab animates after every tab click, and stays still on a plain visit.
+test.describe('Page tabs: icon animation on click', () => {
+  // Whether the current tab's icon is set to play, and whether any of its parts has a CSS
+  // animation applied (computed style, so the check does not race the animation's end)
+  const icon = (page, name) =>
+    page.locator(`.page-tab[aria-current] svg.icon-${name}`).evaluate((svg) => ({
+      play: svg.classList.contains('play'),
+      animated: [...svg.querySelectorAll('*')].some(
+        (el) => getComputedStyle(el).animationName !== 'none'
+      ),
+    }));
+  const tab = (page, label) =>
+    page.getByRole('navigation', { name: 'Pages' }).getByText(label, { exact: true });
+  const PLAYS = { play: true, animated: true };
+  const STILL = { play: false, animated: false };
+
+  test('every tab click plays the icon of the page it opens', async ({ page }) => {
+    await page.goto('/');
+    expect(await icon(page, 'commands')).toEqual(STILL);
+
+    for (const [label, name] of [
+      ['Waiting', 'waiting'],
+      ['Locators', 'locators'],
+      ['Waiting', 'waiting'], // clicked before: plays again
+      ['Waiting', 'waiting'], // the current tab: reloads and plays
+      ['Commands', 'commands'],
+    ]) {
+      await tab(page, label).click();
+      await expect(page.locator(`.page-tab[aria-current] svg.icon-${name}`)).toHaveClass(
+        /\bplay\b/
+      );
+      expect(await icon(page, name), label).toEqual(PLAYS);
+    }
+  });
+
+  test('a plain visit or reload, without a tab click, does not animate', async ({ page }) => {
+    await page.goto('/');
+    await tab(page, 'Locators').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-locators')).toHaveClass(/\bplay\b/);
+    await page.reload();
+    expect(await icon(page, 'locators')).toEqual(STILL);
+  });
+
+  test('reduced motion: the icon never moves', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('/');
+    await tab(page, 'Locators').click();
+    await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
+    expect((await icon(page, 'locators')).animated).toBe(false);
+  });
+
+  test('tabs still navigate when storage is blocked', async ({ page }) => {
+    await page.addInitScript(() => {
+      for (const name of ['localStorage', 'sessionStorage']) {
+        Object.defineProperty(window, name, {
+          get: () => {
+            throw new Error('blocked');
+          },
+        });
+      }
+    });
+    await page.goto('/waiting.html');
+    await tab(page, 'Locators').click();
+    await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
   });
 });

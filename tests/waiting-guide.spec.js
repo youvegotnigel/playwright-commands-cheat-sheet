@@ -86,20 +86,37 @@ test.describe('Waiting guide: page switch', () => {
     }
   });
 
-  // Emoji presentation (U+FE0F) so the icons render as full-colour emoji on every OS,
-  // matching the ⭐ / 🔥 filter pills, instead of a font-dependent text glyph
-  const KEYBOARD = '⌨️';
-  const STOPWATCH = '⏱️';
-  const TARGET = '🎯';
+  // Custom line icons, one per page: a tile grid (the dashboard), a clock in a retry loop
+  // (auto-waiting) and a picker frame around a cursor (Pick locator). The lines take the
+  // tab's text colour; one detail takes the page's accent from the palette.
+  const ACCENTS = ['rgb(74, 222, 128)', 'rgb(56, 189, 248)', 'rgb(192, 132, 252)'];
 
-  test('each tab has a decorative emoji icon: keyboard, stopwatch and target', async ({ page }) => {
+  test('each tab has its own decorative SVG icon with a page accent, and no emoji', async ({
+    page,
+  }) => {
     for (const path of ['/waiting.html', '/', '/locators.html']) {
       await page.goto(path);
-      const icons = page.locator('.page-switch .page-tab .tab-icon');
-      await expect(icons).toHaveText([KEYBOARD, STOPWATCH, TARGET]);
-      for (const icon of await icons.all()) {
-        await expect(icon).toHaveAttribute('aria-hidden', 'true');
-      }
+      const tabs = page.locator('.page-switch .page-tab');
+      await expect(tabs).toHaveText(['Commands', 'Waiting', 'Locators']);
+
+      const icons = await page.locator('.page-tab svg.tab-icon').evaluateAll((svgs) =>
+        svgs.map((svg) => ({
+          hidden: svg.getAttribute('aria-hidden'),
+          focusable: svg.getAttribute('focusable'),
+          markup: svg.innerHTML,
+          line: getComputedStyle(svg).stroke,
+          text: getComputedStyle(svg.closest('.page-tab')).color,
+          accent: getComputedStyle(svg.querySelector('.accent')).stroke,
+        }))
+      );
+      expect(icons, path).toHaveLength(3);
+      expect(new Set(icons.map((i) => i.markup)).size, path).toBe(3);
+      icons.forEach((icon, i) => {
+        expect(icon.hidden, path).toBe('true');
+        expect(icon.focusable, path).toBe('false');
+        expect(icon.line, path).toBe(icon.text);
+        expect(icon.accent, path).toBe(ACCENTS[i]);
+      });
     }
   });
 
