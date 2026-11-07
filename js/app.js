@@ -5,6 +5,7 @@
 import { categories } from './data/index.js';
 import { highlight, highlightShell } from './highlight.js';
 import * as popularCmds from './popular-commands.js';
+import { loadMetaBadges } from './meta-bar.js';
 
 // Expose as a global so data-integrity tests can access it via page.evaluate()
 window.categories = categories;
@@ -304,36 +305,12 @@ buildFilters();
 
 /* ── META BAR ─────────────────────────────────────────────────── */
 // Command count comes from the data; the Playwright version and the
-// last-updated date are fetched at load so they never go stale. Both
-// fetches fail gracefully, leaving the fallback values present in the HTML.
+// last-updated date are fetched at load (see meta-bar.js) so they never go stale.
 (function initMetaBar() {
   const countEl = document.getElementById('cmd-count');
   if (countEl) countEl.textContent = allItems.length;
 
-  // Playwright version — read from package.json's declared dependency
-  fetch('./package.json')
-    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then((pkg) => {
-      const dep =
-        pkg.devDependencies?.['@playwright/test'] ?? pkg.dependencies?.['@playwright/test'];
-      if (!dep) return;
-      const clean = dep.replace(/^[\^~>=<\s]+/, ''); // strip range prefix
-      const el = document.getElementById('pw-version');
-      if (el) el.textContent = 'v' + clean;
-    })
-    .catch(() => {});
-
-  // Last updated — stamped into js/meta.json by the "Stamp last-updated
-  // date" GitHub Action on every push to master, so it reflects the most
-  // recent merge without any runtime API call or rate limits.
-  fetch('./js/meta.json', { cache: 'no-cache' })
-    .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-    .then((meta) => {
-      if (!meta?.lastUpdated) return;
-      const el = document.getElementById('last-updated');
-      if (el) el.textContent = meta.lastUpdated; // YYYY-MM-DD
-    })
-    .catch(() => {});
+  loadMetaBadges();
 })();
 
 // Show platform-appropriate keyboard shortcut hint
