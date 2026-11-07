@@ -73,7 +73,7 @@ test.describe('Waiting guide: page switch', () => {
     for (const [path, current] of [
       ['/waiting.html', 'Waiting'],
       ['/', 'Commands'],
-      ['/locators.html', 'Locators'],
+      ['/locators.html', 'Selectors'],
     ]) {
       await page.goto(path);
       const nav = page.getByRole('navigation', { name: 'Pages' });
@@ -81,7 +81,7 @@ test.describe('Waiting guide: page switch', () => {
       await expect(links).toHaveCount(3);
       await expect(links.nth(0)).toHaveAccessibleName('Commands');
       await expect(links.nth(1)).toHaveAccessibleName('Waiting');
-      await expect(links.nth(2)).toHaveAccessibleName('Locators');
+      await expect(links.nth(2)).toHaveAccessibleName('Selectors');
       await expect(nav.locator('[aria-current="page"]')).toHaveAccessibleName(current);
     }
   });
@@ -97,7 +97,7 @@ test.describe('Waiting guide: page switch', () => {
     for (const path of ['/waiting.html', '/', '/locators.html']) {
       await page.goto(path);
       const tabs = page.locator('.page-switch .page-tab');
-      await expect(tabs).toHaveText(['Commands', 'Waiting', 'Locators']);
+      await expect(tabs).toHaveText(['Commands', 'Waiting', 'Selectors']);
 
       const icons = await page.locator('.page-tab svg.tab-icon').evaluateAll((svgs) =>
         svgs.map((svg) => ({

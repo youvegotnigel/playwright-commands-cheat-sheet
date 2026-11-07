@@ -259,7 +259,7 @@ regex tokenization, so `Copy` always yields the original source exactly.
 ## Guide Pages
 
 `waiting.html` and `locators.html` are sister pages of the dashboard, reached through the
-**Commands / Waiting / Locators** page switch (`nav.page-switch`, links styled `.page-tab`,
+**Commands / Waiting / Selectors** page switch (`nav.page-switch`, links styled `.page-tab`,
 identical on all three pages except `aria-current`). Each guide is a data module plus one page,
 rendered by the shared `js/guide.js`.
 

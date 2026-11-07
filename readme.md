@@ -18,9 +18,9 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
-- Two guide pages, reached from the **Commands / Waiting / Locators** tabs at the top of every page:
+- Two guide pages, reached from the **Commands / Waiting / Selectors** tabs at the top of every page:
   - **Waiting**: auto-waiting, explicit waits, timeouts and pitfalls
-  - **Locators**: the locator priority ladder, precise role locators, scoping and filtering, lists and tables, frames and shadow DOM, strict mode, and fragile vs robust locators
+  - **Selectors** (the locator guide): the locator priority ladder, precise role locators, scoping and filtering, lists and tables, frames and shadow DOM, strict mode, and fragile vs robust locators
 
   Both have copyable examples and links back to the matching commands.
 

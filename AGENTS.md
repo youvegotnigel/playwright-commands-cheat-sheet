@@ -136,7 +136,7 @@ All fetches fail gracefully, falling back to the hardcoded values in `index.html
 ## Guide pages
 
 `waiting.html` and `locators.html` are guide pages next to the dashboard, reached through the
-**Commands / Waiting / Locators** page switch on all three pages. Each guide is a data module
+**Commands / Waiting / Selectors** page switch on all three pages. Each guide is a data module
 plus one HTML page; `js/guide.js` renders them all:
 
 - `renderGuide(sections, { linkColumns })` draws the TOC and section tables, wires the Copy

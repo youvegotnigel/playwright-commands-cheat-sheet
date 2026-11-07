@@ -105,13 +105,13 @@ test.describe('Locator guide: page switch', () => {
     expect(await focused()).toEqual({ cls: 'page-tab', name: 'Commands', ring });
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab');
-    expect(await focused()).toEqual({ cls: 'page-tab', name: 'Locators', ring });
+    expect(await focused()).toEqual({ cls: 'page-tab', name: 'Selectors', ring });
   });
 
-  test('the Locators tab opens the guide from the other two pages', async ({ page }) => {
+  test('the Selectors tab opens the locator guide from the other two pages', async ({ page }) => {
     for (const path of ['/', '/waiting.html']) {
       await page.goto(path);
-      await page.getByRole('navigation', { name: 'Pages' }).getByText('Locators').click();
+      await page.getByRole('navigation', { name: 'Pages' }).getByText('Selectors').click();
       await expect(page).toHaveURL(/locators/);
       await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
     }
@@ -714,7 +714,7 @@ test.describe('Page tabs: icon animation on click', () => {
 
     for (const [label, name] of [
       ['Waiting', 'waiting'],
-      ['Locators', 'locators'],
+      ['Selectors', 'locators'],
       ['Waiting', 'waiting'], // clicked before: plays again
       ['Waiting', 'waiting'], // the current tab: reloads and plays
       ['Commands', 'commands'],
@@ -729,7 +729,7 @@ test.describe('Page tabs: icon animation on click', () => {
 
   test('a plain visit or reload, without a tab click, does not animate', async ({ page }) => {
     await page.goto('/');
-    await tab(page, 'Locators').click();
+    await tab(page, 'Selectors').click();
     await expect(page.locator('.page-tab[aria-current] svg.icon-locators')).toHaveClass(/\bplay\b/);
     await page.reload();
     expect(await icon(page, 'locators')).toEqual(STILL);
@@ -738,7 +738,7 @@ test.describe('Page tabs: icon animation on click', () => {
   test('reduced motion: the icon never moves', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
-    await tab(page, 'Locators').click();
+    await tab(page, 'Selectors').click();
     await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
     expect((await icon(page, 'locators')).animated).toBe(false);
   });
@@ -754,7 +754,7 @@ test.describe('Page tabs: icon animation on click', () => {
       }
     });
     await page.goto('/waiting.html');
-    await tab(page, 'Locators').click();
+    await tab(page, 'Selectors').click();
     await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
   });
 });
