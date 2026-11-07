@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playwright Waiting Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: one reading column of section tables; on phones each row becomes a stacked card. Code always renders in an IDE dark theme. */
+:root {
+  --bg: #f4f6f5;
+  --surface: #ffffff;
+  --ink: #17201c;
+  --muted: #56635d;
+  --line: #dbe2de;
+  --accent: #1f8a4c;
+  --accent-soft: #e3f2e9;
+  --warn: #b45309;
+  --warn-soft: #fdf1e2;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-code: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* IDE palette (VS Code Dark+), fixed in both themes */
+  --ide-bg: #1e1e1e;
+  --ide-border: #333;
+  --ide-fg: #d4d4d4;
+  --ide-kw: #569cd6;
+  --ide-ctrl: #c586c0;
+  --ide-str: #ce9178;
+  --ide-fn: #dcdcaa;
+  --ide-var: #9cdcfe;
+  --ide-num: #b5cea8;
+  --ide-com: #6a9955;
+  --ide-re: #d16969;
+  --ide-type: #4ec9b0;
+  --b1: #ffd700;
+  --b2: #da70d6;
+  --b3: #179fff;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101513;
+    --surface: #171e1b;
+    --ink: #e6ece9;
+    --muted: #9aa8a1;
+    --line: #2a3430;
+    --accent: #4cc47f;
+    --accent-soft: #19301f;
+    --warn: #f0a650;
+    --warn-soft: #33240f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101513;
+  --surface: #171e1b;
+  --ink: #e6ece9;
+  --muted: #9aa8a1;
+  --line: #2a3430;
+  --accent: #4cc47f;
+  --accent-soft: #19301f;
+  --warn: #f0a650;
+  --warn-soft: #33240f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 64px; display: grid; gap: 28px; }
+header { display: grid; gap: 12px; }
+h1 { font-size: 30px; line-height: 1.15; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+h2 { font-size: 20px; margin: 0; text-wrap: balance; display: flex; gap: 10px; align-items: baseline; }
+h2 .num { font-family: var(--font-code); font-size: 13px; color: var(--accent); font-weight: 500; }
+.lede { color: var(--muted); max-width: 70ch; margin: 0; }
+.checks { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+nav { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; }
+nav a { color: var(--muted); text-decoration: none; border-bottom: 1px solid var(--line); }
+nav a:hover, nav a:focus-visible { color: var(--accent); border-color: var(--accent); }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+section { display: grid; gap: 12px; }
+.note { color: var(--muted); margin: 0; font-size: 14px; max-width: 75ch; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+col.c1 { width: 25%; } col.c2 { width: 25%; } col.c3 { width: 50%; }
+th {
+  text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 600; padding: 10px 14px; border-bottom: 1px solid var(--line);
+}
+td { padding: 12px 14px; vertical-align: top; border-bottom: 1px solid var(--line); min-width: 0; }
+tr:last-child td { border-bottom: 0; }
+tr.flag td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+.tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--warn); background: var(--warn-soft); border-radius: 4px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px; }
+
+code.inl {
+  font-family: var(--font-code); font-size: 12.5px; background: var(--ide-bg); color: var(--ide-fg);
+  padding: 1px 6px; border-radius: 4px; white-space: nowrap; display: inline-block; margin: 1px 0;
+}
+.block { position: relative; }
+pre {
+  margin: 0; background: var(--ide-bg); color: var(--ide-fg); border: 1px solid var(--ide-border);
+  border-radius: 8px; padding: 12px 14px; overflow-x: auto; font-family: var(--font-code);
+  font-size: 12.8px; line-height: 1.6; tab-size: 2;
+}
+.copy {
+  position: absolute; top: 6px; right: 6px; font: 500 11px var(--font-body); color: #bbb;
+  background: #2d2d2d; border: 1px solid #444; border-radius: 5px; padding: 2px 8px; cursor: pointer; opacity: 0.85;
+}
+.copy:hover { color: #fff; opacity: 1; }
+
+.t-kw { color: var(--ide-kw); }
+.t-ctrl { color: var(--ide-ctrl); }
+.t-str { color: var(--ide-str); }
+.t-fn { color: var(--ide-fn); }
+.t-var { color: var(--ide-var); }
+.t-num { color: var(--ide-num); }
+.t-com { color: var(--ide-com); font-style: italic; }
+.t-re { color: var(--ide-re); }
+.t-type { color: var(--ide-type); }
+.t-b1 { color: var(--b1); } .t-b2 { color: var(--b2); } .t-b3 { color: var(--b3); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.legend code.inl { font-size: 12px; }
+
+@media (max-width: 760px) {
+  h1 { font-size: 25px; }
+  .wrap { padding: 20px 16px 48px; gap: 24px; }
+  table, tbody, tr, td { display: block; width: 100%; }
+  thead, colgroup { display: none; }
+  tr { border-bottom: 1px solid var(--line); padding: 6px 0; }
+  tr:last-child { border-bottom: 0; }
+  td { border: 0; padding: 6px 14px; }
+  td::before {
+    content: attr(data-label); display: block; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 3px;
+  }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Playwright Waiting Cheat Sheet</h1>
+    <p class="lede">Playwright waits in two ways. Auto-waiting is built into actions and web-first assertions, so you get it for free. Explicit waiting is when you tell Playwright what to wait for: network calls, events, URLs and custom conditions.</p>
+    <div class="checks" aria-label="Actionability checks">
+      <span class="pill">Visible</span><span class="pill">Stable</span><span class="pill">Receives Events</span><span class="pill">Enabled</span><span class="pill">Editable</span>
+    </div>
+    <div class="legend" aria-label="Syntax colors">
+      <code class="inl hl">await</code><code class="inl hl">const</code><code class="inl hl">'string'</code><code class="inl hl">getByRole()</code><code class="inl hl">page</code><code class="inl hl">30_000</code><code class="inl hl">/regex/</code><code class="inl hl">// comment</code>
+    </div>
+    <nav id="toc" aria-label="Sections"></nav>
+  </header>
+  <main id="content" style="display:grid;gap:32px"></main>
+</div>
+
+<script>
+const SECTIONS = [
+  {
+    id: "actions", title: "Auto-waiting: actions",
+    note: "Before acting, Playwright retries until the element passes the actionability checks listed for that method.",
+    cols: ["Method", "Checks performed", "Real-world example"],
+    rows: [
+      ["`click()`, `dblclick()`, `tap()`", "Visible, Stable, Receives Events, Enabled",
+`await page.getByRole('button', { name: 'Save' }).click();`],
+      ["`check()`, `uncheck()`, `setChecked()`", "Visible, Stable, Receives Events, Enabled",
+`await page.getByLabel('I accept the terms').check();`],
+      ["`hover()`, `dragTo()`", "Visible, Stable, Receives Events",
+`await page.getByText('Task A')
+  .dragTo(page.getByTestId('done-column'));`],
+      ["`fill()`, `clear()`", "Visible, Enabled, Editable",
+`await page.getByLabel('Email').fill('nigel@test.com');`],
+      ["`selectOption()`", "Visible, Enabled",
+`await page.getByLabel('Country').selectOption('LK');`],
+      ["`selectText()`", "Visible",
+`await page.getByTestId('notes-editor').selectText();`],
+      ["`screenshot()`", "Visible, Stable",
+`await page.getByTestId('invoice-card')
+  .screenshot({ path: 'invoice.png' });`],
+      ["`scrollIntoViewIfNeeded()`", "Stable",
+`await page.getByText('Load more').scrollIntoViewIfNeeded();`],
+      ["`press()`, `pressSequentially()`, `focus()`, `blur()`, `setInputFiles()`, `dispatchEvent()`", "No actionability checks. Only waits for the element to be attached.",
+`await page.getByLabel('Upload').setInputFiles('data/report.pdf');
+
+await page.getByLabel('Search')
+  .pressSequentially('para', { delay: 100 });`]
+    ]
+  },
+  {
+    id: "assertions", title: "Auto-waiting: web-first assertions",
+    note: "These retry until they pass or expect.timeout runs out (5 seconds by default).",
+    cols: ["Assertion group", "Matchers", "Real-world example"],
+    rows: [
+      ["Visibility and presence", "`toBeVisible`, `toBeHidden`, `toBeAttached`, `toBeInViewport`",
+`await expect(page.getByTestId('loader')).toBeHidden();`],
+      ["State", "`toBeEnabled`, `toBeDisabled`, `toBeEditable`, `toBeChecked`, `toBeEmpty`, `toBeFocused`",
+`await expect(
+  page.getByRole('button', { name: 'Submit' }),
+).toBeDisabled();`],
+      ["Text and values", "`toHaveText`, `toContainText`, `toHaveValue`, `toHaveValues`",
+`await expect(page.getByRole('alert')).toHaveText('Saved successfully');`],
+      ["Attributes and styling", "`toHaveAttribute`, `toHaveClass`, `toContainClass`, `toHaveCSS`, `toHaveId`, `toHaveJSProperty`",
+`await expect(
+  page.getByRole('tab', { name: 'Profile' }),
+).toHaveAttribute('aria-selected', 'true');`],
+      ["Count", "`toHaveCount`",
+`await expect(page.getByTestId('row')).toHaveCount(5);`],
+      ["Accessibility", "`toHaveRole`, `toHaveAccessibleName`, `toHaveAccessibleDescription`, `toMatchAriaSnapshot`",
+`await expect(page.getByTestId('close-btn'))
+  .toHaveAccessibleName('Close dialog');`],
+      ["Visual", "`toHaveScreenshot` (locator or page)",
+`await expect(page).toHaveScreenshot('dashboard.png', {
+  maxDiffPixels: 100,
+});`],
+      ["Page", "`toHaveTitle`, `toHaveURL`",
+`await expect(page).toHaveURL(/\\/dashboard/);
+await expect(page).toHaveTitle('Patient Dashboard');`],
+      ["Not auto-retrying (generic matchers, checked once)", "`toBe`, `toEqual`, `toContain`, `toBeTruthy`",
+`// Only on values you have already resolved
+expect(await response.json()).toEqual({ status: 'OK' });`, true]
+    ]
+  },
+  {
+    id: "navigation", title: "Auto-waiting: navigation",
+    cols: ["Method", "Default wait", "Real-world example"],
+    rows: [
+      ["`page.goto(url)`", "The `load` event. Configurable with `waitUntil`.",
+`await page.goto('/login', { waitUntil: 'domcontentloaded' });`],
+      ["`page.reload()`, `goBack()`, `goForward()`", "The `load` event",
+`await page.reload();
+await expect(page.getByText('Draft restored')).toBeVisible();`]
+    ]
+  },
+  {
+    id: "explicit", title: "Explicit waits",
+    note: "Golden rule: register the wait before the action that triggers it.",
+    cols: ["Method", "Use it when", "Real-world example"],
+    rows: [
+      ["`locator.waitFor({ state })`", "You need a state without acting or asserting: `'visible'` (default), `'hidden'`, `'attached'`, `'detached'`",
+`await page.getByTestId('loader').waitFor({ state: 'hidden' });`],
+      ["`page.waitForURL(url)`", "Waiting for a redirect, such as SSO login",
+`await page.getByRole('button', { name: 'Sign in' }).click();
+await page.waitForURL('**/home');`],
+      ["`page.waitForLoadState(state)`", "Waiting for `'load'`, `'domcontentloaded'` or `'networkidle'`",
+`await popup.waitForLoadState('domcontentloaded');`],
+      ["`page.waitForResponse(pred)`", "Waiting for an API call to finish. Register the wait before the action.",
+`const responsePromise = page.waitForResponse(
+  (res) => res.url().includes('/api/patients') && res.status() === 200,
+);
+await page.getByRole('button', { name: 'Search' }).click();
+const response = await responsePromise;`],
+      ["`page.waitForRequest(pred)`", "Checking that a request was fired",
+`const requestPromise = page.waitForRequest('**/api/audit');
+await saveButton.click();
+expect((await requestPromise).method()).toBe('POST');`],
+      ["`page.waitForEvent('popup')`", "Handling a new window opened from the page",
+`const popupPromise = page.waitForEvent('popup');
+await page.getByRole('link', { name: 'Open report' }).click();
+const popup = await popupPromise;`],
+      ["`page.waitForEvent('download')`", "Testing file exports",
+`const downloadPromise = page.waitForEvent('download');
+await page.getByRole('button', { name: 'Export CSV' }).click();
+const download = await downloadPromise;
+await download.saveAs('out/export.csv');`],
+      ["`page.waitForEvent('dialog' / 'console' / 'filechooser' / 'websocket')`", "Handling browser dialogs, logs, native file pickers or sockets",
+`const chooserPromise = page.waitForEvent('filechooser');
+await page.getByText('Browse').click();
+const chooser = await chooserPromise;
+await chooser.setFiles('data/cv.pdf');`],
+      ["`context.waitForEvent('page')`", "Waiting for a new tab opened anywhere in the context",
+`const tabPromise = context.waitForEvent('page');
+await page.getByText('Help Centre').click();
+const newTab = await tabPromise;`],
+      ["`page.waitForFunction(fn)`", "Waiting on a custom JS condition in the browser",
+`await page.waitForFunction(() => window.appReady === true);`],
+      ["`expect.poll(fn)`", "Retrying any async value, such as an API or DB check",
+`await expect
+  .poll(async () => (await request.get('/api/job/42')).json(), {
+    timeout: 30_000,
+  })
+  .toMatchObject({ status: 'COMPLETED' });`],
+      ["`expect(fn).toPass()`", "Retrying a whole block of steps until it passes",
+`await expect(async () => {
+  await page.getByRole('button', { name: 'Refresh' }).click();
+  await expect(page.getByText('Ready')).toBeVisible({ timeout: 1_000 });
+}).toPass({ timeout: 15_000 });`],
+      ["`page.waitForTimeout(ms)` <tag>Avoid</tag>", "Hard sleep. Debugging only.",
+`await page.waitForTimeout(2_000); // local debug only, never commit`, true],
+      ["`page.waitForSelector()` <tag>Legacy</tag>", "Use `locator.waitFor()` instead",
+`// Before
+await page.waitForSelector('#grid');
+
+// After
+await page.locator('#grid').waitFor();`, true],
+      ["`page.waitForNavigation()` <tag>Deprecated</tag>", "Use `waitForURL()` instead",
+`await page.getByRole('button', { name: 'Pay now' }).click();
+await page.waitForURL('**/checkout/confirm');`, true]
+    ]
+  },
+  {
+    id: "not-waits", title: "Methods that look like waits but are not",
+    note: "The trap juniors fall into most often.",
+    cols: ["Method", "Behaviour", "Flaky vs correct"],
+    rows: [
+      ["`isVisible()`, `isHidden()`", "Return immediately, with no waiting at all",
+`// Flaky: checks once, may run before render
+if (await page.getByText('Welcome').isVisible()) { /* ... */ }
+
+// Correct
+await expect(page.getByText('Welcome')).toBeVisible();`, true],
+      ["`count()`, `allTextContents()`, `allInnerTexts()`, `all()`", "Return a snapshot with no waiting",
+`// Flaky
+expect(await rows.count()).toBe(5);
+
+// Correct
+await expect(rows).toHaveCount(5);`, true],
+      ["`textContent()`, `innerText()`, `getAttribute()`, `inputValue()`", "Wait for the element to exist, but do not retry on content",
+`// Flaky
+expect(await status.textContent()).toBe('Paid');
+
+// Correct
+await expect(status).toHaveText('Paid');`, true],
+      ["`isChecked()`, `isEnabled()`, `isEditable()`, `isDisabled()`", "Wait for the element to be attached, then check its state once",
+`// Flaky
+expect(await submitButton.isEnabled()).toBe(true);
+
+// Correct
+await expect(submitButton).toBeEnabled();`, true]
+    ]
+  },
+  {
+    id: "timeouts", title: "Timeout settings (playwright.config.ts)",
+    cols: ["Setting", "Controls", "Real-world example"],
+    rows: [
+      ["`timeout`", "Each test",
+`export default defineConfig({
+  timeout: 60_000,
+});`],
+      ["`expect.timeout`", "Web-first assertions",
+`expect: { timeout: 10_000 },`],
+      ["`use.actionTimeout`", "`click`, `fill` and other actions",
+`use: { actionTimeout: 15_000 },`],
+      ["`use.navigationTimeout`", "`goto`, `waitForURL`",
+`use: { navigationTimeout: 30_000 },`],
+      ["Per-call override", "One known slow step",
+`await expect(reportTable).toBeVisible({ timeout: 30_000 });`]
+    ]
+  },
+  {
+    id: "tips", title: "Pro tips and pitfalls",
+    cols: ["Tip", "Why", "Real-world example"],
+    rows: [
+      ["Never commit `waitForTimeout`", "It hides a missing assertion or response wait. Enforce it with ESLint so CI catches it.",
+`// eslint.config.ts
+rules: {
+  'playwright/no-wait-for-timeout': 'error',
+},`],
+      ["Avoid `networkidle`", "Apps that poll, use WebSockets or send analytics may never go idle",
+`// Instead of waitForLoadState('networkidle')
+await expect(page.getByTestId('grid')).toBeVisible();`],
+      ["Register the wait before the trigger", "Otherwise the event can fire before the listener exists, causing intermittent timeouts",
+`const savePromise = page.waitForResponse('**/api/save');
+await saveButton.click();
+await savePromise;`],
+      ["Don't wrap auto-waiting actions", "Calling `waitFor()` and then `click()` is redundant noise",
+`// Redundant
+await submitButton.waitFor({ state: 'visible' });
+await submitButton.click();
+
+// Enough
+await submitButton.click();`],
+      ["Use `addLocatorHandler()` for random overlays", "Handles cookie banners and session-timeout modals globally",
+`await page.addLocatorHandler(
+  page.getByRole('button', { name: 'Accept cookies' }),
+  async (button) => button.click(),
+);`],
+      ["Treat `{ force: true }` as a code smell", "It skips actionability checks and can hide real bugs, like an overlay a user couldn't click through",
+`// Investigate the overlay before resorting to this
+await submitButton.click({ force: true });`, true],
+      ["Use intent-named waits in Page Objects", "Specs stay readable and the wait logic lives in one place",
+`async waitForSearchResults(): Promise<void> {
+  await this.page.waitForResponse('**/api/search');
+  await expect(this.results.first()).toBeVisible();
+}`]
+    ]
+  },
+  {
+    id: "summary", title: "Summary", text: true,
+    cols: ["Category", "Methods", "Rule of thumb"],
+    rows: [
+      ["Auto-waiting", "All locator actions, web-first `expect` assertions, `goto` and `reload`", "Your first choice"],
+      ["Explicit waiting", "`waitFor`, `waitForURL`, `waitForResponse`, `waitForRequest`, `waitForEvent`, `waitForLoadState`, `waitForFunction`, `expect.poll`, `toPass`", "For network, events and custom conditions"],
+      ["No waiting", "`isVisible`, `isHidden`, `count`, `allTextContents`, generic matchers like `toBe`", "Don't use these for synchronisation"],
+      ["Hard sleeps", "`waitForTimeout`", "Never in committed code", true]
+    ]
+  }
+];
+
+/* ---------- TypeScript highlighter (VS Code Dark+ style) ---------- */
+const KW = new Set(["const","let","var","async","function","true","false","null","undefined","this","typeof","void","class","extends"]);
+const CTRL = new Set(["await","if","else","return","for","of","in","new","export","default","import","from","while","try","catch","throw"]);
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function highlight(src) {
+  let out = "", i = 0, depth = 0, prev = "";
+  const span = (cls, txt) => `<span class="${cls}">${esc(txt)}</span>`;
+  while (i < src.length) {
+    const rest = src.slice(i);
+    let m;
+    if ((m = rest.match(/^\/\/[^\n]*/)) || (m = rest.match(/^\/\*[\s\S]*?\*\//))) {
+      out += span("t-com", m[0]); i += m[0].length; continue;
+    }
+    if ((m = rest.match(/^'(?:\\.|[^'\\\n])*'/)) || (m = rest.match(/^"(?:\\.|[^"\\\n])*"/)) || (m = rest.match(/^`(?:\\.|[^`\\])*`/))) {
+      out += span("t-str", m[0]); i += m[0].length; prev = "v"; continue;
+    }
+    if (rest[0] === "/" && /^$|[(,=:[!&|?{};]/.test(prev) && (m = rest.match(/^\/(?:\\.|[^\/\\\n])+\/[gimsuy]*/))) {
+      out += span("t-re", m[0]); i += m[0].length; prev = "v"; continue;
+    }
+    if ((m = rest.match(/^\d[\d_]*(?:\.\d+)?/))) {
+      out += span("t-num", m[0]); i += m[0].length; prev = "v"; continue;
+    }
+    if ((m = rest.match(/^[A-Za-z_$][\w$]*/))) {
+      const w = m[0];
+      const after = src.slice(i + w.length).match(/^\s*(.)/);
+      const next = after ? after[1] : "";
+      let cls;
+      if (CTRL.has(w)) cls = "t-ctrl";
+      else if (KW.has(w)) cls = "t-kw";
+      else if (next === "(" || (next === "<" && /^[a-z]/.test(w))) cls = "t-fn";
+      else if (/^[A-Z]/.test(w)) cls = "t-type";
+      else cls = "t-var";
+      out += span(cls, w); i += w.length; prev = "v"; continue;
+    }
+    const c = src[i];
+    if ("([{".includes(c)) {
+      out += span("t-b" + ((depth % 3) + 1), c); depth++; prev = c; i++; continue;
+    }
+    if (")]}".includes(c)) {
+      depth = Math.max(0, depth - 1);
+      out += span("t-b" + ((depth % 3) + 1), c); prev = c === ")" ? "v" : c; i++; continue;
+    }
+    if (!/\s/.test(c)) prev = c;
+    out += esc(c); i++;
+  }
+  return out;
+}
+
+/* Inline markup: `code` becomes a highlighted chip, <tag>X</tag> becomes a warning tag */
+function inline(text) {
+  return text.split(/(`[^`]+`|<tag>[^<]+<\/tag>)/).map((part) => {
+    if (part.startsWith("`")) return `<code class="inl">${highlight(part.slice(1, -1))}</code>`;
+    if (part.startsWith("<tag>")) return `<span class="tag">${esc(part.slice(5, -6))}</span>`;
+    return esc(part);
+  }).join("");
+}
+
+function render() {
+  const toc = document.getElementById("toc");
+  const main = document.getElementById("content");
+  SECTIONS.forEach((s, n) => {
+    const num = String(n + 1).padStart(2, "0");
+    toc.insertAdjacentHTML("beforeend", `<a href="#${s.id}">${num} ${esc(s.title)}</a>`);
+    const rows = s.rows.map((r) => {
+      const third = s.text
+        ? inline(r[2])
+        : `<div class="block"><pre><code>${highlight(r[2])}</code></pre><button class="copy" type="button">Copy</button></div>`;
+      return `<tr class="${r[3] ? "flag" : ""}">
+        <td data-label="${esc(s.cols[0])}">${inline(r[0])}</td>
+        <td data-label="${esc(s.cols[1])}">${inline(r[1])}</td>
+        <td data-label="${esc(s.cols[2])}">${third}</td></tr>`;
+    }).join("");
+    main.insertAdjacentHTML("beforeend", `
+      <section id="${s.id}">
+        <h2><span class="num">${num}</span>${esc(s.title)}</h2>
+        ${s.note ? `<p class="note">${esc(s.note)}</p>` : ""}
+        <div class="card"><table>
+          <colgroup><col class="c1"><col class="c2"><col class="c3"></colgroup>
+          <thead><tr>${s.cols.map((c) => `<th scope="col">${esc(c)}</th>`).join("")}</tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>
+      </section>`);
+  });
+  document.querySelectorAll("code.hl").forEach((el) => { el.innerHTML = highlight(el.textContent); });
+}
+
+document.addEventListener("click", async (e) => {
+  const btn = e.target.closest(".copy");
+  if (!btn) return;
+  const code = btn.parentElement.querySelector("pre").textContent;
+  try {
+    await navigator.clipboard.writeText(code);
+    btn.textContent = "Copied";
+  } catch {
+    btn.textContent = "Select and copy";
+  }
+  setTimeout(() => { btn.textContent = "Copy"; }, 1500);
+});
+
+render();
+</script>
+</body>
+</html>
