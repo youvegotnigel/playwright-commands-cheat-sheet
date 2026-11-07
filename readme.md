@@ -18,6 +18,7 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
+- Waiting guide page (⏱ **Waiting guide** tab): auto-waiting, explicit waits, timeouts and pitfalls, with copyable examples and links back to the commands
 
 ## Categories
 Config, Setup, CLI, Query, Accessibility, Action, Utility, Clock & Time, Media & Audio, Tracing & Debugging, Network & Mocking, Assertions, API, Fixtures, Patterns, Component Testing
@@ -39,6 +40,8 @@ playwright-commands-cheat-sheet/
 │   └── description.jpg
 ├── js/
 │   ├── app.js
+│   ├── meta-bar.js
+│   ├── waiting.js      # Waiting guide content and rendering
 │   └── data/
 │       ├── index.js        # imports each category and exports `categories`
 │       ├── config.js
@@ -53,8 +56,10 @@ playwright-commands-cheat-sheet/
 │       └── cli.js
 ├── tests/
 │   ├── cheatsheet.spec.js
-│   └── data-integrity.spec.js
+│   ├── data-integrity.spec.js
+│   └── waiting-guide.spec.js
 ├── index.html
+├── waiting.html
 ├── playwright.config.js
 ├── style.css
 ├── package.json

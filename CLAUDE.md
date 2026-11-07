@@ -33,11 +33,14 @@ A static, single-page interactive web dashboard providing a quick reference for 
 
 ```
 playwright-commands-cheat-sheet/
-├── index.html                    # Main markup: header, meta-bar, search, filters, grid, modal
+├── index.html                    # Main markup: header, meta-bar, page switch, search, filters, grid, modal
+├── waiting.html                  # Waiting guide page: shared header + meta-bar, page switch, guide shell
 ├── style.css                     # Single stylesheet: dark theme, flat pastel category tile fills
 ├── js/
 │   ├── app.js                    # Primary logic: render, filter, search, modal, meta-bar (~350 lines)
 │   ├── highlight.js              # Dependency-free syntax highlighter (JS/TS + shell, ~130 lines)
+│   ├── meta-bar.js               # loadMetaBadges(): fills #pw-version and #last-updated (used by both pages)
+│   ├── waiting.js                # Waiting guide: SECTIONS content + render, copy buttons, links back
 │   ├── popular-commands.js       # Command open tracking via Supabase (~95 lines)
 │   ├── visitor-counter.js        # Visitor increment on page load (~40 lines)
 │   ├── visitor-display.js        # Live visitor count display, polls every 30s (~75 lines)
@@ -65,7 +68,8 @@ playwright-commands-cheat-sheet/
 │   ├── data-integrity.spec.js    # Data: required fields, level enum, docs URLs, code validity
 │   ├── highlight.spec.js         # Highlighter: keywords, strings, comments, shell, escaping
 │   ├── meta-bar.spec.js          # Meta-bar: version badge, last-updated, command count, visitor counter
-│   └── popular-commands.spec.js  # Popularity: count loading, 🔥 badge, "Popular" filter, caching
+│   ├── popular-commands.spec.js  # Popularity: count loading, 🔥 badge, "Popular" filter, caching
+│   └── waiting-guide.spec.js     # Waiting guide: shell, page switch, sections, copy, links back, layout
 ├── supabase/
 │   ├── migrations/
 │   │   ├── 0001_visits_counter.sql       # Visitor counter table + RPC + RLS
@@ -246,6 +250,30 @@ regex tokenization, so `Copy` always yields the original source exactly.
 
 ---
 
+## Waiting Guide
+
+`waiting.html` is a sister page of the dashboard, reached through the **Commands / Waiting guide**
+page switch (`nav.page-switch`, links styled `.page-tab`, present on both pages). It is a
+restyled port of the standalone "Playwright Waiting Cheat Sheet": eight sections of three-column
+tables that explain auto-waiting, explicit waits and timeouts.
+
+- **Content lives in `js/waiting.js`.** The `SECTIONS` array is the source (row =
+  `[col1, col2, col3, flag?]`; a trailing `true` marks an Avoid/Legacy/Deprecated row). Backticks
+  make a code chip and `<tag>X</tag>` makes a warning tag. It is exposed as
+  `window.waitingSections` for tests.
+- **Code uses the dashboard's `highlight()`**, so both pages share one token palette. The six
+  `.tok-*` rules in `style.css` match `#m-code` and `.guide`.
+- **All guide CSS is scoped under `.guide`.** The global `pre` rule and generic class names would
+  otherwise collide with the dashboard.
+- **Links back.** Method-name chips link to `index.html#search=<key>`, but only when a dashboard
+  item name contains the key (`linkKey()` / `hasDashboardMatch()`), so a link never lands on an
+  empty grid.
+- **Copy buttons** copy the snippet's source string from `SECTIONS`, not the DOM text.
+- Dark only, no Google Fonts or CDN, and no popularity tracking. `visitor-counter.js` is loaded
+  (one count per session across both pages); `visitor-display.js` is not.
+- `categories` is a window global on the dashboard only. On the guide, import
+  `./js/data/index.js` instead.
+
 ## State Management
 
 | Mechanism | Used for |
@@ -329,6 +357,7 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 
 - **No build step.** Never introduce a bundler, transpiler, or import from a CDN. The app must work by opening `index.html` directly with a static file server.
 - **`npm run lint` covers `js/` only.** `eslint.config.js` does define a `tests/**/*.js` block, but the `lint` script runs `eslint js/`, so test files are Prettier-formatted and never linted in practice. Pass `npx eslint tests/` explicitly if you want them checked.
+- **Meta-bar fallbacks live in two pages.** `index.html` and `waiting.html` both hold `#pw-version` and `#last-updated` fallback values, shown when the runtime fetches fail. Bump both on a Playwright release.
 - **`js/meta.json` is auto-updated by CI.** Do not manually edit it; the `stamp-date.yml` workflow overwrites it on every push to master. Those stamp commits land only on master, so a stale date on `develop` is expected, and editing the file there makes the PR conflict.
 - **Supabase URLs are public but RLS-protected.** The Supabase project URL and anon key are intentionally embedded in client-side JS. RLS policies ensure users can only increment counts, never read raw rows directly (aggregates only).
 - **`data-integrity.spec.js` is your schema enforcer.** Run it after any change to `js/data/`. It validates required fields, the level enum, docs URLs, global name uniqueness, and the dash ban. It checks `code` length only — it does **not** parse the snippet, so a syntax error in an example will ship silently. Read your example back before committing.

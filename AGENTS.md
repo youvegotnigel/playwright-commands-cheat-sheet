@@ -23,11 +23,14 @@ command's description, syntax-highlighted code, a tip, and a docs link.
 ## Project structure
 
 ```
-index.html              # markup: header, meta bar, filters, grid, modal
+index.html              # markup: header, meta bar, page switch, filters, grid, modal
+waiting.html            # Waiting guide page (sister page, same header and meta bar)
 style.css               # all styles (single file)
 js/
   app.js                # UI logic: render tiles, filter/search, modal, meta bar
   highlight.js          # dependency-free syntax highlighter (JS/TS + shell)
+  meta-bar.js           # loadMetaBadges(): version + last-updated badges, both pages
+  waiting.js            # Waiting guide: SECTIONS content + render, copy, links back
   visitor-counter.js    # increments the Supabase visitor count (once per session)
   visitor-display.js    # reads + displays the live count (polls, caches)
   meta.json             # { "lastUpdated": "YYYY-MM-DD" } — stamped by CI
@@ -114,14 +117,26 @@ scoped to `#m-code` in `style.css`.
 
 ## Meta bar
 
-The badges under the header are populated at load (`initMetaBar` in `js/app.js`):
+The badges under the header are populated at load (`initMetaBar` in `js/app.js`; the
+version and date fetches live in `loadMetaBadges()` in `js/meta-bar.js`, which
+`waiting.html` also uses):
 - **playwright version** — read from `package.json` (`@playwright/test`, range prefix stripped).
 - **last updated** — read from `js/meta.json`, which the `stamp-date.yml` workflow
   writes on every push to `master` (committer date). Don't hand-edit `meta.json`.
 - **commands** — count derived from the data.
 - **visitors** — see below.
 
-All fetches fail gracefully, falling back to the hardcoded values in `index.html`.
+All fetches fail gracefully, falling back to the hardcoded values in `index.html` and
+`waiting.html` (the guide shows only the version and last-updated badges).
+
+## Waiting guide
+
+`waiting.html` is a restyled port of the standalone Waiting Cheat Sheet, reached through the
+**Commands / Waiting guide** page switch on both pages. Edit its content in the `SECTIONS`
+array in `js/waiting.js` (row = `[col1, col2, col3, flag?]`). Keep its CSS scoped under
+`.guide`, keep it dark and CDN-free, and use `highlight()` for code. Method chips link to
+`index.html#search=<key>` only when the dashboard has a matching item. On this page
+`categories` is not a window global: import `./js/data/index.js` in the page instead.
 
 ## Visitor counter (Supabase)
 
@@ -184,7 +199,8 @@ Playwright, configured in `playwright.config.js`. Projects: `chromium`,
   **prevents real visitor-count increments**. See `tests/meta-bar.spec.js` for the
   pattern.
 - Existing specs: `cheatsheet.spec.js` (UI), `data-integrity.spec.js` (data shape),
-  `meta-bar.spec.js` (meta bar + visitor counter), `highlight.spec.js` (highlighter).
+  `meta-bar.spec.js` (meta bar + visitor counter), `highlight.spec.js` (highlighter),
+  `waiting-guide.spec.js` (waiting guide page).
 
 ## Lint / format
 
