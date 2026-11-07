@@ -6,10 +6,10 @@
 An interactive browser-based reference for Playwright users who want to quickly browse commands, examples, and official docs links in one place.
 
 ![Dashboard](images/dashboard.jpeg)
-*Grid view -> browse all commands by category and difficulty*
+*Grid view -> search and filter every command, with tiles coloured by category family*
 
 ![Command modal](images/description.jpg)
-*Command modal -> description, code snippet, copy button, and docs link*
+*Command modal -> difficulty badge, description, code snippet, tip, copy button, and docs link*
 
 ## Features
 - Difficulty levels: Beginner, Intermediate, and Advanced
@@ -18,9 +18,10 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
+- Waiting guide page (⏱️ **Waiting guide** tab, next to ⌨️ **Commands**): auto-waiting, explicit waits, timeouts and pitfalls, with copyable examples and links back to the commands
 
 ## Categories
-Config, Setup, Query, Action, Assertions, Utility, API, Patterns, CLI, Accessibility
+Config, Setup, CLI, Query, Accessibility, Action, Utility, Clock & Time, Media & Audio, Tracing & Debugging, Network & Mocking, Assertions, API, Fixtures, Patterns, Component Testing
 
 ## How to Use
 1. Open [playwright commands cheat sheet](https://youvegotnigel.github.io/playwright-commands-cheat-sheet/) in your browser
@@ -39,6 +40,8 @@ playwright-commands-cheat-sheet/
 │   └── description.jpg
 ├── js/
 │   ├── app.js
+│   ├── meta-bar.js
+│   ├── waiting.js      # Waiting guide content and rendering
 │   └── data/
 │       ├── index.js        # imports each category and exports `categories`
 │       ├── config.js
@@ -53,8 +56,10 @@ playwright-commands-cheat-sheet/
 │       └── cli.js
 ├── tests/
 │   ├── cheatsheet.spec.js
-│   └── data-integrity.spec.js
+│   ├── data-integrity.spec.js
+│   └── waiting-guide.spec.js
 ├── index.html
+├── waiting.html
 ├── playwright.config.js
 ├── style.css
 ├── package.json

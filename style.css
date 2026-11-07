@@ -176,12 +176,12 @@ pre {
   font-size: 13px; line-height: 1.65; margin: 0 0 14px;
 }
 /* Syntax highlighting tokens (see js/highlight.js) */
-#m-code .tok-keyword { color: #38bdf8; }
-#m-code .tok-string  { color: #4ade80; }
-#m-code .tok-api     { color: #c084fc; }
-#m-code .tok-number  { color: #fb923c; }
-#m-code .tok-comment { color: #94a3b8; font-style: italic; }
-#m-code .tok-fn      { color: #fbbf24; }
+#m-code .tok-keyword, .guide .tok-keyword { color: #38bdf8; }
+#m-code .tok-string,  .guide .tok-string  { color: #4ade80; }
+#m-code .tok-api,     .guide .tok-api     { color: #c084fc; }
+#m-code .tok-number,  .guide .tok-number  { color: #fb923c; }
+#m-code .tok-comment, .guide .tok-comment { color: #94a3b8; font-style: italic; }
+#m-code .tok-fn,      .guide .tok-fn      { color: #fbbf24; }
 .modal-tip {
   background: #0f172a; border-left: 3px solid #38bdf8;
   padding: 10px 14px; border-radius: 0 6px 6px 0;
@@ -214,3 +214,108 @@ pre {
   grid-column: 1 / -1; text-align: center;
   padding: 60px 20px; color: #94a3b8; font-size: 15px;
 }
+
+/* Page switch: Commands / Waiting guide. Same pill look as .filter-btn. */
+.page-switch { display: flex; justify-content: center; gap: 8px; padding: 14px 16px 0; }
+.page-tab {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); color: #cbd5e1;
+  font-size: 15px; font-weight: 700; text-decoration: none; white-space: nowrap;
+  transition: background 0.15s;
+}
+.page-tab:hover { background: rgba(255,255,255,0.12); }
+/* Fixed-width icon slot so the two tab icons take the same space whatever the emoji font */
+.tab-icon { display: inline-block; width: 1.25em; text-align: center; line-height: 1; }
+.page-tab[aria-current="page"] {
+  background: rgba(255,255,255,0.18); color: #fff;
+  outline: 2px solid rgba(255,255,255,0.25);
+}
+.page-tab:focus-visible { outline: 3px solid #f8fafc; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .page-tab { transition: none; } }
+
+/* Waiting guide. Everything is scoped under .guide: the global `pre` rule and
+   generic class names would otherwise collide with the dashboard. */
+.guide h1 { font-size: 30px; line-height: 1.15; margin: 8px 0 12px; color: #e2e8f0; }
+.guide .lede { color: #94a3b8; max-width: 70ch; margin: 0 0 14px; line-height: 1.6; }
+.guide .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+.guide .pill {
+  font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+  background: rgba(22,163,74,0.2); color: #4ade80;
+}
+@media (max-width: 760px) { .guide h1 { font-size: 25px; } }
+
+.guide #toc { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; margin-bottom: 28px; }
+.guide #toc a { color: #94a3b8; text-decoration: none; border-bottom: 1px solid #334155; }
+.guide #toc a:hover, .guide #toc a:focus-visible { color: #e2e8f0; border-color: #e2e8f0; }
+.guide a:focus-visible { outline: 3px solid #f8fafc; outline-offset: 2px; }
+
+.guide section { display: grid; gap: 12px; margin-bottom: 32px; scroll-margin-top: 12px; }
+.guide h2 { display: flex; gap: 10px; align-items: baseline; font-size: 20px; margin: 0; color: #e2e8f0; }
+.guide h2 .num { font: 500 13px ui-monospace, Menlo, Consolas, monospace; color: #2ead33; }
+.guide .note { color: #94a3b8; font-size: 14px; max-width: 75ch; margin: 0; }
+
+.guide .table-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; overflow: hidden; }
+.guide table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.guide col.c1, .guide col.c2 { width: 25%; }
+.guide col.c3 { width: 50%; }
+.guide th {
+  text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: #94a3b8; padding: 10px 14px; border-bottom: 1px solid #334155;
+}
+.guide td {
+  padding: 12px 14px; vertical-align: top; min-width: 0;
+  color: #cbd5e1; font-size: 14px; line-height: 1.55; border-bottom: 1px solid #334155;
+}
+.guide tr:last-child td { border-bottom: 0; }
+.guide tr.flag td:first-child { box-shadow: inset 3px 0 0 #fb923c; }
+.guide .tag {
+  display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: #fb923c; background: rgba(234,88,12,0.2);
+  border-radius: 4px; padding: 1px 6px; margin-left: 4px; vertical-align: 1px;
+}
+
+.guide code.inl, .guide a.inl {
+  font: 12.5px ui-monospace, Menlo, Consolas, monospace; background: #020617; color: #e2e8f0;
+  padding: 1px 6px; border-radius: 4px; display: inline-block; margin: 1px 0;
+  /* Long chips wrap inside their cell instead of spilling over the next column */
+  max-width: 100%; white-space: normal; overflow-wrap: anywhere;
+}
+.guide a.inl { text-decoration: none; transition: box-shadow 0.15s; }
+.guide a.inl:hover, .guide a.inl:focus-visible { box-shadow: 0 0 0 1px #38bdf8; }
+.guide .block { position: relative; }
+.guide-copy {
+  position: absolute; top: 6px; right: 6px;
+  background: #38bdf8; color: #000; padding: 4px 10px;
+  border: none; border-radius: 6px; cursor: pointer;
+  font-size: 11px; font-weight: 600; transition: background 0.15s;
+}
+.guide-copy:hover { background: #7dd3fc; }
+.guide-copy.copied { background: #4ade80; }
+.guide-copy:focus-visible { outline: 3px solid #f8fafc; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .guide a.inl, .guide-copy { transition: none; } }
+
+/* Phones: each table row becomes a stacked card, cells captioned by their column name */
+@media (max-width: 760px) {
+  .guide table, .guide tbody, .guide tr, .guide td { display: block; width: 100%; }
+  .guide thead, .guide colgroup { display: none; }
+  .guide tr { border-bottom: 1px solid #334155; padding: 6px 0; }
+  .guide tr:last-child { border-bottom: 0; }
+  .guide td { border: 0; padding: 6px 14px; }
+  .guide td::before {
+    content: attr(data-label); display: block; margin-bottom: 3px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #94a3b8;
+  }
+  .guide td:first-child { box-shadow: none; }
+  .guide tr.flag { box-shadow: inset 3px 0 0 #fb923c; }
+  .page-tab { flex: 1; justify-content: center; }
+  .page-switch { padding-left: 16px; padding-right: 16px; }
+}
+.guide pre {
+  /* The top band holds the Copy button, so no line of code can ever run underneath it */
+  margin: 0; background: #020617; color: #e2e8f0; border-radius: 8px; padding: 36px 14px 12px;
+  font: 12.8px/1.6 ui-monospace, Menlo, Consolas, monospace; tab-size: 2;
+  white-space: pre; word-break: normal; overflow-x: auto;
+}
+.guide pre code { font: inherit; }

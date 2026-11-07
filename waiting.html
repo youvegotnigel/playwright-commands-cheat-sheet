@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⏱️ Playwright Waiting Guide</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <img class="header-logo" src="images/playwright-logo.svg" alt="Playwright logo" width="44" height="44" />
+  <span>Playwright Commands Dashboard</span>
+  <img class="header-logo" src="images/playwright-logo.svg" alt="" aria-hidden="true" width="44" height="44" />
+</header>
+
+<div class="meta-bar">
+  <span class="meta-badge"><span class="k">playwright</span><span class="v" style="background:#22c55e" id="pw-version">v1.65.0</span></span>
+  <span class="meta-badge"><span class="k">last updated</span><span class="v" style="background:#38bdf8" id="last-updated">2026-11-07</span></span>
+</div>
+
+<nav class="page-switch" aria-label="Pages">
+  <a class="page-tab" href="index.html"><span class="tab-icon" aria-hidden="true">⌨️</span>Commands</a>
+  <a class="page-tab" href="waiting.html" aria-current="page"><span class="tab-icon" aria-hidden="true">⏱️</span>Waiting guide</a>
+</nav>
+
+<main class="guide container">
+  <h1>Playwright Waiting Cheat Sheet</h1>
+  <p class="lede">Playwright waits in two ways. Auto-waiting is built into actions and web-first assertions, so you get it for free. Explicit waiting is when you tell Playwright what to wait for: network calls, events, URLs and custom conditions.</p>
+  <div class="pills" aria-label="Actionability checks">
+    <span class="pill">Visible</span><span class="pill">Stable</span><span class="pill">Receives Events</span><span class="pill">Enabled</span><span class="pill">Editable</span>
+  </div>
+  <nav id="toc" aria-label="Sections"></nav>
+  <div id="content"></div>
+</main>
+
+<script type="module" src="js/waiting.js"></script>
+<script src="js/visitor-counter.js" defer></script>
+
+</body>
+</html>
