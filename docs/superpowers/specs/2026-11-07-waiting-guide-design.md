@@ -1,7 +1,7 @@
 # Waiting Guide Page — Design
 
 **Date:** 2026-11-07
-**Status:** Draft, awaiting approval
+**Status:** Approved; revised after the final review (2026-11-07), see "Revisions" at the end
 **Source content:** `Playwright Waiting Cheat Sheet.html` (repo root, untracked)
 
 ## Intent
@@ -91,8 +91,9 @@ removes it once happy with the port.
 2. **Meta-bar.** Two badges only, `playwright vX` and `last updated YYYY-MM-DD`, using the same
    `.meta-badge` markup, the same colours (`#22c55e`, `#38bdf8`) and the same fallback values as
    `index.html`. The commands count and visitors badges are dashboard-only.
-3. **Page switch.** A `<nav class="page-switch" aria-label="Pages">` with two links, "Commands"
-   (`index.html`) and "⏱ Waiting guide" (`waiting.html`). It is centred directly below the
+3. **Page switch.** A `<nav class="page-switch" aria-label="Pages">` with two links, "⌨️ Commands"
+   (`index.html`) and "⏱️ Waiting guide" (`waiting.html`). Each icon is an emoji in emoji
+   presentation (U+FE0F) inside an `aria-hidden` `.tab-icon` span with a fixed 1.25em slot. It is centred directly below the
    meta-bar on both pages. Each link is styled like a dashboard filter pill (`.filter-btn` look:
    999px radius, `rgba(255,255,255,0.06)` fill, 700 weight, `#cbd5e1` text). The current page has
    `aria-current="page"` and the active pill look (`rgba(255,255,255,0.18)` fill, white text,
@@ -136,13 +137,15 @@ Wrapped in `<main class="guide container">`. The container is the dashboard's: m
   `overflow-x: auto`, so code keeps its shape and scrolls inside the cell instead of widening the
   page.
 - Inline chips (backtick text in data) are `code` with background `#020617`, `#e2e8f0` text,
-  4px radius, `nowrap`.
+  4px radius. Long chips wrap inside their cell (`max-width: 100%`, `overflow-wrap: anywhere`),
+  with `<wbr>` after `.` and `(` so they break between tokens, not mid-word.
 - Both are highlighted with the repo's `highlight()` from `js/highlight.js`. The source's own
   highlighter and its rainbow brackets are not ported.
 - Token colours are the dashboard's. Change the six `#m-code .tok-*` selectors in `style.css` to
   also match `.guide .tok-*`, so both pages share one palette definition.
 
-**Copy button** on each code block: absolute top-right, a small version of `.btn-copy` (sky
+**Copy button** on each code block: top-right, inside a 36px top band of the block (so no line of
+code can run underneath it), a small version of `.btn-copy` (sky
 `#38bdf8` fill, black text, 600 weight). On success it shows "✓ Copied!" on green `#4ade80` for
 2s, as in the dashboard. On failure it shows "Select and copy" for 2s. It copies the snippet's
 source string from the data, so the copied text is exactly the original.
@@ -152,12 +155,15 @@ for example `index.html#search=waitForURL`. `applyHashState()` in `app.js` alrea
 hash on load, so the dashboard needs no change.
 - Which chips: those in the first column of `actions`, `navigation`, `explicit` and
   `not-waits`, and those in the second column (matchers) of `assertions`.
-- Search key: the last identifier that is followed by `(`, or the whole chip text if there is
-  none. So `page.waitForURL(url)` gives `waitForURL`, `expect(fn).toPass()` gives `toPass`,
-  `page.waitForEvent('popup')` gives `waitForEvent`, and `toBeVisible` stays `toBeVisible`.
-- A chip links only if some dashboard item's `name` contains the key (case-insensitive).
-  `js/waiting.js` imports `categories` from `./data/index.js` to check this at render time, so
-  links stay correct as the data changes and never lead to an empty grid.
+- The chip's method is its last call (with that call's receiver), or the whole chip text if it has
+  no call: `page.waitForURL(url)` is `page` / `waitForURL`, `expect(fn).toPass()` is `toPass`.
+- Search term (revised): the matching command's **full name**, tried in order as
+  `receiver.key()`, `key()`, then any `obj.key()`. So `all()` searches `locator.all()`, `toBe`
+  searches `toBe()`, and `page.waitForEvent('popup')` searches `page.waitForEvent()`. This lands
+  on a short list holding that tile instead of every mention of a common word. If no full name
+  matches but some name contains the key, the bare key is used. If none does, the chip is not a
+  link, so a link never leads to an empty grid. `js/waiting.js` imports `categories` from
+  `./data/index.js` to decide this at render time, so links follow the data.
 - Linked chips keep the code-chip look, add a 1px `#38bdf8` outline on hover and focus, and
   carry `title="Open in the commands dashboard"`.
 
@@ -170,7 +176,7 @@ never scrolls sideways.
 
 ### Accessibility
 
-- `<html lang="en">`; `<title>⏱ Playwright Waiting Guide</title>`.
+- `<html lang="en">`; `<title>⏱️ Playwright Waiting Guide</title>`.
 - Real `table` / `th scope="col"` semantics on desktop.
 - Copy buttons are `<button type="button">`.
 - Focus-visible outline `3px solid #f8fafc` with offset (the tile focus style) on links, pills
@@ -223,3 +229,18 @@ follows the redirect.
 - The internal shape of `js/meta-bar.js`, as long as `index.html` behaves exactly as before.
 - Doc wording in `readme.md`, `AGENTS.md` and `CLAUDE.md`.
 - Whether to add a screenshot of the guide to `images/` for the readme.
+
+## Revisions
+
+Made after the final whole-branch review and the owner's follow-up requests, all on 2026-11-07:
+
+- **Tab icons.** The owner asked for an icon on the Commands tab to balance the stopwatch: both
+  tabs now carry emoji-presentation icons (keyboard, stopwatch), `aria-hidden`.
+- **Link targets.** The bare-key search made common chips useless (`all()` matched about 167 of
+  305 tiles). Links now search for the matching command's full name (above).
+- **Chip wrapping.** Long chips spilled over the next column on desktop and were clipped on phones.
+  They now wrap inside the cell, between tokens.
+- **Copy button band.** On phones the button covered code in 34 of 51 blocks. It now sits in a top
+  band of the block.
+- **Code text and font.** Block code text is `#e2e8f0` (the dashboard modal's), and `<code>`
+  inherits the `ui-monospace` stack (iOS Safari otherwise used Courier).

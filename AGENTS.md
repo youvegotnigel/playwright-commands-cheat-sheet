@@ -135,7 +135,8 @@ All fetches fail gracefully, falling back to the hardcoded values in `index.html
 **Commands / Waiting guide** page switch on both pages. Edit its content in the `SECTIONS`
 array in `js/waiting.js` (row = `[col1, col2, col3, flag?]`). Keep its CSS scoped under
 `.guide`, keep it dark and CDN-free, and use `highlight()` for code. Method chips link to
-`index.html#search=<key>` only when the dashboard has a matching item. On this page
+`index.html#search=<full command name>` (e.g. `locator.all()`), and only when the dashboard has a
+matching item. On this page
 `categories` is not a window global: import `./js/data/index.js` in the page instead.
 
 ## Visitor counter (Supabase)

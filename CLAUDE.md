@@ -265,9 +265,16 @@ tables that explain auto-waiting, explicit waits and timeouts.
   `.tok-*` rules in `style.css` match `#m-code` and `.guide`.
 - **All guide CSS is scoped under `.guide`.** The global `pre` rule and generic class names would
   otherwise collide with the dashboard.
-- **Links back.** Method-name chips link to `index.html#search=<key>`, but only when a dashboard
-  item name contains the key (`linkKey()` / `hasDashboardMatch()`), so a link never lands on an
-  empty grid.
+- **Links back.** Method-name chips link to `index.html#search=<full command name>`, for example
+  `all()` to `#search=locator.all()` (`searchTerm()` tries `receiver.key()`, `key()`, then any
+  `obj.key()`, else the bare key). A chip no command name mentions is not a link, so a link never
+  lands on an empty grid.
+- **Page tabs** carry emoji-presentation icons (`\u2328\uFE0F` keyboard, `\u23F1\uFE0F`
+  stopwatch) in `aria-hidden` `.tab-icon` spans, so the tabs are announced as plain text.
+- **`tests/waiting-guide.spec.js` pins content and colours.** It checks every cell against
+  `SECTIONS`, actionability facts against the Playwright docs, the full colour palette, WCAG AA
+  contrast, and that tokens, header, meta-bar and tabs match the dashboard. Update it alongside any
+  intended content or colour change.
 - **Copy buttons** copy the snippet's source string from `SECTIONS`, not the DOM text.
 - Dark only, no Google Fonts or CDN, and no popularity tracking. `visitor-counter.js` is loaded
   (one count per session across both pages); `visitor-display.js` is not.
