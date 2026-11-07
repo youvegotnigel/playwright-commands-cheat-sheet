@@ -1,12 +1,10 @@
 // =============================================================
-// waiting.js — renders the Waiting guide (waiting.html).
+// waiting.js — content of the Waiting guide (waiting.html).
 // SECTIONS is the content source: edit it here to change the page.
-// Code is highlighted with the dashboard's own highlighter.
+// js/guide.js renders it.
 // =============================================================
 
-import { categories } from './data/index.js';
-import { highlight } from './highlight.js';
-import { loadMetaBadges } from './meta-bar.js';
+import { renderGuide } from './guide.js';
 
 const SECTIONS = [
   {
@@ -419,115 +417,7 @@ await submitButton.click({ force: true });`,
 // Expose for tests via page.evaluate() (same rationale as window.categories)
 window.waitingSections = SECTIONS;
 
-/* ── MARKUP ───────────────────────────────────────────────────── */
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
 // Column that holds method names, per section: those chips link back to the dashboard
 const LINK_COLUMN = { actions: 0, navigation: 0, explicit: 0, 'not-waits': 0, assertions: 1 };
 
-// The method a chip names: its last call (and that call's receiver), else the whole text.
-// page.waitForURL(url) -> page / waitForURL, expect(fn).toPass() -> toPass, toBeVisible -> toBeVisible
-function chipMethod(chip) {
-  const calls = [...chip.matchAll(/(?:([A-Za-z_$][\w$]*)\.)?([A-Za-z_$][\w$]*)\s*\(/g)];
-  if (!calls.length) return { receiver: '', key: chip.trim() };
-  const [, receiver = '', key] = calls[calls.length - 1];
-  return { receiver, key };
-}
-
-const COMMAND_NAMES = categories.flatMap((c) => c.items.map((i) => i.name));
-
-// Dashboard search for a chip. Prefer the matching command's full name (receiver.key(), then
-// key(), then any obj.key()) so the link lands on a short list holding that tile, not on every
-// mention of a common word like "all". Fall back to the bare method name, and return null when
-// no command name mentions it, so a link never lands on an empty grid.
-function searchTerm(chip) {
-  const { receiver, key } = chipMethod(chip);
-  const k = key.toLowerCase();
-  const named = (name) => COMMAND_NAMES.find((n) => n.toLowerCase() === name.toLowerCase());
-  return (
-    (receiver && named(`${receiver}.${key}()`)) ||
-    named(`${key}()`) ||
-    COMMAND_NAMES.find((n) => n.toLowerCase().endsWith(`.${k}()`)) ||
-    (COMMAND_NAMES.some((n) => n.toLowerCase().includes(k)) ? key : null)
-  );
-}
-
-// Inline markup: `code` becomes a highlighted chip (a link when `link` is set and the
-// dashboard knows the method), <tag>X</tag> a warning tag
-function inline(text, link = false) {
-  return text
-    .split(/(`[^`]+`|<tag>[^<]+<\/tag>)/)
-    .map((part) => {
-      if (part.startsWith('`')) {
-        const chip = part.slice(1, -1);
-        // <wbr> after "." and "(" lets a long chip wrap between tokens instead of mid-word,
-        // without adding characters to the text a reader selects
-        const html = highlight(chip).replace(/([.(])/g, '$1<wbr>');
-        const term = link ? searchTerm(chip) : null;
-        if (term) {
-          const href = `index.html#search=${encodeURIComponent(term)}`;
-          return `<a class="inl" href="${href}" title="Open in the commands dashboard">${html}</a>`;
-        }
-        return `<code class="inl">${html}</code>`;
-      }
-      if (part.startsWith('<tag>')) return `<span class="tag">${esc(part.slice(5, -6))}</span>`;
-      return esc(part);
-    })
-    .join('');
-}
-
-function renderGuide() {
-  const toc = document.getElementById('toc');
-  const main = document.getElementById('content');
-  SECTIONS.forEach((s, n) => {
-    const num = String(n + 1).padStart(2, '0');
-    toc.insertAdjacentHTML('beforeend', `<a href="#${s.id}">${num} ${esc(s.title)}</a>`);
-    const linkCol = LINK_COLUMN[s.id];
-    const rows = s.rows
-      .map((r, row) => {
-        const third = s.text
-          ? inline(r[2])
-          : `<div class="block"><pre><code>${highlight(r[2])}</code></pre>
-            <button class="guide-copy" type="button" data-section="${n}" data-row="${row}">Copy</button></div>`;
-        return `<tr class="${r[3] ? 'flag' : ''}">
-          <td data-label="${esc(s.cols[0])}">${inline(r[0], linkCol === 0)}</td>
-          <td data-label="${esc(s.cols[1])}">${inline(r[1], linkCol === 1)}</td>
-          <td data-label="${esc(s.cols[2])}">${third}</td></tr>`;
-      })
-      .join('');
-    main.insertAdjacentHTML(
-      'beforeend',
-      `<section id="${s.id}">
-        <h2><span class="num">${num}</span>${esc(s.title)}</h2>
-        ${s.note ? `<p class="note">${esc(s.note)}</p>` : ''}
-        <div class="table-card"><table>
-          <colgroup><col class="c1"><col class="c2"><col class="c3"></colgroup>
-          <thead><tr>${s.cols.map((c) => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead>
-          <tbody>${rows}</tbody>
-        </table></div>
-      </section>`
-    );
-  });
-}
-
-/* ── COPY ─────────────────────────────────────────────────────── */
-// Copies the snippet's source string from SECTIONS, so the text is exactly the original
-document.addEventListener('click', async (e) => {
-  const btn = e.target.closest('.guide-copy');
-  if (!btn) return;
-  const code = SECTIONS[btn.dataset.section].rows[btn.dataset.row][2];
-  try {
-    await navigator.clipboard.writeText(code);
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-  } catch {
-    btn.textContent = 'Select and copy';
-  }
-  setTimeout(() => {
-    btn.textContent = 'Copy';
-    btn.classList.remove('copied');
-  }, 2000);
-});
-
-renderGuide();
-loadMetaBadges();
+renderGuide(SECTIONS, { linkColumns: LINK_COLUMN });
