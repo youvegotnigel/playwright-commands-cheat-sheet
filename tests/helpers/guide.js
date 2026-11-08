@@ -2,13 +2,14 @@
 
 export const MOCK_DATE = '2025-12-25';
 
-// Every page that carries the Commands / Waits / Selectors page switch, in tab order.
+// Every page that carries the Commands / Waits / Selectors / Async / Mocks page switch, in tab order.
 // accent is the computed stroke colour of the tab icon's .accent part.
 export const PAGES = [
   { path: '/', tab: 'Commands', icon: 'commands', accent: 'rgb(74, 222, 128)' },
   { path: '/waiting.html', tab: 'Waits', icon: 'waiting', accent: 'rgb(56, 189, 248)' },
   { path: '/locators.html', tab: 'Selectors', icon: 'locators', accent: 'rgb(192, 132, 252)' },
   { path: '/async.html', tab: 'Async', icon: 'async', accent: 'rgb(249, 150, 169)' },
+  { path: '/mocking.html', tab: 'Mocks', icon: 'mocking', accent: 'rgb(251, 191, 36)' },
 ];
 
 // The meta-bar fallback values a page ships in its HTML

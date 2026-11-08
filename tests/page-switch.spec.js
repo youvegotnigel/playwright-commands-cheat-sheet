@@ -297,6 +297,31 @@ test.describe('Page tabs: icon animation on click', () => {
     await tab(page, 'Waits').click();
     await expect(page.locator('.page-tab[aria-current] svg.icon-waiting')).toHaveClass(/\bplay\b/);
     expect(await accentAnimation('waiting')).toBe('spin-back');
+
+    await tab(page, 'Mocks').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-mocking')).toHaveClass(/\bplay\b/);
+    expect(await accentAnimation('mocking')).toBe('reply-slide');
+
+    await tab(page, 'Waits').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-waiting')).toHaveClass(/\bplay\b/);
+    expect(await accentAnimation('waiting')).toBe('spin-back');
+  });
+
+  test('the Mocks icon plays about as long as the Waits icon', async ({ page }) => {
+    const seconds = (name, part) =>
+      page
+        .locator(`svg.icon-${name} ${part}`)
+        .first()
+        .evaluate((el) => parseFloat(getComputedStyle(el).animationDuration));
+
+    await page.goto('/');
+    await tab(page, 'Waits').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-waiting')).toHaveClass(/\bplay\b/);
+    const waits = await seconds('waiting', '.loop');
+
+    await tab(page, 'Mocks').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-mocking')).toHaveClass(/\bplay\b/);
+    expect(await seconds('mocking', '.reply')).toBeGreaterThanOrEqual(waits);
   });
 
   test('the Async icon plays about as long as the Waits icon', async ({ page }) => {

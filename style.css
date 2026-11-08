@@ -236,6 +236,7 @@ pre {
 .icon-waiting  { --accent: #38bdf8; }
 .icon-locators { --accent: #c084fc; }
 .icon-async    { --accent: #f996a9; }
+.icon-mocking  { --accent: #fbbf24; }
 
 /* Tab click: the icon plays once on the page it opens (js/page-tabs.js).
    Motion only when the user has not asked for less of it. */
@@ -256,12 +257,15 @@ pre {
   .tab-icon.play .cursor { animation: cursor-press 0.3s ease-in-out 0.35s; }
   /* Async: the hand-off arrow draws across from one lane to the other */
   .icon-async.play .handoff { stroke-dasharray: 24; animation: handoff 0.9s ease-in-out; }
+  /* Mocking: the reply arrow slides back in after the request goes out */
+  .icon-mocking.play .reply { animation: reply-slide 0.9s cubic-bezier(.3,1.4,.5,1); }
 }
 @keyframes tile-pop { from { transform: scale(0); opacity: 0; } }
 @keyframes spin-back { from { transform: rotate(-360deg); } }
 @keyframes frame-snap { from { transform: scale(1.35); opacity: 0; } }
 @keyframes cursor-press { 50% { transform: scale(0.7); } }
 @keyframes handoff { from { stroke-dashoffset: 24; } }
+@keyframes reply-slide { from { transform: translateX(6px); opacity: 0; } }
 .page-tab[aria-current="page"] {
   background: rgba(255,255,255,0.18); color: #fff;
   outline: 2px solid rgba(255,255,255,0.25);
