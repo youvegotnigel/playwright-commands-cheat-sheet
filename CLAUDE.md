@@ -326,8 +326,10 @@ rendered by the shared `js/guide.js`.
 - **Copy buttons** copy the snippet's source string from `SECTIONS`, not the DOM text.
 - Dark only, no Google Fonts or CDN, and no popularity tracking. Both `visitor-counter.js`
   (one count per session across all pages) and `visitor-display.js` are loaded, so every page's
-  meta-bar shows the playwright, last-updated and visitors badges (the commands count is
-  dashboard-only).
+  meta-bar shows four badges: playwright, last updated, a page badge, visitors. The page badge is
+  `commands` on the dashboard and `read time` on a guide (`#read-time`, filled by `renderGuide()`
+  from every word in `SECTIONS` at 200 words a minute, rounded, at least 1 min). On phones the four
+  make a 2 x 2 grid.
 - `categories` is a window global on the dashboard only. On a guide, import
   `./js/data/index.js` instead.
 - **Adding a guide:** a `js/<name>.js` data module, a page copied from `locators.html`, a tab with
