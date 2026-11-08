@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ Playwright Async Guide</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <img class="header-logo" src="images/playwright-logo.svg" alt="Playwright logo" width="44" height="44" />
+  <span>Playwright Commands Dashboard</span>
+  <img class="header-logo" src="images/playwright-logo.svg" alt="" aria-hidden="true" width="44" height="44" />
+</header>
+
+<div class="meta-bar">
+  <span class="meta-badge"><span class="k">playwright</span><span class="v" style="background:#22c55e" id="pw-version">v1.65.0</span></span>
+  <span class="meta-badge"><span class="k">last updated</span><span class="v" style="background:#38bdf8" id="last-updated">2026-11-07</span></span>
+</div>
+
+<nav class="page-switch" aria-label="Pages">
+  <a class="page-tab" href="index.html"><svg class="tab-icon icon-commands" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><rect class="accent solid" x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg>Commands</a>
+  <a class="page-tab" href="waiting.html"><svg class="tab-icon icon-waiting" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><g class="loop"><path d="M13.5 3.94A7 7 0 1 1 6.5 3.94"/><path d="M3.5 3.7L6.5 3.94L5.2 6.66"/></g><path class="accent" d="M10 6.5V10l2.5 1.5"/></svg>Waits</a>
+  <a class="page-tab" href="locators.html"><svg class="tab-icon icon-locators" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path class="frame" d="M2.5 6.5V4A1.5 1.5 0 0 1 4 2.5h2.5M13.5 2.5H16A1.5 1.5 0 0 1 17.5 4v2.5M17.5 13.5V16a1.5 1.5 0 0 1-1.5 1.5h-2.5M6.5 17.5H4A1.5 1.5 0 0 1 2.5 16v-2.5"/><path class="accent solid cursor" d="M7 6.3l7.2 3.4-3.1 1.1 1.9 3.4-1.5.8-1.9-3.4-2.6 2.3z"/></svg>Selectors</a>
+  <a class="page-tab" href="async.html" aria-current="page"><svg class="tab-icon icon-async" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 4.5h14"/><path d="M3 15.5h14"/><path class="accent handoff" d="M6 4.5c0 5 8 2.5 8 9.5l-2.3-2.6 2.3 2.6 2.3-2.6"/></svg>Async</a>
+</nav>
+
+<main class="guide container">
+  <h1>Playwright Async Cheat Sheet</h1>
+  <p class="lede">Every Playwright call returns a promise. Await each one, synchronise on what the user would see instead of on time, and run things in parallel only when they are truly independent. The same rules hold when a test drives two browsers that talk to each other.</p>
+  <div class="pills" aria-label="Async rules">
+    <span class="pill">Await every call</span><span class="pill">Register before you trigger</span><span class="pill">Assert, don't sleep</span><span class="pill">Parallel only when independent</span><span class="pill">Close what you open</span>
+  </div>
+  <nav id="toc" aria-label="Sections"></nav>
+  <div id="content"></div>
+</main>
+
+<script type="module" src="js/async.js"></script>
+<script type="module" src="js/page-tabs.js"></script>
+<script src="js/visitor-counter.js" defer></script>
+
+</body>
+</html>

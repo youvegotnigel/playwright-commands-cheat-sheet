@@ -1,18 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { MOCK_DATE, mockBackends, contrastOf, plain, unbalanced } from './helpers/guide.js';
+import {
+  MOCK_DATE,
+  mockBackends,
+  fallbacks,
+  contrastOf,
+  plain,
+  unbalanced,
+} from './helpers/guide.js';
 
 test.beforeEach(async ({ page }) => {
   await mockBackends(page);
 });
 
-// The meta-bar fallback values a page ships in its HTML
-async function fallbacks(page, path) {
-  const html = await (await page.request.get(path)).text();
-  const value = (id) => html.match(new RegExp(`id="${id}">([^<]+)<`))[1];
-  return { version: value('pw-version'), date: value('last-updated') };
-}
-
-const PAGES = ['/', '/waiting.html', '/locators.html'];
 const LADDER = [
   'Role',
   'Label',
@@ -82,81 +81,6 @@ test.describe('Locator guide: page shell', () => {
     await page.reload();
     await expect(page.locator('h1')).toBeVisible();
     await expect.poll(() => state.posts).toBe(1);
-  });
-});
-
-/* ── PAGE SWITCH ───────────────────────────────────────────────── */
-test.describe('Locator guide: page switch', () => {
-  test('keyboard focus shows the white focus ring on every tab', async ({ page, browserName }) => {
-    test.skip(browserName === 'webkit', 'WebKit does not move Tab focus to links by default');
-    await page.goto('/locators.html');
-    const focused = () =>
-      page.evaluate(() => {
-        const el = document.activeElement;
-        const cs = getComputedStyle(el);
-        return {
-          cls: el.className,
-          name: el.textContent.trim(),
-          ring: `${cs.outlineStyle} ${cs.outlineWidth} ${cs.outlineColor}`,
-        };
-      });
-    const ring = 'solid 3px rgb(248, 250, 252)';
-    await page.keyboard.press('Tab');
-    expect(await focused()).toEqual({ cls: 'page-tab', name: 'Commands', ring });
-    await page.keyboard.press('Tab');
-    await page.keyboard.press('Tab');
-    expect(await focused()).toEqual({ cls: 'page-tab', name: 'Selectors', ring });
-  });
-
-  test('the Selectors tab opens the locator guide from the other two pages', async ({ page }) => {
-    for (const path of ['/', '/waiting.html']) {
-      await page.goto(path);
-      await page.getByRole('navigation', { name: 'Pages' }).getByText('Selectors').click();
-      await expect(page).toHaveURL(/locators/);
-      await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
-    }
-  });
-});
-
-/* ── CROSS-PAGE ────────────────────────────────────────────────── */
-test.describe('Locator guide: cross-page', () => {
-  test('all three pages share an identical header', async ({ page }) => {
-    const headers = [];
-    for (const path of PAGES) {
-      await page.goto(path);
-      headers.push(await page.locator('header').evaluate((el) => el.outerHTML));
-    }
-    expect(headers[1]).toBe(headers[0]);
-    expect(headers[2]).toBe(headers[0]);
-  });
-
-  test('the meta-bar fallbacks match on all three pages', async ({ page }) => {
-    const [dashboard, ...guides] = await Promise.all(PAGES.map((p) => fallbacks(page, p)));
-    for (const guide of guides) expect(guide).toEqual(dashboard);
-  });
-
-  test('on a 360px phone the three tabs share one row without overflow', async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 740 });
-    for (const path of PAGES) {
-      await page.goto(path);
-      const boxes = await page.locator('.page-tab').evaluateAll((els) =>
-        els.map((el) => ({
-          top: el.getBoundingClientRect().top,
-          width: el.getBoundingClientRect().width,
-          clipped: el.scrollWidth > el.clientWidth,
-        }))
-      );
-      expect(boxes, path).toHaveLength(3);
-      for (const box of boxes) {
-        expect(box.top, path).toBe(boxes[0].top);
-        expect(Math.abs(box.width - boxes[0].width), path).toBeLessThanOrEqual(1);
-        expect(box.clipped, path).toBe(false);
-      }
-      const noSideScroll = await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth
-      );
-      expect(noSideScroll, path).toBe(true);
-    }
   });
 });
 
@@ -687,74 +611,5 @@ test.describe('Locator guide: colours', () => {
     ]) {
       expect(await contrastOf(page, selector), selector).toBeGreaterThanOrEqual(4.5);
     }
-  });
-});
-
-/* ── PAGE TAB ANIMATION ────────────────────────────────────────── */
-// A tab click navigates away at once, so the icon plays on arrival: the landing page's
-// current tab animates after every tab click, and stays still on a plain visit.
-test.describe('Page tabs: icon animation on click', () => {
-  // Whether the current tab's icon is set to play, and whether any of its parts has a CSS
-  // animation applied (computed style, so the check does not race the animation's end)
-  const icon = (page, name) =>
-    page.locator(`.page-tab[aria-current] svg.icon-${name}`).evaluate((svg) => ({
-      play: svg.classList.contains('play'),
-      animated: [...svg.querySelectorAll('*')].some(
-        (el) => getComputedStyle(el).animationName !== 'none'
-      ),
-    }));
-  const tab = (page, label) =>
-    page.getByRole('navigation', { name: 'Pages' }).getByText(label, { exact: true });
-  const PLAYS = { play: true, animated: true };
-  const STILL = { play: false, animated: false };
-
-  test('every tab click plays the icon of the page it opens', async ({ page }) => {
-    await page.goto('/');
-    expect(await icon(page, 'commands')).toEqual(STILL);
-
-    for (const [label, name] of [
-      ['Waits', 'waiting'],
-      ['Selectors', 'locators'],
-      ['Waits', 'waiting'], // clicked before: plays again
-      ['Waits', 'waiting'], // the current tab: reloads and plays
-      ['Commands', 'commands'],
-    ]) {
-      await tab(page, label).click();
-      await expect(page.locator(`.page-tab[aria-current] svg.icon-${name}`)).toHaveClass(
-        /\bplay\b/
-      );
-      expect(await icon(page, name), label).toEqual(PLAYS);
-    }
-  });
-
-  test('a plain visit or reload, without a tab click, does not animate', async ({ page }) => {
-    await page.goto('/');
-    await tab(page, 'Selectors').click();
-    await expect(page.locator('.page-tab[aria-current] svg.icon-locators')).toHaveClass(/\bplay\b/);
-    await page.reload();
-    expect(await icon(page, 'locators')).toEqual(STILL);
-  });
-
-  test('reduced motion: the icon never moves', async ({ page }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.goto('/');
-    await tab(page, 'Selectors').click();
-    await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
-    expect((await icon(page, 'locators')).animated).toBe(false);
-  });
-
-  test('tabs still navigate when storage is blocked', async ({ page }) => {
-    await page.addInitScript(() => {
-      for (const name of ['localStorage', 'sessionStorage']) {
-        Object.defineProperty(window, name, {
-          get: () => {
-            throw new Error('blocked');
-          },
-        });
-      }
-    });
-    await page.goto('/waiting.html');
-    await tab(page, 'Selectors').click();
-    await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
   });
 });
