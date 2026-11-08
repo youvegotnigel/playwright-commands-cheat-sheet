@@ -147,29 +147,92 @@ test.describe('Cross-page', () => {
     for (const guide of guides) expect(guide).toEqual(dashboard);
   });
 
-  test('on a 360px phone the tabs share one row without overflow', async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 740 });
+  test('on desktop the tabs share one row', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
     for (const { path } of PAGES) {
       await page.goto(path);
-      const boxes = await page.locator('.page-tab').evaluateAll((els) =>
-        els.map((el) => ({
-          top: el.getBoundingClientRect().top,
-          width: el.getBoundingClientRect().width,
-          clipped: el.scrollWidth > el.clientWidth,
-        }))
-      );
-      expect(boxes, path).toHaveLength(COUNT);
-      for (const box of boxes) {
-        expect(box.top, path).toBe(boxes[0].top);
-        expect(Math.abs(box.width - boxes[0].width), path).toBeLessThanOrEqual(1);
-        expect(box.clipped, path).toBe(false);
-      }
-      const noSideScroll = await page.evaluate(
-        () => document.documentElement.scrollWidth <= window.innerWidth
-      );
-      expect(noSideScroll, path).toBe(true);
+      const tops = await page
+        .locator('.page-tab')
+        .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top));
+      expect(new Set(tops).size, path).toBe(1);
     }
   });
+});
+
+/* ── PHONE LAYOUT ──────────────────────────────────────────────── */
+// Below 600px the tabs wrap into at most two centred rows of equal-width pills,
+// ceil(n / 2) on the first row. Four tabs make 2 + 2, five make 3 + 2.
+async function tabRows(page) {
+  return page.evaluate(() => {
+    const switcher = document.querySelector('.page-switch');
+    const box = switcher.getBoundingClientRect();
+    const cs = getComputedStyle(switcher);
+    const inner = {
+      left: box.left + parseFloat(cs.borderLeftWidth) + parseFloat(cs.paddingLeft),
+      right: box.right - parseFloat(cs.borderRightWidth) - parseFloat(cs.paddingRight),
+    };
+    const rows = new Map();
+    for (const el of switcher.querySelectorAll('.page-tab')) {
+      const r = el.getBoundingClientRect();
+      const key = Math.round(r.top);
+      if (!rows.has(key)) rows.set(key, []);
+      rows.get(key).push({
+        left: r.left,
+        right: r.right,
+        width: r.width,
+        clipped: el.scrollWidth > el.clientWidth,
+      });
+    }
+    return {
+      inner,
+      rows: [...rows.entries()].sort((x, y) => x[0] - y[0]).map(([, tabs]) => tabs),
+      sideScroll: document.documentElement.scrollWidth > window.innerWidth,
+    };
+  });
+}
+
+function expectTidyRows({ inner, rows, sideScroll }, count, label) {
+  expect(rows.length, label).toBeLessThanOrEqual(2);
+  expect(
+    rows.map((row) => row.length),
+    label
+  ).toEqual(count > 3 ? [Math.ceil(count / 2), Math.floor(count / 2)] : [count]);
+  const widths = rows.flat().map((t) => t.width);
+  for (const width of widths) expect(Math.abs(width - widths[0]), label).toBeLessThanOrEqual(1);
+  for (const row of rows) {
+    const gapLeft = row[0].left - inner.left;
+    const gapRight = inner.right - row.at(-1).right;
+    expect(Math.abs(gapLeft - gapRight), label).toBeLessThanOrEqual(1);
+    for (const tab of row) expect(tab.clipped, label).toBe(false);
+  }
+  expect(sideScroll, label).toBe(false);
+}
+
+test.describe('Phone layout', () => {
+  for (const width of [360, 390]) {
+    test(`on phones the tabs wrap into at most two centred rows (${width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 740 });
+      for (const { path } of PAGES) {
+        await page.goto(path);
+        expectTidyRows(await tabRows(page), COUNT, `${path} at ${width}`);
+      }
+    });
+
+    test(`the phone layout holds for five tabs (${width}px)`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 740 });
+      for (const { path } of PAGES) {
+        await page.goto(path);
+        await page.evaluate(() => {
+          const switcher = document.querySelector('.page-switch');
+          const extra = switcher.lastElementChild.cloneNode(true);
+          extra.removeAttribute('aria-current');
+          switcher.append(extra);
+        });
+        const layout = await tabRows(page);
+        expectTidyRows(layout, COUNT + 1, `${path} at ${width}`);
+      }
+    });
+  }
 });
 
 /* ── PAGE TAB ANIMATION ────────────────────────────────────────── */
@@ -217,6 +280,23 @@ test.describe('Page tabs: icon animation on click', () => {
     await tab(page, 'Selectors').click();
     await expect(page.locator('h1')).toHaveText('Playwright Locator Cheat Sheet');
     expect((await icon(page, 'locators')).animated).toBe(false);
+  });
+
+  test('each icon animates only its own parts', async ({ page }) => {
+    const accentAnimation = (name) =>
+      page
+        .locator(`svg.icon-${name} .accent`)
+        .first()
+        .evaluate((el) => getComputedStyle(el).animationName);
+
+    await page.goto('/');
+    await tab(page, 'Async').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-async')).toHaveClass(/\bplay\b/);
+    expect(await accentAnimation('async')).toBe('handoff');
+
+    await tab(page, 'Waits').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-waiting')).toHaveClass(/\bplay\b/);
+    expect(await accentAnimation('waiting')).toBe('spin-back');
   });
 
   test('tabs still navigate when storage is blocked', async ({ page }) => {

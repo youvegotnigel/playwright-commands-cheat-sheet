@@ -506,17 +506,6 @@ test.describe('Waiting guide: layout', () => {
     expect(block).toBe(await font('.guide td .inl'));
     expect(block).toContain('ui-monospace');
   });
-
-  test('page tabs share the width on phones', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto('/waiting.html');
-
-    const widths = await page
-      .locator('.page-tab')
-      .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width));
-    expect(widths).toHaveLength(3);
-    for (const width of widths) expect(Math.abs(widths[0] - width)).toBeLessThanOrEqual(1);
-  });
 });
 
 /* ── CONTENT CORRECTNESS ───────────────────────────────────────── */

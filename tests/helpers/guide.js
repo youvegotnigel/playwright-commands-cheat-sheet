@@ -8,6 +8,7 @@ export const PAGES = [
   { path: '/', tab: 'Commands', icon: 'commands', accent: 'rgb(74, 222, 128)' },
   { path: '/waiting.html', tab: 'Waits', icon: 'waiting', accent: 'rgb(56, 189, 248)' },
   { path: '/locators.html', tab: 'Selectors', icon: 'locators', accent: 'rgb(192, 132, 252)' },
+  { path: '/async.html', tab: 'Async', icon: 'async', accent: 'rgb(249, 150, 169)' },
 ];
 
 // The meta-bar fallback values a page ships in its HTML
