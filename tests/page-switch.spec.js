@@ -147,6 +147,31 @@ test.describe('Cross-page', () => {
     for (const guide of guides) expect(guide).toEqual(dashboard);
   });
 
+  test('every page shows the live visitor count', async ({ page }) => {
+    await page.route('**/rest/v1/visits**', (route) =>
+      route.fulfill({ json: [{ total_count: 12345 }] })
+    );
+    for (const { path } of PAGES) {
+      await page.goto(path);
+      await expect(page.locator('.meta-badge.visitor-counter .k'), path).toHaveText('visitors');
+      await expect(page.locator('#visitor-count-number'), path).toHaveText('12,345');
+    }
+  });
+
+  test('every page falls back to the cached visitor count, dimmed, when offline', async ({
+    page,
+  }) => {
+    await page.addInitScript(() => localStorage.setItem('visitor-count-cache', '9876'));
+    await page.route('**/rest/v1/visits**', (route) => route.abort());
+    for (const { path } of PAGES) {
+      await page.goto(path);
+      const number = page.locator('#visitor-count-number');
+      await expect(number, path).toHaveText('9,876');
+      await expect(number, path).toHaveCSS('opacity', '0.6');
+      await expect(number, path).toHaveAttribute('title', /Last known count/);
+    }
+  });
+
   test('on desktop the tabs share one row', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     for (const { path } of PAGES) {
