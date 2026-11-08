@@ -18,10 +18,11 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
-- Three guide pages, reached from the **Commands / Waits / Selectors / Async** tabs at the top of every page:
+- Four guide pages, reached from the **Commands / Waits / Selectors / Async / Mocks** tabs at the top of every page:
   - **Waits** (the waiting guide): auto-waiting, explicit waits, timeouts and pitfalls
   - **Selectors** (the locator guide): the locator priority ladder, precise role locators, scoping and filtering, lists and tables, frames and shadow DOM, strict mode, and fragile vs robust locators
   - **Async** (the async guide): mastering async TypeScript in Playwright tests: forgotten awaits, loops, parallel work, tests with two or more browsers that talk to each other, events, fixtures and lint rules
+  - **Mocks** (the network mocking guide): how much to fake, the four route outcomes, URL matching, handler order, HAR record and replay, WebSockets and offline, asserting on traffic and the mistakes that make mocked tests lie
 
   All have copyable examples and links back to the matching commands.
 
@@ -50,6 +51,7 @@ playwright-commands-cheat-sheet/
 │   ├── waiting.js      # Waiting guide content
 │   ├── locators.js     # Locator guide content
 │   ├── async.js        # Async guide content
+│   ├── mocking.js      # Mocking guide content
 │   ├── page-tabs.js    # Page tab icon animation on click
 │   └── data/
 │       ├── index.js        # imports each category and exports `categories`
@@ -69,11 +71,13 @@ playwright-commands-cheat-sheet/
 │   ├── waiting-guide.spec.js
 │   ├── locator-guide.spec.js
 │   ├── async-guide.spec.js
+│   ├── mocking-guide.spec.js
 │   └── page-switch.spec.js
 ├── index.html
 ├── waiting.html
 ├── locators.html
 ├── async.html
+├── mocking.html
 ├── playwright.config.js
 ├── style.css
 ├── package.json

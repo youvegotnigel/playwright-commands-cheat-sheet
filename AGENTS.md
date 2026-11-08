@@ -27,6 +27,7 @@ index.html              # markup: header, meta bar, page switch, filters, grid, 
 waiting.html            # Waiting guide page (sister page, same header and meta bar)
 locators.html           # Locator guide page (same shell as waiting.html)
 async.html              # Async guide page (same shell)
+mocking.html            # Mocking guide page (same shell)
 style.css               # all styles (single file)
 js/
   app.js                # UI logic: render tiles, filter/search, modal, meta bar
@@ -36,6 +37,7 @@ js/
   waiting.js            # Waiting guide content (SECTIONS)
   locators.js           # Locator guide content (SECTIONS)
   async.js              # Async guide content (SECTIONS)
+  mocking.js            # Mocking guide content (SECTIONS)
   page-tabs.js          # page tab icon animation on click
   visitor-counter.js    # increments the Supabase visitor count (once per session)
   visitor-display.js    # reads + displays the live count (polls, caches)
@@ -133,12 +135,12 @@ the guide pages also use):
 - **visitors** — see below.
 
 All fetches fail gracefully, falling back to the hardcoded values in `index.html`,
-`waiting.html`, `locators.html` and `async.html` (the guides show only the version and last-updated badges).
+`waiting.html`, `locators.html`, `async.html` and `mocking.html` (the guides show only the version and last-updated badges).
 
 ## Guide pages
 
-`waiting.html`, `locators.html` and `async.html` are guide pages next to the dashboard, reached
-through the **Commands / Waits / Selectors / Async** page switch on all four pages. Each guide is a data module
+`waiting.html`, `locators.html`, `async.html` and `mocking.html` are guide pages next to the dashboard,
+reached through the **Commands / Waits / Selectors / Async / Mocks** page switch on all five pages. Each guide is a data module
 plus one HTML page; `js/guide.js` renders them all:
 
 - `renderGuide(sections, { linkColumns })` draws the TOC and section tables, wires the Copy
@@ -166,13 +168,20 @@ never floats a Playwright call or skips `await` on a web-first assertion; `.forE
 is a fixture using `await use(`; every hand-off waits on the receiving side with a web-first
 assertion or `expect.poll()`.
 
+**Mocking guide content rules** (`tests/mocking-guide.spec.js` enforces them): in an unflagged
+example every `page.route(` / `context.route(` / `routeFromHAR(` / `routeWebSocket(` is awaited and
+comes before `page.goto(`; every route handler resolves the route (`fulfill`, `continue`, `fallback`
+or `abort`); JSON replies use `json:`; `waitForTimeout(`, `'networkidle'` and
+`body: JSON.stringify(` appear only on flagged rows; every `pitfalls` row shows `// Wrong` then
+`// Right` with `await` in the right half; the first `strategy` row is the unflagged real backend.
+
 **Page tabs** carry custom inline SVG icons (`.tab-icon`, `aria-hidden`, `focusable="false"`):
 lines in `currentColor`, one `.accent` detail in the page's colour (`--accent` on `.icon-*`).
 `js/page-tabs.js` plays the landing page's icon animation after every tab click (a
 `sessionStorage` flag set on click), and the CSS motion sits inside
 `@media (prefers-reduced-motion: no-preference)`. The nav markup is identical on every page
 except `aria-current`. Below 600px the tabs wrap into at most two centred rows (`--cols` is 2, or
-3 from a fifth tab); each icon's animation is scoped to its own `.icon-<page>` class.
+3 from a fifth tab, so five tabs make 3 + 2); each icon's animation is scoped to its own `.icon-<page>` class.
 
 ### Adding a guide
 
@@ -249,7 +258,8 @@ Playwright, configured in `playwright.config.js`. Projects: `chromium`,
 - Existing specs: `cheatsheet.spec.js` (UI), `data-integrity.spec.js` (data shape),
   `meta-bar.spec.js` (meta bar + visitor counter), `highlight.spec.js` (highlighter),
   `waiting-guide.spec.js` (waiting guide page), `locator-guide.spec.js` (locator guide),
-  `async-guide.spec.js` (async guide and its content rules) and `page-switch.spec.js` (the page
+  `async-guide.spec.js` (async guide and its content rules), `mocking-guide.spec.js` (mocking guide and
+  its content rules) and `page-switch.spec.js` (the page
   switch, cross-page checks, phone tab layout and tab animation, driven by `PAGES`).
   `tests/helpers/guide.js` holds the guide specs' shared helpers (`PAGES`, `fallbacks`, backend
   mocks, contrast, bracket balance).
