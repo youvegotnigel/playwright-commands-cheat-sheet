@@ -26,6 +26,7 @@ command's description, syntax-highlighted code, a tip, and a docs link.
 index.html              # markup: header, meta bar, page switch, filters, grid, modal
 waiting.html            # Waiting guide page (sister page, same header and meta bar)
 locators.html           # Locator guide page (same shell as waiting.html)
+async.html              # Async guide page (same shell)
 style.css               # all styles (single file)
 js/
   app.js                # UI logic: render tiles, filter/search, modal, meta bar
@@ -34,6 +35,7 @@ js/
   guide.js              # renderGuide(): shared guide renderer, copy, links back
   waiting.js            # Waiting guide content (SECTIONS)
   locators.js           # Locator guide content (SECTIONS)
+  async.js              # Async guide content (SECTIONS)
   page-tabs.js          # page tab icon animation on click
   visitor-counter.js    # increments the Supabase visitor count (once per session)
   visitor-display.js    # reads + displays the live count (polls, caches)
@@ -131,12 +133,12 @@ the guide pages also use):
 - **visitors** — see below.
 
 All fetches fail gracefully, falling back to the hardcoded values in `index.html`,
-`waiting.html` and `locators.html` (the guides show only the version and last-updated badges).
+`waiting.html`, `locators.html` and `async.html` (the guides show only the version and last-updated badges).
 
 ## Guide pages
 
-`waiting.html` and `locators.html` are guide pages next to the dashboard, reached through the
-**Commands / Waits / Selectors** page switch on all three pages. Each guide is a data module
+`waiting.html`, `locators.html` and `async.html` are guide pages next to the dashboard, reached
+through the **Commands / Waits / Selectors / Async** page switch on all four pages. Each guide is a data module
 plus one HTML page; `js/guide.js` renders them all:
 
 - `renderGuide(sections, { linkColumns })` draws the TOC and section tables, wires the Copy
@@ -157,12 +159,20 @@ on flagged rows; `nth()` / `first()` / `last()` likewise, except in the `lists` 
 `fragile` row shows `// Fragile` then `// Robust`; version notes like "(v1.64+)" never exceed the
 pinned `@playwright/test`; every example has balanced brackets and quotes.
 
+**Async guide content rules** (`tests/async-guide.spec.js` enforces them): an unflagged example
+never floats a Playwright call or skips `await` on a web-first assertion; `.forEach(async`,
+`waitForTimeout(`, `setTimeout(` and `.then(` appear only on flagged rows; every `awaits` row shows
+`// Flaky` then `// Correct`; every multi-user example that calls `newContext(` also closes it or
+is a fixture using `await use(`; every hand-off waits on the receiving side with a web-first
+assertion or `expect.poll()`.
+
 **Page tabs** carry custom inline SVG icons (`.tab-icon`, `aria-hidden`, `focusable="false"`):
 lines in `currentColor`, one `.accent` detail in the page's colour (`--accent` on `.icon-*`).
 `js/page-tabs.js` plays the landing page's icon animation after every tab click (a
 `sessionStorage` flag set on click), and the CSS motion sits inside
 `@media (prefers-reduced-motion: no-preference)`. The nav markup is identical on every page
-except `aria-current`.
+except `aria-current`. Below 600px the tabs wrap into at most two centred rows (`--cols` is 2, or
+3 from a fifth tab); each icon's animation is scoped to its own `.icon-<page>` class.
 
 ### Adding a guide
 
@@ -171,8 +181,9 @@ except `aria-current`.
 2. Copy `locators.html`'s shell (header, meta bar, nav, `main.guide.container` with `h1`, lede,
    pills, `#toc`, `#content`) and point its module script at the new file.
 3. Add a tab, with its own SVG icon and animation, to the nav on **every** page, and check that
-   all tabs still fit one row on a 360px phone.
-4. Add a spec mirroring `tests/locator-guide.spec.js`, and add the page to the cross-page checks.
+   the tabs still wrap into tidy centred rows on a 360px phone.
+4. Add a spec mirroring `tests/locator-guide.spec.js`, and append the page to `PAGES` in
+   `tests/helpers/guide.js` so `tests/page-switch.spec.js` covers its tab and cross-page checks.
 5. The page holds meta-bar fallbacks: bump them with the others on each release.
 
 ## Visitor counter (Supabase)
@@ -237,9 +248,11 @@ Playwright, configured in `playwright.config.js`. Projects: `chromium`,
   pattern.
 - Existing specs: `cheatsheet.spec.js` (UI), `data-integrity.spec.js` (data shape),
   `meta-bar.spec.js` (meta bar + visitor counter), `highlight.spec.js` (highlighter),
-  `waiting-guide.spec.js` (waiting guide page), `locator-guide.spec.js` (locator guide,
-  cross-page checks and the page tab animation). `tests/helpers/guide.js` holds the guide
-  specs' shared helpers (backend mocks, contrast, bracket balance).
+  `waiting-guide.spec.js` (waiting guide page), `locator-guide.spec.js` (locator guide),
+  `async-guide.spec.js` (async guide and its content rules) and `page-switch.spec.js` (the page
+  switch, cross-page checks, phone tab layout and tab animation, driven by `PAGES`).
+  `tests/helpers/guide.js` holds the guide specs' shared helpers (`PAGES`, `fallbacks`, backend
+  mocks, contrast, bracket balance).
 
 ## Lint / format
 

@@ -36,6 +36,7 @@ playwright-commands-cheat-sheet/
 ├── index.html                    # Main markup: header, meta-bar, page switch, search, filters, grid, modal
 ├── waiting.html                  # Waiting guide page: shared header + meta-bar, page switch, guide shell
 ├── locators.html                 # Locator guide page: same shell as waiting.html
+├── async.html                    # Async guide page: same shell as locators.html
 ├── style.css                     # Single stylesheet: dark theme, flat pastel category tile fills
 ├── js/
 │   ├── app.js                    # Primary logic: render, filter, search, modal, meta-bar (~350 lines)
@@ -44,6 +45,7 @@ playwright-commands-cheat-sheet/
 │   ├── guide.js                  # renderGuide(): shared guide renderer, copy buttons, links back
 │   ├── waiting.js                # Waiting guide: SECTIONS content
 │   ├── locators.js               # Locator guide: SECTIONS content
+│   ├── async.js                  # Async guide: SECTIONS content
 │   ├── page-tabs.js              # Page tab icon animation after a tab click
 │   ├── popular-commands.js       # Command open tracking via Supabase (~95 lines)
 │   ├── visitor-counter.js        # Visitor increment on page load (~40 lines)
@@ -74,7 +76,9 @@ playwright-commands-cheat-sheet/
 │   ├── meta-bar.spec.js          # Meta-bar: version badge, last-updated, command count, visitor counter
 │   ├── popular-commands.spec.js  # Popularity: count loading, 🔥 badge, "Popular" filter, caching
 │   ├── waiting-guide.spec.js     # Waiting guide: shell, page switch, sections, copy, links back, layout
-│   ├── locator-guide.spec.js     # Locator guide + content rules, cross-page checks, tab animation
+│   ├── locator-guide.spec.js     # Locator guide + content rules
+│   ├── async-guide.spec.js       # Async guide + async content rules (floating promises, multi-user)
+│   ├── page-switch.spec.js       # Page switch, cross-page checks, phone tab layout, tab animation
 │   └── helpers/guide.js          # Shared guide spec helpers (mocks, contrast, bracket balance)
 ├── supabase/
 │   ├── migrations/
@@ -258,9 +262,9 @@ regex tokenization, so `Copy` always yields the original source exactly.
 
 ## Guide Pages
 
-`waiting.html` and `locators.html` are sister pages of the dashboard, reached through the
-**Commands / Waits / Selectors** page switch (`nav.page-switch`, links styled `.page-tab`,
-identical on all three pages except `aria-current`). Each guide is a data module plus one page,
+`waiting.html`, `locators.html` and `async.html` are sister pages of the dashboard, reached through
+the **Commands / Waits / Selectors / Async** page switch (`nav.page-switch`, links styled `.page-tab`,
+identical on all four pages except `aria-current`). Each guide is a data module plus one page,
 rendered by the shared `js/guide.js`.
 
 - **Waiting guide** (`js/waiting.js`): a restyled port of the standalone "Playwright Waiting Cheat
@@ -268,12 +272,17 @@ rendered by the shared `js/guide.js`.
 - **Locator guide** (`js/locators.js`): nine sections on choosing a locator: the priority ladder
   (its pills, the last in `.pill.warn`), role options, scoping and filtering, lists, frames and
   shadow DOM, strict mode, fragile vs robust, team practices and a summary.
+- **Async guide** (`js/async.js`): nine sections on mastering async TypeScript in Playwright tests:
+  how async works, forgotten awaits (every row flagged), loops, parallel work, multi-user tests
+  (one browser context per actor), hand-offs between actors, events, helpers and fixtures, and a
+  summary. Examples are TypeScript from a healthcare-style app (doctor, patient, nurse, admin,
+  receptionist). Exposed as `window.asyncSections`.
 - **One renderer.** `renderGuide(sections, { linkColumns })` in `js/guide.js` draws the TOC and
   tables, wires the Copy buttons and calls `loadMetaBadges()`. Never fork it per guide.
 - **Content lives in each module's `SECTIONS`** (row = `[col1, col2, col3, flag?]`; a trailing
   `true` flags the row). Backticks make a code chip and `<tag>X</tag>` makes a warning tag.
   `text: true` makes the third column prose. Exposed as `window.waitingSections` /
-  `window.locatorSections` for tests.
+  `window.locatorSections` / `window.asyncSections` for tests.
 - **Code uses the dashboard's `highlight()`**, so all pages share one token palette. The six
   `.tok-*` rules in `style.css` match `#m-code` and `.guide`.
 - **All guide CSS is scoped under `.guide`.** The global `pre` rule and generic class names would
@@ -284,17 +293,23 @@ rendered by the shared `js/guide.js`.
   chip no command name mentions is not a link, so a link never lands on an empty grid.
 - **Page tabs** carry custom inline SVG icons (`svg.tab-icon.icon-<page>`, `aria-hidden`,
   `focusable="false"`), so the tabs are announced as plain text. Lines use `currentColor`; one
-  `.accent` part takes the page colour from `--accent` (green, sky, purple). `js/page-tabs.js`
+  `.accent` part takes the page colour from `--accent` (green, sky, purple, rose). `js/page-tabs.js`
   plays the landing page's icon animation after every tab click (a `sessionStorage` flag set on
   click; storage errors just skip it). All motion sits inside
-  `@media (prefers-reduced-motion: no-preference)`. At 360px the three tabs share one row
-  (13px text below 380px).
-- **Specs pin content and colours.** `tests/waiting-guide.spec.js` and
-  `tests/locator-guide.spec.js` check every cell against `SECTIONS`, the colour palette, WCAG AA
+  `@media (prefers-reduced-motion: no-preference)`. Each icon's animation is scoped to its own
+  `.icon-<page>` class. Below 600px the tabs wrap into at most two centred rows of equal-width
+  pills (`--cols` is 2, or 3 once there is a fifth tab, so four tabs make 2 + 2 and five make
+  3 + 2); from 600px they share one row.
+- **Specs pin content and colours.** `tests/waiting-guide.spec.js`,
+  `tests/locator-guide.spec.js` and `tests/async-guide.spec.js` check every cell against `SECTIONS`, the colour palette, WCAG AA
   contrast, and that tokens, header, meta-bar and tabs match the dashboard. The locator spec also
   enforces its content rules: discouraged patterns only on flagged rows, `// Fragile` before
   `// Robust`, version notes no newer than the pinned `@playwright/test`, and balanced brackets
-  in both guides' examples. It also holds the cross-page checks and the tab animation tests.
+  in both guides' examples. The async spec enforces its own rules: no floating Playwright calls or
+  un-awaited web-first assertions in unflagged examples, `.forEach(async`, `waitForTimeout(` and
+  `.then(` only on flagged rows, `// Flaky` before `// Correct`, multi-user examples that close what
+  they open, and hand-offs that wait on the receiving side. `tests/page-switch.spec.js` holds the
+  page switch, cross-page, phone layout and tab animation tests, driven by `PAGES`.
   Shared helpers live in `tests/helpers/guide.js`. Update the specs alongside any intended
   content or colour change.
 - **Copy buttons** copy the snippet's source string from `SECTIONS`, not the DOM text.
@@ -303,8 +318,9 @@ rendered by the shared `js/guide.js`.
 - `categories` is a window global on the dashboard only. On a guide, import
   `./js/data/index.js` instead.
 - **Adding a guide:** a `js/<name>.js` data module, a page copied from `locators.html`, a tab with
-  its own icon on every page, a spec mirroring `tests/locator-guide.spec.js`, and meta-bar
-  fallbacks bumped with the others.
+  its own icon on every page, a spec mirroring `tests/locator-guide.spec.js`, an entry appended to `PAGES` in
+  `tests/helpers/guide.js` (the page-switch tests then cover its tab), and meta-bar fallbacks
+  bumped with the others.
 
 ## State Management
 
@@ -389,7 +405,7 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 
 - **No build step.** Never introduce a bundler, transpiler, or import from a CDN. The app must work by opening `index.html` directly with a static file server.
 - **`npm run lint` covers `js/` only.** `eslint.config.js` does define a `tests/**/*.js` block, but the `lint` script runs `eslint js/`, so test files are Prettier-formatted and never linted in practice. Pass `npx eslint tests/` explicitly if you want them checked.
-- **Meta-bar fallbacks live in three pages.** `index.html`, `waiting.html` and `locators.html` all hold `#pw-version` and `#last-updated` fallback values, shown when the runtime fetches fail. Bump all three on a Playwright release (a cross-page test checks they match).
+- **Meta-bar fallbacks live in four pages.** `index.html`, `waiting.html`, `locators.html` and `async.html` all hold `#pw-version` and `#last-updated` fallback values, shown when the runtime fetches fail. Bump all four on a Playwright release (a cross-page test checks they match).
 - **`js/meta.json` is auto-updated by CI.** Do not manually edit it; the `stamp-date.yml` workflow overwrites it on every push to master. Those stamp commits land only on master, so a stale date on `develop` is expected, and editing the file there makes the PR conflict.
 - **Supabase URLs are public but RLS-protected.** The Supabase project URL and anon key are intentionally embedded in client-side JS. RLS policies ensure users can only increment counts, never read raw rows directly (aggregates only).
 - **`data-integrity.spec.js` is your schema enforcer.** Run it after any change to `js/data/`. It validates required fields, the level enum, docs URLs, global name uniqueness, and the dash ban. It checks `code` length only — it does **not** parse the snippet, so a syntax error in an example will ship silently. Read your example back before committing.
