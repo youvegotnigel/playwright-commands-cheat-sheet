@@ -316,6 +316,13 @@ test.describe('Page tabs: icon animation on click', () => {
     expect(await seconds('async', '.handoff')).toBeGreaterThanOrEqual(waits);
   });
 
+  test('the Async arrow is one continuous stroke, so its head draws last', async ({ page }) => {
+    // Dashes restart on every subpath, so a separate arrowhead would appear before the arrow
+    await page.goto('/async.html');
+    const d = await page.locator('.icon-async .handoff').getAttribute('d');
+    expect(d.match(/M/gi)).toHaveLength(1);
+  });
+
   test('tabs still navigate when storage is blocked', async ({ page }) => {
     await page.addInitScript(() => {
       for (const name of ['localStorage', 'sessionStorage']) {
