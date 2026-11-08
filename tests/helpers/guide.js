@@ -2,6 +2,21 @@
 
 export const MOCK_DATE = '2025-12-25';
 
+// Every page that carries the Commands / Waits / Selectors page switch, in tab order.
+// accent is the computed stroke colour of the tab icon's .accent part.
+export const PAGES = [
+  { path: '/', tab: 'Commands', icon: 'commands', accent: 'rgb(74, 222, 128)' },
+  { path: '/waiting.html', tab: 'Waits', icon: 'waiting', accent: 'rgb(56, 189, 248)' },
+  { path: '/locators.html', tab: 'Selectors', icon: 'locators', accent: 'rgb(192, 132, 252)' },
+];
+
+// The meta-bar fallback values a page ships in its HTML
+export async function fallbacks(page, path) {
+  const html = await (await page.request.get(path)).text();
+  const value = (id) => html.match(new RegExp(`id="${id}">([^<]+)<`))[1];
+  return { version: value('pw-version'), date: value('last-updated') };
+}
+
 // Same convention as the other specs: never hit the real Supabase backend, and
 // pin the stamped date so the last-updated badge is deterministic.
 export async function mockBackends(page) {
