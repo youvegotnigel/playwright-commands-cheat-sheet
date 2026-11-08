@@ -56,12 +56,12 @@ Run everything from the repo root. Make a todo per step.
      history. Expected hits: the `readme.md` badge, the `CLAUDE.md` tech table,
      and the `--version` example in `js/data/cli.js`.
    - In `index.html` the meta bar holds fallback values, shown when the
-     runtime fetches fail. `waiting.html`, `locators.html` and `async.html` hold the same
-     `#pw-version` and `#last-updated` fallbacks, so update all four pages. Set `#pw-version` to the
+     runtime fetches fail. `waiting.html`, `locators.html`, `async.html` and `mocking.html` hold the same
+     `#pw-version` and `#last-updated` fallbacks, so update all five pages. Set `#pw-version` to the
      new version and (in `index.html` only) `#cmd-count` to the real count:
      `node --no-warnings -e "import('./js/data/index.js').then(({categories})=>console.log(categories.reduce((n,c)=>n+c.items.length,0)))"`.
-     Set `#last-updated` to today's date in all four pages.
-   - Review the guide pages (`js/waiting.js`, `js/locators.js`, `js/async.js`) against the
+     Set `#last-updated` to today's date in all five pages.
+   - Review the guide pages (`js/waiting.js`, `js/locators.js`, `js/async.js`, `js/mocking.js`) against the
      release: their version notes ("(v1.64+)"), deprecations and examples. A
      guide example that uses a newly deprecated API gets fixed or flagged.
    - Never edit `js/meta.json`. CI stamps the live "last updated" date on
