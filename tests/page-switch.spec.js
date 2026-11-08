@@ -299,6 +299,23 @@ test.describe('Page tabs: icon animation on click', () => {
     expect(await accentAnimation('waiting')).toBe('spin-back');
   });
 
+  test('the Async icon plays about as long as the Waits icon', async ({ page }) => {
+    const seconds = (name, part) =>
+      page
+        .locator(`svg.icon-${name} ${part}`)
+        .first()
+        .evaluate((el) => parseFloat(getComputedStyle(el).animationDuration));
+
+    await page.goto('/');
+    await tab(page, 'Waits').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-waiting')).toHaveClass(/\bplay\b/);
+    const waits = await seconds('waiting', '.loop');
+
+    await tab(page, 'Async').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-async')).toHaveClass(/\bplay\b/);
+    expect(await seconds('async', '.handoff')).toBeGreaterThanOrEqual(waits);
+  });
+
   test('tabs still navigate when storage is blocked', async ({ page }) => {
     await page.addInitScript(() => {
       for (const name of ['localStorage', 'sessionStorage']) {
