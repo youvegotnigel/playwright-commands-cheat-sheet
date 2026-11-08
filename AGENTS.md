@@ -135,7 +135,7 @@ the guide pages also use):
 - **visitors** — see below.
 
 All fetches fail gracefully, falling back to the hardcoded values in `index.html`,
-`waiting.html`, `locators.html`, `async.html` and `mocking.html` (the guides show only the version and last-updated badges).
+`waiting.html`, `locators.html`, `async.html` and `mocking.html` (the guides show the version, last-updated and visitors badges, but not the commands count).
 
 ## Guide pages
 
