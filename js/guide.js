@@ -119,5 +119,21 @@ export function renderGuide(sections, { linkColumns }) {
     if (btn) copySnippet(btn, sections);
   });
 
+  const readTime = document.getElementById('read-time');
+  if (readTime) readTime.textContent = `${readMinutes(sections)} min`;
+
   loadMetaBadges();
+}
+
+/* ── READ TIME ────────────────────────────────────────────────── */
+// The guide's meta-bar badge, in the slot the dashboard uses for its command count.
+// Counts every word the guide shows: titles, notes, column headers, cells and code.
+const WORDS_PER_MINUTE = 200;
+
+function readMinutes(sections) {
+  const text = sections
+    .flatMap((s) => [s.title, s.note ?? '', ...s.cols, ...s.rows.flatMap((r) => r.slice(0, 3))])
+    .join(' ');
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
 }

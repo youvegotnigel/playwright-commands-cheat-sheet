@@ -131,11 +131,13 @@ the guide pages also use):
 - **playwright version** — read from `package.json` (`@playwright/test`, range prefix stripped).
 - **last updated** — read from `js/meta.json`, which the `stamp-date.yml` workflow
   writes on every push to `master` (committer date). Don't hand-edit `meta.json`.
-- **commands** — count derived from the data.
+- **commands** — count derived from the data (dashboard only).
+- **read time** — guides only, in the commands slot: every word in the guide's `SECTIONS`
+  at 200 words a minute, rounded, at least 1 min (`renderGuide()` in `js/guide.js`).
 - **visitors** — see below.
 
 All fetches fail gracefully, falling back to the hardcoded values in `index.html`,
-`waiting.html`, `locators.html`, `async.html` and `mocking.html` (the guides show the version, last-updated and visitors badges, but not the commands count).
+`waiting.html`, `locators.html`, `async.html` and `mocking.html` (the guides swap the commands count for their read time, so every page has four badges).
 
 ## Guide pages
 

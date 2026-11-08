@@ -158,6 +158,56 @@ test.describe('Cross-page', () => {
     }
   });
 
+  // Every page carries four badges: the dashboard counts its commands, a guide shows its
+  // read time in the same slot, so the bar keeps one shape across the tabs.
+  test('every page shows four badges, with the page badge in the third slot', async ({ page }) => {
+    for (const { path } of PAGES) {
+      await page.goto(path);
+      const third = path === '/' ? 'commands' : 'read time';
+      await expect(page.locator('.meta-badge .k'), path).toHaveText([
+        'playwright',
+        'last updated',
+        third,
+        'visitors',
+      ]);
+    }
+  });
+
+  // Read time: every word a guide's SECTIONS shows (titles, notes, headers, cells, code)
+  // at 200 words a minute, rounded, never under a minute
+  test('each guide shows a read time worked out from its own content', async ({ page }) => {
+    for (const { path, sections } of PAGES.filter((p) => p.sections)) {
+      await page.goto(path);
+      const minutes = await page.evaluate((name) => {
+        const text = window[name]
+          .flatMap((s) => [
+            s.title,
+            s.note ?? '',
+            ...s.cols,
+            ...s.rows.flatMap((r) => r.slice(0, 3)),
+          ])
+          .join(' ');
+        return Math.max(1, Math.round(text.split(/\s+/).filter(Boolean).length / 200));
+      }, sections);
+      await expect(page.locator('#read-time'), path).toHaveText(`${minutes} min`);
+    }
+  });
+
+  test('the read time grows with the guide', async ({ page }) => {
+    const times = {};
+    for (const { path } of PAGES.filter((p) => p.sections)) {
+      await page.goto(path);
+      await expect(page.locator('#read-time'), path).toHaveText(/^\d+ min$/);
+      times[path] = parseInt(await page.locator('#read-time').textContent(), 10);
+    }
+    // Waits is the shortest guide and Async the longest
+    const shortest = Math.min(...Object.values(times));
+    const longest = Math.max(...Object.values(times));
+    expect(times['/waiting.html']).toBe(shortest);
+    expect(times['/async.html']).toBe(longest);
+    expect(longest).toBeGreaterThan(shortest);
+  });
+
   test('every page falls back to the cached visitor count, dimmed, when offline', async ({
     page,
   }) => {
@@ -240,6 +290,27 @@ test.describe('Phone layout', () => {
       for (const { path } of PAGES) {
         await page.goto(path);
         expectTidyRows(await tabRows(page), COUNT, `${path} at ${width}`);
+      }
+    });
+
+    test(`on phones the meta-bar is a full 2 x 2 grid on every page (${width}px)`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 740 });
+      for (const { path } of PAGES) {
+        await page.goto(path);
+        const boxes = await page
+          .locator('.meta-badge')
+          .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().toJSON()));
+        const rows = new Map();
+        for (const b of boxes)
+          rows.set(Math.round(b.top), [...(rows.get(Math.round(b.top)) ?? []), b]);
+        expect(
+          [...rows.values()].map((r) => r.length),
+          path
+        ).toEqual([2, 2]);
+        for (const b of boxes)
+          expect(Math.abs(b.width - boxes[0].width), path).toBeLessThanOrEqual(1);
       }
     });
 
