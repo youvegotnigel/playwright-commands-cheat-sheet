@@ -37,10 +37,14 @@ test.describe('Async guide: page shell', () => {
     });
   }
 
-  test('meta-bar shows only the playwright and last-updated badges', async ({ page }) => {
+  test('meta-bar shows the playwright, last-updated and visitors badges', async ({ page }) => {
     await page.goto('/async.html');
 
-    await expect(page.locator('.meta-badge .k')).toHaveText(['playwright', 'last updated']);
+    await expect(page.locator('.meta-badge .k')).toHaveText([
+      'playwright',
+      'last updated',
+      'visitors',
+    ]);
     await expect(page.locator('#last-updated')).toHaveText(MOCK_DATE);
   });
 

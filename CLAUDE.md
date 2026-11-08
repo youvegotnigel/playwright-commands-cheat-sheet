@@ -324,8 +324,10 @@ rendered by the shared `js/guide.js`.
   Shared helpers live in `tests/helpers/guide.js`. Update the specs alongside any intended
   content or colour change.
 - **Copy buttons** copy the snippet's source string from `SECTIONS`, not the DOM text.
-- Dark only, no Google Fonts or CDN, and no popularity tracking. `visitor-counter.js` is loaded
-  (one count per session across all pages); `visitor-display.js` is not.
+- Dark only, no Google Fonts or CDN, and no popularity tracking. Both `visitor-counter.js`
+  (one count per session across all pages) and `visitor-display.js` are loaded, so every page's
+  meta-bar shows the playwright, last-updated and visitors badges (the commands count is
+  dashboard-only).
 - `categories` is a window global on the dashboard only. On a guide, import
   `./js/data/index.js` instead.
 - **Adding a guide:** a `js/<name>.js` data module, a page copied from `locators.html`, a tab with
