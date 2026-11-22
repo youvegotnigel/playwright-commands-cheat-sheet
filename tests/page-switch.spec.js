@@ -173,7 +173,8 @@ test.describe('Cross-page', () => {
     }
   });
 
-  // Read time: every word a guide's SECTIONS shows (titles, notes, headers, cells, code)
+  // Read time: every word a guide's SECTIONS shows (titles, taglines, notes, lead's notes,
+  // headers, cells, code)
   // at 200 words a minute, rounded, never under a minute
   test('each guide shows a read time worked out from its own content', async ({ page }) => {
     for (const { path, sections } of PAGES.filter((p) => p.sections)) {
@@ -182,7 +183,9 @@ test.describe('Cross-page', () => {
         const text = window[name]
           .flatMap((s) => [
             s.title,
+            s.tagline ?? '',
             s.note ?? '',
+            s.lead ?? '',
             ...s.cols,
             ...s.rows.flatMap((r) => r.slice(0, 3)),
           ])
@@ -200,11 +203,11 @@ test.describe('Cross-page', () => {
       await expect(page.locator('#read-time'), path).toHaveText(/^\d+ min$/);
       times[path] = parseInt(await page.locator('#read-time').textContent(), 10);
     }
-    // Waits is the shortest guide and Async the longest
+    // Waits is the shortest guide and the API testing mind map the longest
     const shortest = Math.min(...Object.values(times));
     const longest = Math.max(...Object.values(times));
     expect(times['/waiting.html']).toBe(shortest);
-    expect(times['/async.html']).toBe(longest);
+    expect(times['/api-testing.html']).toBe(longest);
     expect(longest).toBeGreaterThan(shortest);
   });
 
@@ -236,7 +239,7 @@ test.describe('Cross-page', () => {
 
 /* ── PHONE LAYOUT ──────────────────────────────────────────────── */
 // Below 600px the tabs wrap into at most two centred rows of equal-width pills,
-// ceil(n / 2) on the first row. Four tabs make 2 + 2, five make 3 + 2.
+// ceil(n / 2) on the first row. Four tabs make 2 + 2, five make 3 + 2, six make 3 + 3.
 async function tabRows(page) {
   return page.evaluate(() => {
     const switcher = document.querySelector('.page-switch');
@@ -314,18 +317,20 @@ test.describe('Phone layout', () => {
       }
     });
 
-    test(`the phone layout holds for five tabs (${width}px)`, async ({ page }) => {
+    // Six tabs fill 3 + 3; with one tab fewer the same rule gives 3 + 2
+    test(`the phone layout holds with one tab fewer (${width}px)`, async ({ page }) => {
       await page.setViewportSize({ width, height: 740 });
       for (const { path } of PAGES) {
         await page.goto(path);
         await page.evaluate(() => {
           const switcher = document.querySelector('.page-switch');
-          const extra = switcher.lastElementChild.cloneNode(true);
-          extra.removeAttribute('aria-current');
-          switcher.append(extra);
+          [...switcher.children]
+            .reverse()
+            .find((t) => !t.hasAttribute('aria-current'))
+            .remove();
         });
         const layout = await tabRows(page);
-        expectTidyRows(layout, COUNT + 1, `${path} at ${width}`);
+        expectTidyRows(layout, COUNT - 1, `${path} at ${width}`);
       }
     });
   }
@@ -397,6 +402,10 @@ test.describe('Page tabs: icon animation on click', () => {
     await tab(page, 'Mocks').click();
     await expect(page.locator('.page-tab[aria-current] svg.icon-mocking')).toHaveClass(/\bplay\b/);
     expect(await accentAnimation('mocking')).toBe('reply-slide');
+
+    await tab(page, 'API Tests').click();
+    await expect(page.locator('.page-tab[aria-current] svg.icon-api')).toHaveClass(/\bplay\b/);
+    expect(await accentAnimation('api')).toBe('node-pop');
 
     await tab(page, 'Waits').click();
     await expect(page.locator('.page-tab[aria-current] svg.icon-waiting')).toHaveClass(/\bplay\b/);

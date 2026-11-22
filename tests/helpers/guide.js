@@ -2,7 +2,8 @@
 
 export const MOCK_DATE = '2025-12-25';
 
-// Every page that carries the Commands / Waits / Selectors / Async / Mocks page switch, in tab order.
+// Every page that carries the Commands / Waits / Selectors / Async / Mocks / API Tests page switch,
+// in tab order.
 // accent is the computed stroke colour of the tab icon's .accent part. sections names a
 // guide's SECTIONS window global (the dashboard has none).
 export const PAGES = [
@@ -34,6 +35,13 @@ export const PAGES = [
     icon: 'mocking',
     accent: 'rgb(251, 191, 36)',
     sections: 'mockingSections',
+  },
+  {
+    path: '/api-testing.html',
+    tab: 'API Tests',
+    icon: 'api',
+    accent: 'rgb(254, 182, 113)',
+    sections: 'apiSections',
   },
 ];
 
