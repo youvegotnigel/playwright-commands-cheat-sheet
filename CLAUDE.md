@@ -85,8 +85,10 @@ playwright-commands-cheat-sheet/
 │   ├── async-guide.spec.js       # Async guide + async content rules (floating promises, multi-user)
 │   ├── mocking-guide.spec.js     # Mocking guide + mocking content rules (awaited routes, resolved handlers)
 │   ├── api-guide.spec.js         # API testing mind map: map, sections, API content rules
+│   ├── guide-renderer.spec.js    # Unit: inline(), tagline, lead, shell highlighting, read time
+│   ├── mind-map.spec.js          # Unit: renderMindMap() on a fixture map: markup, crumbs, links
 │   ├── page-switch.spec.js       # Page switch, cross-page checks, phone tab layout, tab animation
-│   └── helpers/guide.js          # Shared guide spec helpers (mocks, contrast, bracket balance)
+│   └── helpers/guide.js          # Shared guide spec helpers (mocks, contrast, bracket balance, unit harness)
 ├── supabase/
 │   ├── migrations/
 │   │   ├── 0001_visits_counter.sql       # Visitor counter table + RPC + RLS
@@ -380,6 +382,23 @@ Tests reach internal state via window globals:
 const categories = await page.evaluate(() => window.categories);
 const highlighted = await page.evaluate(() => window.highlight('await page.click()'));
 ```
+
+### Unit-testing the guide renderer and the mind map
+
+`openHarness(page)` in `tests/helpers/guide.js` serves a bare guide shell at `/__unit__.html`
+through `page.route()` (so no test-only file ships with the site). Specs then import the real
+modules in the page and call them on small fixture data:
+
+```js
+await openHarness(page);
+await page.evaluate(async (secs) => {
+  const { renderGuide } = await import('/js/guide.js');
+  renderGuide(secs, { linkColumns: {} });
+}, sections);
+```
+
+`tests/guide-renderer.spec.js` and `tests/mind-map.spec.js` use it. Add a case there when you
+change `js/guide.js` or `js/mind-map.js`.
 
 ### Mocking Supabase
 

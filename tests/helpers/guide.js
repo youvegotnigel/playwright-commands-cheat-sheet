@@ -67,6 +67,27 @@ export async function mockBackends(page) {
   return state;
 }
 
+// A bare guide shell for unit tests of js/guide.js and js/mind-map.js. It is served by a route,
+// so no test-only file ships with the site: the modules are imported in the page with
+// `await import('/js/guide.js')` and called on fixture data.
+export const HARNESS = '/__unit__.html';
+export async function openHarness(page) {
+  await mockBackends(page);
+  await page.route(`**${HARNESS}`, (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/style.css"></head><body>
+        <div class="meta-bar"><span id="pw-version">v0</span><span id="last-updated">x</span>
+        <span id="read-time">-</span></div>
+        <main class="guide container"><nav id="mindmap" class="mindmap"></nav>
+        <nav id="toc"></nav><div id="content"></div></main></body></html>`,
+    })
+  );
+  await page.goto(HARNESS);
+}
+
 // Contrast ratio of an element's text against what is actually painted behind it
 // (semi-transparent backgrounds composited over their ancestors), per WCAG 2.x
 export async function contrastOf(page, selector) {

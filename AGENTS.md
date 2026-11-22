@@ -285,10 +285,13 @@ Playwright, configured in `playwright.config.js`. Projects: `chromium`,
   `meta-bar.spec.js` (meta bar + visitor counter), `highlight.spec.js` (highlighter),
   `waiting-guide.spec.js` (waiting guide page), `locator-guide.spec.js` (locator guide),
   `async-guide.spec.js` (async guide and its content rules), `mocking-guide.spec.js` (mocking guide and
-  its content rules), `api-guide.spec.js` (API testing mind map and its content rules) and `page-switch.spec.js` (the page
+  its content rules), `api-guide.spec.js` (API testing mind map and its content rules), `guide-renderer.spec.js` and
+  `mind-map.spec.js` (unit tests of `js/guide.js` and `js/mind-map.js` on fixture data, through
+  the `openHarness()` page) and `page-switch.spec.js` (the page
   switch, cross-page checks, phone tab layout and tab animation, driven by `PAGES`).
   `tests/helpers/guide.js` holds the guide specs' shared helpers (`PAGES`, `fallbacks`, backend
-  mocks, contrast, bracket balance).
+  mocks, contrast, bracket balance, and `openHarness()`, a bare guide shell served by a route
+  at `/__unit__.html` for unit tests).
 
 ## Lint / format
 

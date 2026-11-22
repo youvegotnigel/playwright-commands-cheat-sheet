@@ -84,15 +84,17 @@ test.describe('Page switch', () => {
     for (const height of tabs) expect(Math.abs(tabs[0] - height)).toBeLessThanOrEqual(1);
   });
 
-  test('every tab opens its page from every other page', async ({ page }) => {
-    for (const from of PAGES) {
+  // One test per starting page: every page to every page in a single test grows with the
+  // square of the page count, and with six pages it ran out of its 30s on CI WebKit
+  for (const from of PAGES) {
+    test(`every tab opens its page from the ${from.tab} page`, async ({ page }) => {
       for (const to of PAGES) {
         await page.goto(from.path);
         await tab(page, to.tab).click();
         await expectOpened(page, to);
       }
-    }
-  });
+    });
+  }
 
   test('navigates both ways', async ({ page }) => {
     await page.goto('/waiting.html');

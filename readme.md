@@ -76,6 +76,8 @@ playwright-commands-cheat-sheet/
 │   ├── async-guide.spec.js
 │   ├── mocking-guide.spec.js
 │   ├── api-guide.spec.js
+│   ├── guide-renderer.spec.js
+│   ├── mind-map.spec.js
 │   └── page-switch.spec.js
 ├── index.html
 ├── waiting.html
