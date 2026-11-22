@@ -215,7 +215,7 @@ pre {
   padding: 60px 20px; color: #94a3b8; font-size: 15px;
 }
 
-/* Page switch: Commands / Waits / Selectors / Async. Same pill look as .filter-btn. */
+/* Page switch: Commands / Waits / Selectors / Async / Mocks / API Tests. Same pill look as .filter-btn. */
 .page-switch { display: flex; justify-content: center; gap: 8px; padding: 14px 16px 0; }
 .page-tab {
   display: inline-flex; align-items: center; gap: 6px;
@@ -237,6 +237,7 @@ pre {
 .icon-locators { --accent: #c084fc; }
 .icon-async    { --accent: #f996a9; }
 .icon-mocking  { --accent: #fbbf24; }
+.icon-api      { --accent: #feb671; }
 
 /* Tab click: the icon plays once on the page it opens (js/page-tabs.js).
    Motion only when the user has not asked for less of it. */
@@ -259,6 +260,10 @@ pre {
   .icon-async.play .handoff { stroke-dasharray: 24; animation: handoff 0.9s ease-in-out; }
   /* Mocking: the reply arrow slides back in after the request goes out */
   .icon-mocking.play .reply { animation: reply-slide 0.9s cubic-bezier(.3,1.4,.5,1); }
+  /* API: the braces open and the node in the middle pops, like a branch being added */
+  .icon-api.play .node { animation: node-pop 0.9s cubic-bezier(.3,1.6,.5,1); }
+  .icon-api.play .brace-l { animation: brace-open-l 0.9s ease-in-out; }
+  .icon-api.play .brace-r { animation: brace-open-r 0.9s ease-in-out; }
 }
 @keyframes tile-pop { from { transform: scale(0); opacity: 0; } }
 @keyframes spin-back { from { transform: rotate(-360deg); } }
@@ -266,6 +271,9 @@ pre {
 @keyframes cursor-press { 50% { transform: scale(0.7); } }
 @keyframes handoff { from { stroke-dashoffset: 24; } }
 @keyframes reply-slide { from { transform: translateX(6px); opacity: 0; } }
+@keyframes node-pop { 0%, 30% { transform: scale(0); } }
+@keyframes brace-open-l { 40% { transform: translateX(-1.5px); } }
+@keyframes brace-open-r { 40% { transform: translateX(1.5px); } }
 .page-tab[aria-current="page"] {
   background: rgba(255,255,255,0.18); color: #fff;
   outline: 2px solid rgba(255,255,255,0.25);
@@ -352,7 +360,8 @@ pre {
   .guide tr.flag { box-shadow: inset 3px 0 0 #fb923c; }
 }
 /* Phones: the tabs wrap into at most two centred rows of equal-width pills, ceil(n / 2) on the
-   first row (2 + 2 for four tabs, 3 + 2 for five). --cols is 2 by default, 3 from a fifth tab. */
+   first row (2 + 2 for four tabs, 3 + 2 for five, 3 + 3 for six). --cols is 2 by default, 3 from
+   a fifth tab. */
 @media (max-width: 600px) {
   .page-switch { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; --cols: 2; }
   .page-switch:has(> .page-tab:nth-child(5)) { --cols: 3; }
@@ -368,3 +377,118 @@ pre {
   white-space: pre; word-break: normal; overflow-x: auto;
 }
 .guide pre code { font: inherit; }
+
+/* Section extras (any guide): a one-line takeaway under the heading, and a lead's note callout
+   after the table, in the dashboard's modal-tip style */
+.guide .tagline { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.45; color: #e2e8f0; max-width: 80ch; }
+.guide .lead-note {
+  margin: 0; max-width: 90ch; background: #1e293b; border-left: 3px solid #38bdf8;
+  padding: 10px 14px; border-radius: 0 8px 8px 0; color: #cbd5e1; font-size: 14px; line-height: 1.6;
+}
+.guide .lead-note strong { color: #38bdf8; }
+.guide .foot {
+  border-top: 1px solid #334155; padding-top: 16px; margin-top: 8px;
+  color: #94a3b8; font-size: 13px; line-height: 1.6;
+}
+.guide .foot p { margin: 0 0 8px; max-width: 90ch; }
+.guide .foot a { color: #38bdf8; }
+
+/* Mind map (api-testing.html, js/mind-map.js): the root in the middle, groups 1 to 4 read
+   clockwise around it, curved links drawn in an SVG behind. Group colours reuse the tile
+   families: Setup blue, Acting green, Checking orange, Structure rose. Fixtures are gold. */
+.guide .mindmap {
+  position: relative; display: grid; gap: 22px 72px; margin: 4px 0 10px; padding: 22px;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 210px) minmax(0, 1fr);
+  grid-template-areas: "g1 root g2" "g4 root g3";
+  border: 1px solid #334155; border-radius: 12px;
+}
+.guide .mm-g0 { --fam: #94a3b8; }
+.guide .mm-g1 { --fam: #76bafe; }
+.guide .mm-g2 { --fam: #3ec87d; }
+.guide .mm-g3 { --fam: #feb671; }
+.guide .mm-g4 { --fam: #f996a9; }
+/* Placement only for the groups inside the map: breadcrumbs share the colour classes */
+.guide .mindmap > .mm-g1 { grid-area: g1; }
+.guide .mindmap > .mm-g2 { grid-area: g2; }
+.guide .mindmap > .mm-g3 { grid-area: g3; }
+.guide .mindmap > .mm-g4 { grid-area: g4; }
+.guide .mm-links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+.guide .mm-link { fill: none; stroke-width: 1.6; opacity: 0.55; }
+.guide .mm-link.mm-g1 { stroke: #76bafe; }
+.guide .mm-link.mm-g2 { stroke: #3ec87d; }
+.guide .mm-link.mm-g3 { stroke: #feb671; }
+.guide .mm-link.mm-g4 { stroke: #f996a9; }
+.guide .mm-link.mm-heart { stroke: #fbbf24; stroke-width: 2.6; opacity: 0.85; }
+.guide .mm-root, .guide .mm-group { position: relative; min-width: 0; }
+
+.guide .mm-root {
+  grid-area: root; align-self: center; text-align: center;
+  background: #e2e8f0; color: #0f172a; border-radius: 16px; padding: 18px 14px;
+  box-shadow: 0 0 0 5px rgba(226,232,240,0.12);
+}
+.guide .mm-root p { margin: 0; }
+.guide .mm-root-title { font-size: 18px; font-weight: 700; line-height: 1.25; }
+.guide .mm-root-sub { font-size: 12.5px; color: #334155; margin-top: 4px !important; }
+.guide .mm-root-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px !important; }
+.guide .mm-root-links a {
+  font-size: 12px; font-weight: 700; color: #0f172a; text-decoration: none;
+  background: rgba(15,23,42,0.1); border-radius: 999px; padding: 3px 10px;
+}
+.guide .mm-root-links a:hover { background: rgba(15,23,42,0.2); }
+
+.guide .mm-group-title {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 10px;
+  font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fam);
+}
+.guide .mm-step {
+  display: inline-grid; place-items: center; width: 20px; height: 20px; flex: none;
+  border-radius: 50%; background: var(--fam); color: #0f172a; font-size: 12px; letter-spacing: 0;
+}
+.guide .mm-branches { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.guide .mm-node {
+  display: flex; align-items: baseline; gap: 8px; padding: 8px 12px; border-radius: 10px;
+  background: #1e293b; border: 1px solid #334155; color: #e2e8f0;
+  font-size: 14.5px; font-weight: 700; text-decoration: none;
+  box-shadow: inset 3px 0 0 var(--fam); transition: border-color 0.15s;
+}
+/* Left-hand groups face the root on their right edge */
+.guide .mm-g1 .mm-node, .guide .mm-g4 .mm-node { box-shadow: inset -3px 0 0 var(--fam); }
+.guide .mm-node:hover { border-color: var(--fam); }
+.guide .mm-num { font: 500 12px ui-monospace, Menlo, Consolas, monospace; color: var(--fam); }
+.guide .mm-heart .mm-node { background: #fbbf24; border-color: #fbbf24; color: #0f172a; box-shadow: none; }
+.guide .mm-heart .mm-num { color: #0f172a; }
+.guide .mm-heart .mm-node:hover { border-color: #f8fafc; }
+.guide .mm-leaves {
+  list-style: none; margin: 6px 0 0; padding: 0 4px;
+  display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 12.5px; line-height: 1.5; color: #94a3b8;
+}
+.guide .mm-leaves li::before { content: "•"; color: var(--fam); margin-right: 5px; }
+.guide .mm-leaves code.inl { font-size: 11.5px; padding: 0 5px; }
+.guide .mm-sub { color: #e2e8f0; text-decoration: none; border-bottom: 1px solid #475569; }
+.guide .mm-sub:hover { border-color: #e2e8f0; }
+.guide .mm-caption { margin-bottom: 18px; }
+
+/* Breadcrumb above each section heading: where it sits on the map, and the way back */
+.guide .mm-crumb {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0 0 -6px;
+  font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fam);
+}
+.guide .mm-crumb a {
+  margin-left: auto; color: #94a3b8; font-weight: 600; text-transform: none; letter-spacing: 0;
+  text-decoration: none; border-bottom: 1px solid #334155;
+}
+.guide .mm-crumb a:hover { color: #e2e8f0; border-color: #e2e8f0; }
+@media (prefers-reduced-motion: reduce) { .guide .mm-node { transition: none; } }
+
+/* Narrow screens: the map becomes a tree read top to bottom, root first, each group
+   hanging off a spine in its own colour */
+@media (max-width: 900px) {
+  .guide .mindmap {
+    grid-template-columns: minmax(0, 1fr); grid-template-areas: "root" "g1" "g2" "g3" "g4";
+    gap: 20px; padding: 14px;
+  }
+  .guide .mm-links { display: none; }
+  .guide .mm-branches { border-left: 2px solid var(--fam); margin-left: 9px; padding-left: 12px; }
+  .guide .mm-g1 .mm-node, .guide .mm-g4 .mm-node { box-shadow: inset 3px 0 0 var(--fam); }
+  .guide .mm-heart .mm-node { box-shadow: none; }
+}

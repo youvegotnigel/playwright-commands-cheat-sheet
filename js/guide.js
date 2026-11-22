@@ -1,15 +1,16 @@
 // =============================================================
-// guide.js — renders a guide page (waiting.html, locators.html)
+// guide.js — renders a guide page (waiting.html, locators.html, ...)
 // from its data module. Each module passes its SECTIONS and the
 // column, per section, whose method chips link to the dashboard.
 // Code is highlighted with the dashboard's own highlighter.
 // =============================================================
 
 import { categories } from './data/index.js';
-import { highlight } from './highlight.js';
+import { highlight, highlightShell } from './highlight.js';
 import { loadMetaBadges } from './meta-bar.js';
 
 /* ── MARKUP ───────────────────────────────────────────────────── */
+const LEAD_TITLE = "Lead's note.";
 const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 // The method a chip names: its last call (and that call's receiver), else the whole text.
@@ -39,9 +40,12 @@ function searchTerm(chip) {
   );
 }
 
+// Same rule as the dashboard: a snippet that starts with npx or a # comment is shell
+const highlightCode = (code) => (/^\s*(npx|#)/.test(code) ? highlightShell(code) : highlight(code));
+
 // Inline markup: `code` becomes a highlighted chip (a link when `link` is set and the
 // dashboard knows the method), <tag>X</tag> a warning tag
-function inline(text, link = false) {
+export function inline(text, link = false) {
   return text
     .split(/(`[^`]+`|<tag>[^<]+<\/tag>)/)
     .map((part) => {
@@ -81,6 +85,8 @@ async function copySnippet(btn, sections) {
 
 // Renders the TOC and section tables, wires the Copy buttons and fills the meta-bar.
 // linkColumns maps a section id to the column (0 or 1) whose chips link back.
+// Optional section fields: tagline (a one-line takeaway under the heading) and lead
+// (a callout after the table, titled leadTitle, by default "Lead's note.").
 export function renderGuide(sections, { linkColumns }) {
   const toc = document.getElementById('toc');
   const main = document.getElementById('content');
@@ -92,7 +98,7 @@ export function renderGuide(sections, { linkColumns }) {
       .map((r, row) => {
         const third = s.text
           ? inline(r[2])
-          : `<div class="block"><pre><code>${highlight(r[2])}</code></pre>
+          : `<div class="block"><pre><code>${highlightCode(r[2])}</code></pre>
             <button class="guide-copy" type="button" data-section="${n}" data-row="${row}">Copy</button></div>`;
         return `<tr class="${r[3] ? 'flag' : ''}">
           <td data-label="${esc(s.cols[0])}">${inline(r[0], linkCol === 0)}</td>
@@ -104,12 +110,14 @@ export function renderGuide(sections, { linkColumns }) {
       'beforeend',
       `<section id="${s.id}">
         <h2><span class="num">${num}</span>${esc(s.title)}</h2>
-        ${s.note ? `<p class="note">${esc(s.note)}</p>` : ''}
+        ${s.tagline ? `<p class="tagline">${inline(s.tagline)}</p>` : ''}
+        ${s.note ? `<p class="note">${inline(s.note)}</p>` : ''}
         <div class="table-card"><table>
           <colgroup><col class="c1"><col class="c2"><col class="c3"></colgroup>
           <thead><tr>${s.cols.map((c) => `<th scope="col">${esc(c)}</th>`).join('')}</tr></thead>
           <tbody>${rows}</tbody>
         </table></div>
+        ${s.lead ? `<p class="lead-note"><strong>${esc(s.leadTitle ?? LEAD_TITLE)}</strong> ${inline(s.lead)}</p>` : ''}
       </section>`
     );
   });
@@ -127,12 +135,20 @@ export function renderGuide(sections, { linkColumns }) {
 
 /* ── READ TIME ────────────────────────────────────────────────── */
 // The guide's meta-bar badge, in the slot the dashboard uses for its command count.
-// Counts every word the guide shows: titles, notes, column headers, cells and code.
+// Counts every word the guide shows: titles, taglines, notes, lead's notes, column headers,
+// cells and code.
 const WORDS_PER_MINUTE = 200;
 
 function readMinutes(sections) {
   const text = sections
-    .flatMap((s) => [s.title, s.note ?? '', ...s.cols, ...s.rows.flatMap((r) => r.slice(0, 3))])
+    .flatMap((s) => [
+      s.title,
+      s.tagline ?? '',
+      s.note ?? '',
+      s.lead ?? '',
+      ...s.cols,
+      ...s.rows.flatMap((r) => r.slice(0, 3)),
+    ])
     .join(' ');
   const words = text.split(/\s+/).filter(Boolean).length;
   return Math.max(1, Math.round(words / WORDS_PER_MINUTE));

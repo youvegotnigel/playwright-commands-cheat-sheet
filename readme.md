@@ -18,11 +18,12 @@ An interactive browser-based reference for Playwright users who want to quickly 
 - Search across name, description, tip, and code
 - Copy-to-clipboard on every snippet
 - Direct links to official Playwright docs
-- Four guide pages, reached from the **Commands / Waits / Selectors / Async / Mocks** tabs at the top of every page:
+- Five guide pages, reached from the **Commands / Waits / Selectors / Async / Mocks / API Tests** tabs at the top of every page:
   - **Waits** (the waiting guide): auto-waiting, explicit waits, timeouts and pitfalls
   - **Selectors** (the locator guide): the locator priority ladder, precise role locators, scoping and filtering, lists and tables, frames and shadow DOM, strict mode, and fragile vs robust locators
   - **Async** (the async guide): mastering async TypeScript in Playwright tests: forgotten awaits, loops, parallel work, tests with two or more browsers that talk to each other, events, fixtures and lint rules
   - **Mocks** (the network mocking guide): how much to fake, the four route outcomes, URL matching, handler order, HAR record and replay, WebSockets and offline, asserting on traffic and the mistakes that make mocked tests lie
+  - **API Tests** (the API testing mind map): a clickable mind map of a fixture-driven API test framework in TypeScript: framework structure, fixtures, config, authentication, GET / POST / PUT / PATCH / DELETE, assertions, other request options, API + UI hybrid tests, the runner and reports, sixteen junior mistakes with fixes, a summary and pro tips
 
   All have copyable examples and links back to the matching commands.
 
@@ -52,6 +53,8 @@ playwright-commands-cheat-sheet/
 │   ├── locators.js     # Locator guide content
 │   ├── async.js        # Async guide content
 │   ├── mocking.js      # Mocking guide content
+│   ├── api-testing.js  # API testing mind map content (SECTIONS + MIND_MAP)
+│   ├── mind-map.js     # Mind map renderer (branches, links, breadcrumbs)
 │   ├── page-tabs.js    # Page tab icon animation on click
 │   └── data/
 │       ├── index.js        # imports each category and exports `categories`
@@ -72,12 +75,16 @@ playwright-commands-cheat-sheet/
 │   ├── locator-guide.spec.js
 │   ├── async-guide.spec.js
 │   ├── mocking-guide.spec.js
+│   ├── api-guide.spec.js
+│   ├── guide-renderer.spec.js
+│   ├── mind-map.spec.js
 │   └── page-switch.spec.js
 ├── index.html
 ├── waiting.html
 ├── locators.html
 ├── async.html
 ├── mocking.html
+├── api-testing.html
 ├── playwright.config.js
 ├── style.css
 ├── package.json

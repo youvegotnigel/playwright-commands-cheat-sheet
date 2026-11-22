@@ -38,6 +38,7 @@ playwright-commands-cheat-sheet/
 ├── locators.html                 # Locator guide page: same shell as waiting.html
 ├── async.html                    # Async guide page: same shell as locators.html
 ├── mocking.html                  # Mocking guide page: same shell as locators.html
+├── api-testing.html              # API testing mind map page: same shell, plus nav#mindmap
 ├── style.css                     # Single stylesheet: dark theme, flat pastel category tile fills
 ├── js/
 │   ├── app.js                    # Primary logic: render, filter, search, modal, meta-bar (~350 lines)
@@ -48,6 +49,8 @@ playwright-commands-cheat-sheet/
 │   ├── locators.js               # Locator guide: SECTIONS content
 │   ├── async.js                  # Async guide: SECTIONS content
 │   ├── mocking.js                # Mocking guide: SECTIONS content
+│   ├── api-testing.js            # API testing mind map: SECTIONS + MIND_MAP content
+│   ├── mind-map.js               # renderMindMap(): mind map, curved links, section breadcrumbs
 │   ├── page-tabs.js              # Page tab icon animation after a tab click
 │   ├── popular-commands.js       # Command open tracking via Supabase (~95 lines)
 │   ├── visitor-counter.js        # Visitor increment on page load (~40 lines)
@@ -81,8 +84,11 @@ playwright-commands-cheat-sheet/
 │   ├── locator-guide.spec.js     # Locator guide + content rules
 │   ├── async-guide.spec.js       # Async guide + async content rules (floating promises, multi-user)
 │   ├── mocking-guide.spec.js     # Mocking guide + mocking content rules (awaited routes, resolved handlers)
+│   ├── api-guide.spec.js         # API testing mind map: map, sections, API content rules
+│   ├── guide-renderer.spec.js    # Unit: inline(), tagline, lead, shell highlighting, read time
+│   ├── mind-map.spec.js          # Unit: renderMindMap() on a fixture map: markup, crumbs, links
 │   ├── page-switch.spec.js       # Page switch, cross-page checks, phone tab layout, tab animation
-│   └── helpers/guide.js          # Shared guide spec helpers (mocks, contrast, bracket balance)
+│   └── helpers/guide.js          # Shared guide spec helpers (mocks, contrast, bracket balance, unit harness)
 ├── supabase/
 │   ├── migrations/
 │   │   ├── 0001_visits_counter.sql       # Visitor counter table + RPC + RLS
@@ -265,9 +271,9 @@ regex tokenization, so `Copy` always yields the original source exactly.
 
 ## Guide Pages
 
-`waiting.html`, `locators.html`, `async.html` and `mocking.html` are sister pages of the dashboard,
-reached through the **Commands / Waits / Selectors / Async / Mocks** page switch (`nav.page-switch`,
-links styled `.page-tab`, identical on all five pages except `aria-current`). Each guide is a data module plus one page,
+`waiting.html`, `locators.html`, `async.html`, `mocking.html` and `api-testing.html` are sister pages
+of the dashboard, reached through the **Commands / Waits / Selectors / Async / Mocks / API Tests** page
+switch (`nav.page-switch`, links styled `.page-tab`, identical on all six pages except `aria-current`). Each guide is a data module plus one page,
 rendered by the shared `js/guide.js`.
 
 - **Waiting guide** (`js/waiting.js`): a restyled port of the standalone "Playwright Waiting Cheat
@@ -285,13 +291,26 @@ rendered by the shared `js/guide.js`.
   and scope, HAR record and replay, WebSockets and offline, asserting on traffic, pitfalls (every
   row flagged, `// Wrong` then `// Right`) and a summary. Same healthcare-style app. Exposed as
   `window.mockingSections`.
+- **API testing mind map** (`js/api-testing.js`): seventeen sections on a fixture-driven API test
+  framework in TypeScript (key features, framework structure, fixtures, hooks vs fixtures, config,
+  auth, GET, POST, PUT/PATCH, DELETE + cleanup, assertions, other methods, API + UI hybrid, runner +
+  reports, sixteen junior mistakes flagged `// Avoid` then `// Do this`, summary, pro tips), plus
+  `MIND_MAP`: a root, four groups read clockwise (tile-family colours) and thirteen branches, one per
+  section, with leaves as memory joggers and Fixtures as the gold heart. `renderMindMap()` in
+  `js/mind-map.js` draws it into `nav#mindmap` after `renderGuide()`: curved SVG links redrawn on
+  resize, a stacked tree below 900px, and a breadcrumb with a link back to the map on every section.
+  The code is the verified reference suite (users API), kept verbatim. Exposed as
+  `window.apiSections` and `window.apiMindMap`.
 - **One renderer.** `renderGuide(sections, { linkColumns })` in `js/guide.js` draws the TOC and
   tables, wires the Copy buttons and calls `loadMetaBadges()`. Never fork it per guide.
 - **Content lives in each module's `SECTIONS`** (row = `[col1, col2, col3, flag?]`; a trailing
-  `true` flags the row). Backticks make a code chip and `<tag>X</tag>` makes a warning tag.
+  `true` flags the row). Optional section fields: `tagline` (one-line takeaway under the heading)
+  and `lead` (a callout after the table, titled `leadTitle`, default "Lead's note."). Backticks make a code chip and `<tag>X</tag>` makes a warning tag.
   `text: true` makes the third column prose. Exposed as `window.waitingSections` /
-  `window.locatorSections` / `window.asyncSections` / `window.mockingSections` for tests.
-- **Code uses the dashboard's `highlight()`**, so all pages share one token palette. The six
+  `window.locatorSections` / `window.asyncSections` / `window.mockingSections` /
+  `window.apiSections` for tests.
+- **Code uses the dashboard's `highlight()`**, so all pages share one token palette (a snippet
+  that starts with `npx` or a `#` comment uses `highlightShell()`, as on the dashboard). The six
   `.tok-*` rules in `style.css` match `#m-code` and `.guide`.
 - **All guide CSS is scoped under `.guide`.** The global `pre` rule and generic class names would
   otherwise collide with the dashboard.
@@ -301,15 +320,15 @@ rendered by the shared `js/guide.js`.
   chip no command name mentions is not a link, so a link never lands on an empty grid.
 - **Page tabs** carry custom inline SVG icons (`svg.tab-icon.icon-<page>`, `aria-hidden`,
   `focusable="false"`), so the tabs are announced as plain text. Lines use `currentColor`; one
-  `.accent` part takes the page colour from `--accent` (green, sky, purple, rose, amber). `js/page-tabs.js`
+  `.accent` part takes the page colour from `--accent` (green, sky, purple, rose, amber, peach). `js/page-tabs.js`
   plays the landing page's icon animation after every tab click (a `sessionStorage` flag set on
   click; storage errors just skip it). All motion sits inside
   `@media (prefers-reduced-motion: no-preference)`. Each icon's animation is scoped to its own
   `.icon-<page>` class. Below 600px the tabs wrap into at most two centred rows of equal-width
-  pills (`--cols` is 2, or 3 once there is a fifth tab, so four tabs make 2 + 2 and five make
-  3 + 2); from 600px they share one row.
+  pills (`--cols` is 2, or 3 once there is a fifth tab, so four tabs make 2 + 2, five make
+  3 + 2 and six make 3 + 3); from 600px they share one row.
 - **Specs pin content and colours.** `tests/waiting-guide.spec.js`,
-  `tests/locator-guide.spec.js`, `tests/async-guide.spec.js` and `tests/mocking-guide.spec.js` check every cell against `SECTIONS`, the colour palette, WCAG AA
+  `tests/locator-guide.spec.js`, `tests/async-guide.spec.js`, `tests/mocking-guide.spec.js` and `tests/api-guide.spec.js` check every cell against `SECTIONS`, the colour palette, WCAG AA
   contrast, and that tokens, header, meta-bar and tabs match the dashboard. The locator spec also
   enforces its content rules: discouraged patterns only on flagged rows, `// Fragile` before
   `// Robust`, version notes no newer than the pinned `@playwright/test`, and balanced brackets
@@ -319,7 +338,10 @@ rendered by the shared `js/guide.js`.
   they open, and hand-offs that wait on the receiving side. The mocking spec enforces its own rules:
   unflagged routes are awaited, registered before `page.goto(` and resolved (`fulfill`, `continue`,
   `fallback` or `abort`), JSON replies use `json:` not `body: JSON.stringify(`, and every pitfall
-  shows `// Wrong` then `// Right`. `tests/page-switch.spec.js` holds the
+  shows `// Wrong` then `// Right`. The API spec enforces awaited `toBeOK()` / `.rejects`, a
+  `ctx.dispose()` for every `newContext(`, discouraged patterns (axios, `data: JSON.stringify(`,
+  sleeps) only on the sixteen flagged pitfalls, and that every section is reachable from the map.
+  `tests/page-switch.spec.js` holds the
   page switch, cross-page, phone layout and tab animation tests, driven by `PAGES`.
   Shared helpers live in `tests/helpers/guide.js`. Update the specs alongside any intended
   content or colour change.
@@ -360,6 +382,23 @@ Tests reach internal state via window globals:
 const categories = await page.evaluate(() => window.categories);
 const highlighted = await page.evaluate(() => window.highlight('await page.click()'));
 ```
+
+### Unit-testing the guide renderer and the mind map
+
+`openHarness(page)` in `tests/helpers/guide.js` serves a bare guide shell at `/__unit__.html`
+through `page.route()` (so no test-only file ships with the site). Specs then import the real
+modules in the page and call them on small fixture data:
+
+```js
+await openHarness(page);
+await page.evaluate(async (secs) => {
+  const { renderGuide } = await import('/js/guide.js');
+  renderGuide(secs, { linkColumns: {} });
+}, sections);
+```
+
+`tests/guide-renderer.spec.js` and `tests/mind-map.spec.js` use it. Add a case there when you
+change `js/guide.js` or `js/mind-map.js`.
 
 ### Mocking Supabase
 
@@ -420,7 +459,7 @@ await page.addInitScript(() => { Object.defineProperty(navigator, 'webdriver', {
 
 - **No build step.** Never introduce a bundler, transpiler, or import from a CDN. The app must work by opening `index.html` directly with a static file server.
 - **`npm run lint` covers `js/` only.** `eslint.config.js` does define a `tests/**/*.js` block, but the `lint` script runs `eslint js/`, so test files are Prettier-formatted and never linted in practice. Pass `npx eslint tests/` explicitly if you want them checked.
-- **Meta-bar fallbacks live in five pages.** `index.html`, `waiting.html`, `locators.html`, `async.html` and `mocking.html` all hold `#pw-version` and `#last-updated` fallback values, shown when the runtime fetches fail. Bump all five on a Playwright release (a cross-page test checks they match).
+- **Meta-bar fallbacks live in six pages.** `index.html`, `waiting.html`, `locators.html`, `async.html`, `mocking.html` and `api-testing.html` all hold `#pw-version` and `#last-updated` fallback values, shown when the runtime fetches fail. Bump all six on a Playwright release (a cross-page test checks they match).
 - **`js/meta.json` is auto-updated by CI.** Do not manually edit it; the `stamp-date.yml` workflow overwrites it on every push to master. Those stamp commits land only on master, so a stale date on `develop` is expected, and editing the file there makes the PR conflict.
 - **Supabase URLs are public but RLS-protected.** The Supabase project URL and anon key are intentionally embedded in client-side JS. RLS policies ensure users can only increment counts, never read raw rows directly (aggregates only).
 - **`data-integrity.spec.js` is your schema enforcer.** Run it after any change to `js/data/`. It validates required fields, the level enum, docs URLs, global name uniqueness, and the dash ban. It checks `code` length only — it does **not** parse the snippet, so a syntax error in an example will ship silently. Read your example back before committing.

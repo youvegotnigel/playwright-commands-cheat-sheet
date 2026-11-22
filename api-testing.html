@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🗺️ Playwright API Testing Mind Map</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <img class="header-logo" src="images/playwright-logo.svg" alt="Playwright logo" width="44" height="44" />
+  <span>Playwright Commands Dashboard</span>
+  <img class="header-logo" src="images/playwright-logo.svg" alt="" aria-hidden="true" width="44" height="44" />
+</header>
+
+<div class="meta-bar">
+  <span class="meta-badge"><span class="k">playwright</span><span class="v" style="background:#22c55e" id="pw-version">v1.65.0</span></span>
+  <span class="meta-badge"><span class="k">last updated</span><span class="v" style="background:#38bdf8" id="last-updated">2026-11-07</span></span>
+  <span class="meta-badge"><span class="k">read time</span><span class="v" style="background:#a855f7" id="read-time">—</span></span>
+  <span class="meta-badge visitor-counter"><span class="k">visitors</span><span class="v" style="background:#fb923c" id="visitor-count-number">—</span></span>
+</div>
+
+<nav class="page-switch" aria-label="Pages">
+  <a class="page-tab" href="index.html"><svg class="tab-icon icon-commands" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><rect class="accent solid" x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="2.5" y="11.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="11.5" width="6" height="6" rx="1.5"/></svg>Commands</a>
+  <a class="page-tab" href="waiting.html"><svg class="tab-icon icon-waiting" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><g class="loop"><path d="M13.5 3.94A7 7 0 1 1 6.5 3.94"/><path d="M3.5 3.7L6.5 3.94L5.2 6.66"/></g><path class="accent" d="M10 6.5V10l2.5 1.5"/></svg>Waits</a>
+  <a class="page-tab" href="locators.html"><svg class="tab-icon icon-locators" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path class="frame" d="M2.5 6.5V4A1.5 1.5 0 0 1 4 2.5h2.5M13.5 2.5H16A1.5 1.5 0 0 1 17.5 4v2.5M17.5 13.5V16a1.5 1.5 0 0 1-1.5 1.5h-2.5M6.5 17.5H4A1.5 1.5 0 0 1 2.5 16v-2.5"/><path class="accent solid cursor" d="M7 6.3l7.2 3.4-3.1 1.1 1.9 3.4-1.5.8-1.9-3.4-2.6 2.3z"/></svg>Selectors</a>
+  <a class="page-tab" href="async.html"><svg class="tab-icon icon-async" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 4.5h14"/><path d="M3 15.5h14"/><path class="accent handoff" d="M6 4.5c0 5 8 2.5 8 9.5l-2.3-2.6 2.3 2.6 2.3-2.6"/></svg>Async</a>
+  <a class="page-tab" href="mocking.html"><svg class="tab-icon icon-mocking" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 6h11"/><path d="M11 3l3 3-3 3"/><g class="accent reply"><path d="M17 14H6"/><path d="M9 11l-3 3 3 3"/></g></svg>Mocks</a>
+  <a class="page-tab" href="api-testing.html" aria-current="page"><svg class="tab-icon icon-api" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path class="brace-l" d="M7 3.5C5.3 3.5 4.5 4.3 4.5 5.8v2c0 1.2-.6 1.9-1.8 2.2 1.2.3 1.8 1 1.8 2.2v2c0 1.5.8 2.3 2.5 2.3"/><path class="brace-r" d="M13 3.5c1.7 0 2.5.8 2.5 2.3v2c0 1.2.6 1.9 1.8 2.2-1.2.3-1.8 1-1.8 2.2v2c0 1.5-.8 2.3-2.5 2.3"/><circle class="accent solid node" cx="10" cy="10" r="1.9"/></svg>API Tests</a>
+</nav>
+
+<main class="guide container">
+  <h1>Playwright API Testing Mind Map</h1>
+  <p class="lede">Fixture-driven framework structure, every request method, assertions and the mistakes juniors make, in TypeScript. Start at the centre, follow the branches clockwise from 1 to 4, and click any node to jump to working code.</p>
+  <div class="pills" aria-label="Verification">
+    <span class="pill">Verified on 1.65.1</span><span class="pill">19 / 19 reference tests green</span><span class="pill">13 branches</span>
+  </div>
+  <nav id="mindmap" class="mindmap" aria-label="Mind map"></nav>
+  <p class="note mm-caption">Fixtures (gold) sit at the heart of the framework: every example on this page gets its clients, contexts and data from them.</p>
+  <nav id="toc" aria-label="Sections"></nav>
+  <div id="content"></div>
+  <footer class="foot">
+    <p>Every TypeScript snippet on this page was type-checked, and the fixture-based API suite runs green on @playwright/test 1.65.1 against a local stub service: 19 of 19 tests, and 55 of 55 when shuffled and repeated three times across 4 workers, 22 Nov 2026. Version tags show when a feature arrived.</p>
+    <p>Sources: <a href="https://playwright.dev/docs/api-testing">API testing guide</a>, <a href="https://playwright.dev/docs/test-fixtures">Fixtures</a>, <a href="https://playwright.dev/docs/api/class-apirequestcontext">APIRequestContext</a>, <a href="https://playwright.dev/docs/api/class-apiresponse">APIResponse</a>, <a href="https://playwright.dev/docs/api/class-apiresponseassertions">APIResponseAssertions</a>, <a href="https://playwright.dev/docs/api/class-apirequest">APIRequest.newContext</a>, <a href="https://playwright.dev/docs/release-notes">Release notes</a>.</p>
+  </footer>
+</main>
+
+<script type="module" src="js/api-testing.js"></script>
+<script type="module" src="js/page-tabs.js"></script>
+<script src="js/visitor-counter.js" defer></script>
+<script src="js/visitor-display.js" defer></script>
+
+</body>
+</html>

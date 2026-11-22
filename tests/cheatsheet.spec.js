@@ -370,7 +370,9 @@ test.describe('Keyboard shortcuts', () => {
   });
 
   test('Ctrl+K focuses the search input', async ({ page }) => {
-    await page.locator('body').click(); // ensure focus is away from search
+    // ensure focus is away from search. The header has no links: a body click lands on the
+    // centre of a very tall page, which on phones is the page switch.
+    await page.locator('header').click();
     await page.keyboard.press('Control+k');
     const isFocused = await page
       .locator('#search-input')

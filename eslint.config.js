@@ -25,6 +25,8 @@ export default [
         sessionStorage: 'readonly',
         AbortSignal: 'readonly',
         IntersectionObserver: 'readonly',
+        ResizeObserver: 'readonly',
+        getComputedStyle: 'readonly',
       },
     },
     rules: {
