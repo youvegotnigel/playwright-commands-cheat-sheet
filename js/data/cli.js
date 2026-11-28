@@ -404,7 +404,7 @@ PLAYWRIGHT_SKIP_BROWSER_GC=1 npx playwright install
       tip: 'Check this when debugging unexpected behaviour. The Playwright version and the browser binaries must be in sync.',
       docs: 'https://playwright.dev/docs/test-cli',
       code: `npx playwright --version
-# Prints the installed version, e.g. Version 1.65.0`,
+# Prints the installed version, e.g. Version 1.65.1`,
     },
 
     {
